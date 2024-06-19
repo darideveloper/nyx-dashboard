@@ -7,7 +7,6 @@ temp.*
 venv
 .env
 debug.*
-settings.py
 db.*
 *.sqlite3
 *.pyc
