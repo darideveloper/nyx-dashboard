@@ -16,17 +16,23 @@ class LandingViewsTestCase(TestCase):
     def test_text_api(self):
         """ Get data from text api, and validate json response """
         
+        category = models.category.objects.create(
+            name='test_category'
+        )
+        
         # Add text to table
         text_1 = models.Text.objects.create(
             key='test_key_1',
             value='test_value_1',
-            link='http://test.com'
+            link='http://test.com',
+            category=category
         )
         
         text_2 = models.Text.objects.create(
             key='test_key_2',
             value='test_value_2',
-            link=''
+            link='',
+            category=category
         )
         
         # Request api and validate response
@@ -40,12 +46,14 @@ class LandingViewsTestCase(TestCase):
             {
                 'key': text_1.key,
                 'value': text_1.value,
-                'link': text_1.link
+                'link': text_1.link,
+                'category': category.name
             },
             {
                 'key': text_2.key,
                 'value': text_2.value,
-                'link': text_2.link
+                'link': text_2.link,
+                'category': category.name
             }
         ]
         self.assertEqual(json_data_response, json_data_expected)

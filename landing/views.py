@@ -15,7 +15,8 @@ def TextApi(request):
     texts_data = list(map(lambda text: {
         'key': text.key,
         'value': text.value,
-        'link': text.link
+        'link': text.link,
+        'category': text.category.name
     }, texts))
     
     return JsonResponse({

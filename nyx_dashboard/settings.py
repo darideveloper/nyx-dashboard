@@ -252,6 +252,6 @@ JAZZMIN_SETTINGS = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "https://www.nyxtrackers.com/",
-    "http://localhost:5173/",
+    "https://www.nyxtrackers.com",
+    "http://localhost:5173",
 ]
