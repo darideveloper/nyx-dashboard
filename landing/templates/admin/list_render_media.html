@@ -1,0 +1,51 @@
+{% extends 'admin/change_list.html' %}
+{% load static %}
+
+{% block footer %}
+{{ block.super }}
+
+<!-- Render images fields instead of show link -->
+<script>
+
+  // Sarch images cells
+  const selector_media_cell = ".field-image > a"
+  const media_cells = document.querySelectorAll(selector_media_cell)
+
+  // Create images and replace links
+  media_cells.forEach (media_cell => {
+
+    const link = media_cell.href
+
+    let media_elem
+    if (link.includes(".mp4")) {
+
+      // Render video iframe
+      media_elem = document.createElement("video")
+      media_elem.classList.add("video")
+    } else {
+      // Render image
+      media_elem = document.createElement("img")
+      media_elem.classList.add("image")
+    }
+    media_elem.src = link
+    media_cell.innerHTML = ""
+    media_cell.appendChild(media_elem)
+
+    // set _blank target
+    media_cell.target = "_blank"
+  })
+
+  </script>
+
+  <style>
+    .image, .video {
+      width: 100px;
+      height: auto;
+    }
+
+    #result_list td.field-image, #result_list td.field-logo {
+      text-align: left;
+    }
+  </style>
+
+{% endblock %}
