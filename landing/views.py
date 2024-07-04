@@ -8,7 +8,7 @@ def home(request):
     return redirect('/admin/')
 
 
-def TextApi(request):
+def get_texts(request):
     """ Return all texts as json """
     
     texts = models.Text.objects.all()
@@ -21,4 +21,34 @@ def TextApi(request):
     
     return JsonResponse({
         "data": texts_data
+    })
+    
+    
+def get_images(request):
+    """ Return all images as json """
+    
+    images = models.Image.objects.all()
+    images_data = list(map(lambda image: {
+        'key': image.key,
+        'image': image.image.url,
+        'category': image.category.name
+    }, images))
+    
+    return JsonResponse({
+        "data": images_data
+    })
+    
+
+def get_videos(request):
+    """ Return all videos as json """
+    
+    videos = models.Video.objects.all()
+    videos_data = list(map(lambda video: {
+        'key': video.key,
+        'video': video.video.url,
+        'category': video.category.name
+    }, videos))
+    
+    return JsonResponse({
+        "data": videos_data
     })
