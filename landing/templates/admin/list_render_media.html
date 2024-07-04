@@ -8,7 +8,7 @@
 <script>
 
   // Sarch images cells
-  const selector_media_cell = ".field-image > a"
+  const selector_media_cell = ".field-image > a, .field-video > a"
   const media_cells = document.querySelectorAll(selector_media_cell)
 
   // Create images and replace links
@@ -18,7 +18,6 @@
 
     let media_elem
     if (link.includes(".mp4")) {
-
       // Render video iframe
       media_elem = document.createElement("video")
       media_elem.classList.add("video")
