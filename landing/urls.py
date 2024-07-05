@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     
     # Api endpoints
+    path('api/batch/', views.get_batch, name='batch'),
     path('api/texts/', views.get_texts, name='texts'),
     path('api/images/', views.get_images, name='images'),
     path('api/videos/', views.get_videos, name='videos'),

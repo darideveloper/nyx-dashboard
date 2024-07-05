@@ -1,6 +1,7 @@
-from django.shortcuts import redirect
-from django.http import JsonResponse
+import json
 from landing import models
+from django.http import JsonResponse
+from django.shortcuts import redirect
 
 
 def home(request):
@@ -20,7 +21,7 @@ def get_texts(request):
     }, texts))
     
     return JsonResponse({
-        "data": texts_data
+        "texts": texts_data
     })
     
     
@@ -36,7 +37,7 @@ def get_images(request):
     }, images))
     
     return JsonResponse({
-        "data": images_data
+        "images": images_data
     })
     
 
@@ -51,5 +52,23 @@ def get_videos(request):
     }, videos))
     
     return JsonResponse({
-        "data": videos_data
+        "videos": videos_data
+    })
+    
+    
+def get_batch(requests):
+    """ return data from all models """
+    
+    texts = get_texts(requests).content
+    images = get_images(requests).content
+    videos = get_videos(requests).content
+    
+    texts_json = json.loads(texts)["texts"]
+    images_json = json.loads(images)["images"]
+    videos_json = json.loads(videos)["videos"]
+    
+    return JsonResponse({
+        "texts": texts_json,
+        "images": images_json,
+        "videos": videos_json
     })
