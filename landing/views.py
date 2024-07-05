@@ -31,7 +31,8 @@ def get_images(request):
     images_data = list(map(lambda image: {
         'key': image.key,
         'image': image.image.url,
-        'category': image.category.name
+        'category': image.category.name,
+        'link': image.link
     }, images))
     
     return JsonResponse({

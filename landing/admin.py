@@ -16,8 +16,8 @@ class TextAdmin(admin.ModelAdmin):
     
 @admin.register(models.Image)
 class ImageAdmin(admin.ModelAdmin):
-    list_display = ['key', 'category', 'image']
-    search_fields = ['key', 'category__name', 'image']
+    list_display = ['key', 'category', 'image', 'link']
+    search_fields = ['key', 'category__name', 'image', 'link']
     ordering = ['key']
     
     change_list_template = 'admin/list_render_media.html'

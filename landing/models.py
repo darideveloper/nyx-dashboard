@@ -33,6 +33,7 @@ class Image(models.Model):
     key = models.CharField(max_length=255, unique=True)
     category = models.ForeignKey(category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='images/')
+    link = models.URLField(max_length=255, blank=True, null=True)
     
     class Meta:
         verbose_name = 'Imagen'

@@ -82,7 +82,8 @@ class LandingViewsTestCase(TestCase):
         image_1 = models.Image.objects.create(
             key='test_key_1',
             image='images/test_image_1.jpg',
-            category=category
+            category=category,
+            link='http://test.com'
         )
         
         image_2 = models.Image.objects.create(
@@ -102,12 +103,14 @@ class LandingViewsTestCase(TestCase):
             {
                 'key': image_1.key,
                 'image': image_1.image.url,
-                'category': category.name
+                'category': category.name,
+                'link': image_1.link
             },
             {
                 'key': image_2.key,
                 'image': image_2.image.url,
-                'category': category.name
+                'category': category.name,
+                'link': None
             }
         ]
         self.assertEqual(json_data_response, json_data_expected)
