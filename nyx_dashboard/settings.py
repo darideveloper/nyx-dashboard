@@ -8,6 +8,7 @@ load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 HOST = os.environ.get("HOST")
+ENV = os.environ.get("ENV")
 print(f"DEBUG: {DEBUG}")
 print(f"HOST: {HOST}")
 
@@ -20,6 +21,7 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     'landing',
+    'user',
     'jazzmin',
     'corsheaders',
     'django.contrib.admin',
@@ -97,7 +99,8 @@ else:
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation" \
+                ".UserAttributeSimilarityValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
@@ -163,7 +166,8 @@ JAZZMIN_SETTINGS = {
     # Search model in header
     "search_model": [],
 
-    # Field name on user model that contains avatar ImageField/URLField/Charfield or a callable that receives the user
+    # Field name on user model that contains avatar
+    # ImageField/URLField/Charfield or a callable that receives the user
     "user_avatar": None,
 
     ############
@@ -179,7 +183,8 @@ JAZZMIN_SETTINGS = {
     # User Menu #
     #############
 
-    # Additional links to include in the user menu on the top right ("app" url type is not allowed)
+    # Additional links to include in the user menu on the top right
+    # ("app" url type is not allowed)
     "usermenu_links": [
         # {"model": "auth.user"}
     ],
@@ -200,20 +205,22 @@ JAZZMIN_SETTINGS = {
     # Hide these models when generating side menu (e.g auth.user)
     "hide_models": [],
 
-    # List of apps (and/or models) to base side menu ordering off of (does not need to contain all apps/models)
+    # List of apps (and/or models) to base side menu ordering off of
+    # (does not need to contain all apps/models)
     "order_with_respect_to": ["landing", "auth"],
 
     # Custom links to append to app groups, keyed on app name
     "custom_links": {
         # "books": [{
-        #     "name": "Make Messages", 
-        #     "url": "make_messages", 
+        #     "name": "Make Messages",
+        #     "url": "make_messages",
         #     "icon": "fas fa-comments",
         #     "permissions": ["books.view_book"]
         # }]
     },
 
-    # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free&v=5.0.0,5.0.1,5.0.10,5.0.11,5.0.12,5.0.13,5.0.2,5.0.3,5.0.4,5.0.5,5.0.6,5.0.7,5.0.8,5.0.9,5.1.0,5.1.1,5.2.0,5.3.0,5.3.1,5.4.0,5.4.1,5.4.2,5.13.0,5.12.0,5.11.2,5.11.1,5.10.0,5.9.0,5.8.2,5.8.1,5.7.2,5.7.1,5.7.0,5.6.3,5.5.0,5.4.2
+    # Custom icons for side menu apps/models
+    # See https://fontawesome.com/icons?d=gallery&m=free
     # for the full list of 5.13.0 free icon classes
     "icons": {
         "auth": "fas fa-users-cog",
@@ -234,9 +241,10 @@ JAZZMIN_SETTINGS = {
     # UI Tweaks #
     #############
     # Relative paths to custom CSS/JS scripts (must be present in static files)
-    "custom_css": None,
+    "custom_css": "user/css/jazzmin-custom.css",
     "custom_js": None,
-    # Whether to link font from fonts.googleapis.com (use custom_css to supply font otherwise)
+    # Whether to link font from fonts.googleapis.com
+    # (use custom_css to supply font otherwise)
     "use_google_fonts_cdn": True,
     # Whether to show the UI customizer on the sidebar
     "show_ui_builder": False,
@@ -252,7 +260,10 @@ JAZZMIN_SETTINGS = {
     # - carousel
     "changeform_format": "horizontal_tabs",
     # override change forms on a per modeladmin basis
-    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs"
+    },
 }
 
 # Cors
@@ -261,24 +272,28 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
 
-# aws settings
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-AWS_DEFAULT_ACL = None
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+# Storage settings
+if ENV == "local":
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+elif ENV == "prod":
+    # aws settings
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    AWS_DEFAULT_ACL = None
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 
-# s3 static settings
-STATIC_LOCATION = 'static'
-STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
-STATICFILES_STORAGE = 'nyx_dashboard.storage_backends.StaticStorage'
-# s3 public media settings
+    # s3 static settings
+    STATIC_LOCATION = 'static'
+    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+    STATICFILES_STORAGE = 'nyx_dashboard.storage_backends.StaticStorage'
+    # s3 public media settings
 
-PUBLIC_MEDIA_LOCATION = 'media'
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
-DEFAULT_FILE_STORAGE = 'nyx_dashboard.storage_backends.PublicMediaStorage'
+    PUBLIC_MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
+    DEFAULT_FILE_STORAGE = 'nyx_dashboard.storage_backends.PublicMediaStorage'
 
-# s3 private media settings
-PRIVATE_MEDIA_LOCATION = 'private'
-PRIVATE_FILE_STORAGE = 'nyx_dashboard.storage_backends.PrivateMediaStorage'
+    # s3 private media settings
+    PRIVATE_MEDIA_LOCATION = 'private'
+    PRIVATE_FILE_STORAGE = 'nyx_dashboard.storage_backends.PrivateMediaStorage'
