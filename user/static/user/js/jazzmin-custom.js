@@ -7,7 +7,8 @@ function signUp() {
 
   const errorPass = document.querySelector('.error-pass')
   const errorPassContent = errorPass.querySelector('p')
-  const passRegex =  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$.#\?!%*&^])[A-Za-z0-9@$.#\?!%*&^]{8,15}$/
+  const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$.#\?!%*&^*_\\-])[A-Za-z0-9@$.#\?!%*&^*_\\-]{8,50}$/
+
 
 
   form.addEventListener('submit', (e) => {
@@ -18,7 +19,7 @@ function signUp() {
     if (!passRegex.test(password1)) {
       // Validate password strength
       errorPass.classList.remove('hidden')
-      errorPassContent.textContent = 'Password must be 8-15 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character'
+      errorPassContent.textContent = 'Password must be 8-50 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character'
     } else if (password1 !== password2) {
       // Validate password match
       errorPass.classList.remove('hidden')
@@ -29,7 +30,9 @@ function signUp() {
 
       // Submit form if all validations pass
       form.submit()
-    }    
+    } 
+
+    console.log({password1, password2})
   })
 }
 

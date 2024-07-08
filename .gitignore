@@ -10,3 +10,4 @@ debug.*
 db.*
 *.sqlite3
 *.pyc
+staticfiles

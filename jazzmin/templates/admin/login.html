@@ -21,23 +21,9 @@
             </p>
         {% endif %}
         {% if form.errors %}
-            {% if form.username.errors %}
-                <div class="callout callout-danger">
-                    <p>{{ form.username.label }}: {{ form.username.errors|join:', ' }}</p>
-                </div>
-            {% endif %}
-            {% if form.password.errors %}
-                <div class="callout callout-danger">
-                    <p>{{ form.password.label }}: {{ form.password.errors|join:', ' }}</p>
-                </div>
-            {% endif %}
-            {% if form.non_field_errors %}
-                <div class="callout callout-danger">
-                    {% for error in form.non_field_errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
+            <div class="callout callout-danger">
+                <p>Invalid email or password</p>
+            </div>
         {% endif %}
         <div class="input-group mb-3">
             <input type="text" name="username" class="form-control" placeholder="Email" required>

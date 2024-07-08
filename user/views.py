@@ -11,4 +11,4 @@ class SignUp(View):
         })
     
     def post(self, request):
-        return render(request, 'sign-up.html', context={"title": "Sign Up"})
+        return render(request, 'sign-up.html', context={"title": "Sign up"})
