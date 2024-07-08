@@ -79,15 +79,17 @@
                 </div>
             </div>
         </div>
+
+        <!-- Password error from js -->
         <div class="callout callout-danger error-pass hidden">
             <p></p>
         </div>
+
+        <!-- New user error -->
         <div class="callout callout-danger error-user-exists hidden">
             <p>A user with that email already. Click <a href="/admin/login/">here</a> to login.</p>
         </div>
-
-        <p class="login-box-msg small">Do you aready have an account? Click <a href="/admin/login/">here</a> to Log in</p> 
-
+        
         <div class="row">
             <div class="col-12">
                 <button type="submit" class="btn {{ jazzmin_ui.button_classes.primary }} btn-block">
@@ -95,5 +97,8 @@
                 </button>
             </div>
         </div>
+
+        <!-- Links -->
+        <p class="login-box-msg small">Do you aready have an account? Click <a href="/admin/login/">here</a> to Log in</p> 
     </form>
 {% endblock %}
