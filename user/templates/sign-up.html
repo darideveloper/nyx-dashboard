@@ -79,6 +79,12 @@
                 </div>
             </div>
         </div>
+        <div class="callout callout-danger error-pass hidden">
+            <p></p>
+        </div>
+        <div class="callout callout-danger error-user-exists hidden">
+            <p>A user with that email already. Click <a href="/admin/login/">here</a> to login.</p>
+        </div>
         {% url 'admin_password_reset' as password_reset_url %}
         {% if password_reset_url %}
             <div class="mb-3">

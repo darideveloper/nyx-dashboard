@@ -23,3 +23,6 @@
 .jazzmin-page .input-group input:focus {
   border-color: #A5C9CA;
 }
+.jazzmin-page .callout.callout-danger a:hover {
+  color: #A5C9CA !important;
+}
