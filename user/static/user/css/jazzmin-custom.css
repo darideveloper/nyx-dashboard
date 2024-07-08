@@ -26,3 +26,14 @@
 .jazzmin-page .callout.callout-danger a:hover {
   color: #A5C9CA !important;
 }
+.jazzmin-page .login-box-msg.small {
+  font-size: 12px;
+}
+.jazzmin-page .login-box-msg a {
+  font-weight: bold;
+  color: #A5C9CA;
+  text-decoration: underline;
+}
+.jazzmin-page .login-box-msg a:hover {
+  color: #2C3333;
+}
