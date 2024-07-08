@@ -117,7 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'es-es'
+LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Europe/Madrid'
 
@@ -153,7 +153,7 @@ JAZZMIN_SETTINGS = {
     "site_title": "NYX Dashboard",
     "site_header": "Admin",
     "site_brand": "NYX Dashboard",
-    "welcome_sign": "Bienvenido a NYX Dashboard",
+    "welcome_sign": "Welcome to NYX Dashboard",
     "copyright": "",
 
     # Media
@@ -242,7 +242,7 @@ JAZZMIN_SETTINGS = {
     #############
     # Relative paths to custom CSS/JS scripts (must be present in static files)
     "custom_css": "user/css/jazzmin-custom.css",
-    "custom_js": None,
+    "custom_js": "user/js/jazzmin-custom.js",
     # Whether to link font from fonts.googleapis.com
     # (use custom_css to supply font otherwise)
     "use_google_fonts_cdn": True,

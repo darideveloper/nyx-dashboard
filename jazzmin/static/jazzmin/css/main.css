@@ -881,7 +881,7 @@ iframe.related-iframe {
 }
 
 /* tweaks to allow bootstrap styling */
-body.jazzmin-login-page {
+body.jazzmin-page {
     -ms-flex-align: center;
     align-items: center;
     display: -ms-flexbox;

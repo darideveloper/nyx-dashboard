@@ -1,24 +1,25 @@
-.jazzmin-login-page {
+.jazzmin-page {
   background: #2C3333;
 }
-.jazzmin-login-page img {
+.jazzmin-page img {
   border-radius: 10%;
 }
-.jazzmin-login-page .card-body {
+.jazzmin-page .card-body {
   background: #395B64;
 }
-.jazzmin-login-page .card-body {
+.jazzmin-page .card-body {
   color: #E7F6F2;
 }
-.jazzmin-login-page button[type=submit] {
+.jazzmin-page button[type=submit] {
   background: #A5C9CA;
   color: #2C3333;
   border: 2px solid #A5C9CA;
   font-weight: bold;
 }
-.jazzmin-login-page button[type=submit]:hover {
+.jazzmin-page button[type=submit]:hover {
   background: rgba(44, 51, 51, 0);
   color: #A5C9CA;
 }
-
-/*# sourceMappingURL=custom.css.map */
+.jazzmin-page .input-group input:focus {
+  border-color: #A5C9CA;
+}
