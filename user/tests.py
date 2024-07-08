@@ -8,106 +8,113 @@ from selenium.webdriver.chrome.options import Options
 from user import tools
 
         
-# class LogInTest(LiveServerTestCase):
-#     """ Validate user login with selenium """
+class LogInTest(LiveServerTestCase):
+    """ Validate user login with selenium """
 
-#     def setUp(self):
+    def setUp(self):
         
-#         # Create a user
-#         self.auth_username = "test_user"
-#         self.password = "test_password"
-#         self.auth_user = User.objects.create_user(
-#             self.auth_username,
-#             password=self.password,
-#             is_staff=True,
-#         )
+        # Create a user
+        self.auth_username = "test_user"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username,
+            password=self.password,
+            is_staff=True,
+        )
         
-#         # Configure selenium
-#         chrome_options = Options()
-#         chrome_options.add_argument("--headless")
+        # Configure selenium
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
         
-#         # Start selenium
-#         self.driver = webdriver.Chrome(options=chrome_options)
-#         self.driver.implicitly_wait(10)
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(10)
         
-#         # Load login page
-#         self.login_url = self.live_server_url + "/admin/login/"
-#         self.driver.get(self.login_url)
+        # Load login page
+        self.login_url = self.live_server_url + "/admin/login/"
+        self.driver.get(self.login_url)
         
-#         # Fiend fields
-#         selectos = {
-#             "username": "input[name='username']",
-#             "password": "input[name='password']",
-#             "submit": "button[type='submit']",
-#         }
-#         self.fields = tools.get_selenium_elems(self.driver, selectos)
+        # Fiend fields
+        selectos = {
+            "username": "input[name='username']",
+            "password": "input[name='password']",
+            "submit": "button[type='submit']",
+        }
+        self.fields = tools.get_selenium_elems(self.driver, selectos)
                 
-#         self.error_message = "Invalid email or password"
+        self.error_message = "Invalid email or password"
         
-#     def tearDown(self):
+    def tearDown(self):
     
-#         # Close selenium
-#         self.driver.quit()
+        # Close selenium
+        self.driver.quit()
+        
+    def redirect(self):
+        """ Redirect to sign up page """
+        
+        response = self.client.get("/login/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/aadminn/login/")
     
-#     def test_valid(self):
-#         """ Test login with valid email and password.
-#         Expecting valid """
+    def test_valid(self):
+        """ Test login with valid email and password.
+        Expecting valid """
         
-#         # Submit form
-#         self.fields["username"].send_keys(self.auth_username)
-#         self.fields["password"].send_keys(self.password)
-#         self.fields["submit"].click()
+        # Submit form
+        self.fields["username"].send_keys(self.auth_username)
+        self.fields["password"].send_keys(self.password)
+        self.fields["submit"].click()
         
-#         # Validate redirect
-#         self.assertNotEqual(self.driver.current_url, self.login_url)
+        # Validate redirect
+        self.assertNotEqual(self.driver.current_url, self.login_url)
                 
-#     def test_invalid_email(self):
-#         """ Test login with invalid email.
-#         Expecting login failure """
+    def test_invalid_email(self):
+        """ Test login with invalid email.
+        Expecting login failure """
         
-#         # Submit form
-#         self.fields["username"].send_keys("invalid email")
-#         self.fields["password"].send_keys(self.password)
-#         self.fields["submit"].click()
+        # Submit form
+        self.fields["username"].send_keys("invalid email")
+        self.fields["password"].send_keys(self.password)
+        self.fields["submit"].click()
         
-#         # Validate error message
-#         error_message = self.driver.find_element(
-#             By.CSS_SELECTOR, ".callout.callout-danger"
-#         ).text
-#         self.assertEqual(error_message, self.error_message)
+        # Validate error message
+        error_message = self.driver.find_element(
+            By.CSS_SELECTOR, ".callout.callout-danger"
+        ).text
+        self.assertEqual(error_message, self.error_message)
     
-#     def test_invalid_password(self):
-#         """ Test login with invalid password.
-#         Expecting login failure"""
+    def test_invalid_password(self):
+        """ Test login with invalid password.
+        Expecting login failure"""
         
-#         # Submit form
-#         self.fields["username"].send_keys(self.auth_username)
-#         self.fields["password"].send_keys("invalid password")
-#         self.fields["submit"].click()
+        # Submit form
+        self.fields["username"].send_keys(self.auth_username)
+        self.fields["password"].send_keys("invalid password")
+        self.fields["submit"].click()
         
-#         # Validate error message
-#         error_message = self.driver.find_element(
-#             By.CSS_SELECTOR, ".callout.callout-danger"
-#         ).text
-#         self.assertEqual(error_message, self.error_message)
+        # Validate error message
+        error_message = self.driver.find_element(
+            By.CSS_SELECTOR, ".callout.callout-danger"
+        ).text
+        self.assertEqual(error_message, self.error_message)
         
-#     def test_no_staff(self):
-#         """ Test login no staff user.
-#         Expecting login failure"""
+    def test_no_staff(self):
+        """ Test login no staff user.
+        Expecting login failure"""
         
-#         self.auth_user.is_staff = False
-#         self.auth_user.save()
+        self.auth_user.is_staff = False
+        self.auth_user.save()
         
-#         # Submit form
-#         self.fields["username"].send_keys(self.auth_username)
-#         self.fields["password"].send_keys(self.password)
-#         self.fields["submit"].click()
+        # Submit form
+        self.fields["username"].send_keys(self.auth_username)
+        self.fields["password"].send_keys(self.password)
+        self.fields["submit"].click()
         
-#         # Validate error message
-#         error_message = self.driver.find_element(
-#             By.CSS_SELECTOR, ".callout.callout-danger"
-#         ).text
-#         self.assertEqual(error_message, self.error_message)
+        # Validate error message
+        error_message = self.driver.find_element(
+            By.CSS_SELECTOR, ".callout.callout-danger"
+        ).text
+        self.assertEqual(error_message, self.error_message)
 
 
 class SignUpTest(LiveServerTestCase):
@@ -155,17 +162,27 @@ class SignUpTest(LiveServerTestCase):
             "first_name": "Test",
             "last_name": "User",
         }
+        
+        # Initialize client
+        self.client = Client()
     
     def tearDown(self):
     
         # Close selenium
         self.driver.quit()
+        
+    def redirect(self):
+        """ Redirect to sign up page """
+        
+        response = self.client.get("/sign-up/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/user/sign-up/")
     
-    # def test_valid(self):
-    #     pass
+    def test_valid(self):
+        pass
     
-    # def test_alrady_used_email(self):
-    #     pass
+    def test_alrady_used_email(self):
+        pass
     
     def test_password_mismatch(self):
         
