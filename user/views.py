@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 from django.shortcuts import redirect
-
+from django.http import JsonResponse
 
 class SignUp(View):
     
@@ -12,7 +12,19 @@ class SignUp(View):
         })
     
     def post(self, request):
-        return render(request, 'sign-up.html', context={"title": "Sign up"})
+        
+        # Get form fields
+        email = request.POST.get("email")
+        first_name = request.POST.get("first-name")
+        last_name = request.POST.get("last-name")
+        password1 = request.POST.get("password1")
+        
+        return JsonResponse({
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "password1": password1
+        })
     
     
 def redirect_login(request):

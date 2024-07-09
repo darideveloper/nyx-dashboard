@@ -2,42 +2,66 @@
 const formSignUp = document.querySelector('#form-sign-up')
 
 // Sign up form custom validation
-function signUp() {
-  const form = formSignUp
+class SignUp {
 
-  const errorPass = document.querySelector('.error-pass')
-  const errorPassContent = errorPass.querySelector('p')
-  const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$.#\?!%*&^*_\\-])[A-Za-z0-9@$.#\?!%*&^*_\\-]{8,50}$/
+  constructor() {
+    
+    // Elements
+    this.form = formSignUp
+    this.errorPass = document.querySelector('.callout.scallout-danger')
+    this.passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$.#\?!%*&^*_\\-])[A-Za-z0-9@$.#\?!%*&^*_\\-]{8,50}$/
+    this.emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 
+    // Submit event
+    this.form.addEventListener('submit', (e) => {
+      e.preventDefault()
+      this.onSubmit()
+    })
 
+  }
+  
+  showError(text) {
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault()
-    const password1 = form.querySelector('input[name="password1"]').value
-    const password2 = form.querySelector('input[name="password2"]').value
+    // Clean old error
+    this.errorPass.innerHTML = ""
 
-    if (!passRegex.test(password1)) {
+    // Add new error
+    this.errorPass.classList.remove('hidden')
+    const errorPassContent = document.createElement('p')
+    errorPassContent.textContent = text
+    this.errorPass.appendChild(errorPassContent)
+  }
+
+  onSubmit(e) {
+
+    const password1 = this.form.querySelector('input[name="password1"]').value
+    const password2 = this.form.querySelector('input[name="password2"]').value
+    const email = this.form.querySelector('input[name="email"]').value
+  
+    let validForm = true
+  
+    if (!this.emailRegex.test(email)) {      
+      // Validate email
+      this.showError('Invalid email address')
+    } else if (!this.passRegex.test(password1)) {
       // Validate password strength
-      errorPass.classList.remove('hidden')
-      errorPassContent.textContent = 'Password must be 8-50 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character'
+      this.showError('Password must be 8-50 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character')
     } else if (password1 !== password2) {
       // Validate password match
-      errorPass.classList.remove('hidden')
-      errorPassContent.textContent = 'Passwords do not match'
+      this.showError('Passwords do not match')
     } else {
       // Hide error message
-      errorPass.classList.add('hidden')
-
+      this.errorPass.classList.add('hidden')
+  
       // Submit form if all validations pass
-      form.submit()
-    } 
+      // form.submit()    
+    }
+  }
 
-    console.log({password1, password2})
-  })
 }
 
 
 // Run main components custom functions
 if (formSignUp) {
-  signUp()
+  new SignUp()
 }

@@ -156,7 +156,7 @@ class SignUpTest(LiveServerTestCase):
         self.fields = tools.get_selenium_elems(self.driver, selectors)
         
         self.data = {
-            "email": "test_user",
+            "email": "test@gmail.com",
             "password_valid": "Test_pass1**",
             "password_invalid": "test_pass",
             "first_name": "Test",
@@ -185,6 +185,7 @@ class SignUpTest(LiveServerTestCase):
         pass
     
     def test_password_mismatch(self):
+        """ Try to register with mismatched passwords."""
         
         # Submit form
         self.fields["email"].send_keys(self.data["email"])
@@ -201,6 +202,7 @@ class SignUpTest(LiveServerTestCase):
         self.assertEqual(error_message, "Passwords do not match")
     
     def test_password_invalid(self):
+        """ Try to register with invalid password."""
         
         # Submit form
         self.fields["email"].send_keys(self.data["email"])
@@ -218,3 +220,20 @@ class SignUpTest(LiveServerTestCase):
             "at least one lowercase letter one uppercase letter, one number, " \
             "and one special character"
         self.assertEqual(error_message, error_message)
+        
+    def test_email_invalid(self):
+        """ Try to register with invalid email."""
+        
+        # Submit form
+        self.fields["email"].send_keys("invalid email")
+        self.fields["password1"].send_keys(self.data["password_valid"])
+        self.fields["password2"].send_keys(self.data["password_valid"])
+        self.fields["first_name"].send_keys(self.data["first_name"])
+        self.fields["last_name"].send_keys(self.data["last_name"])
+        self.fields["submit"].click()
+        
+        # Validate error message
+        error_message = self.driver.find_element(
+            By.CSS_SELECTOR, ".error-email"
+        ).text
+        self.assertEqual(error_message, "Invalid email address")
