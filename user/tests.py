@@ -21,6 +21,13 @@ class LogInTest(LiveServerTestCase):
             is_staff=True,
         )
         
+    def tearDown(self):
+        """ Close selenium """
+        self.driver.quit()
+        
+    def setup_selenium(self):
+        """ Start selenium and load test page """
+        
         # Configure selenium
         chrome_options = Options()
         chrome_options.add_argument("--headless")
@@ -43,10 +50,6 @@ class LogInTest(LiveServerTestCase):
                 
         self.error_message = "Invalid email or password"
         
-    def tearDown(self):
-        """ Close selenium """
-        self.driver.quit()
-        
     def redirect(self):
         """ Redirect to sign up page """
         
@@ -57,6 +60,8 @@ class LogInTest(LiveServerTestCase):
     def test_valid(self):
         """ Test login with valid email and password.
         Expecting valid """
+        
+        self.setup_selenium()
         
         # Submit form
         self.fields["username"].send_keys(self.auth_username)
@@ -69,6 +74,8 @@ class LogInTest(LiveServerTestCase):
     def test_invalid_email(self):
         """ Test login with invalid email.
         Expecting login failure """
+        
+        self.setup_selenium()
         
         # Submit form
         self.fields["username"].send_keys("invalid email")
@@ -85,6 +92,8 @@ class LogInTest(LiveServerTestCase):
         """ Test login with invalid password.
         Expecting login failure"""
         
+        self.setup_selenium()
+        
         # Submit form
         self.fields["username"].send_keys(self.auth_username)
         self.fields["password"].send_keys("invalid password")
@@ -99,6 +108,8 @@ class LogInTest(LiveServerTestCase):
     def test_no_staff(self):
         """ Test login no staff user.
         Expecting login failure"""
+        
+        self.setup_selenium()
         
         self.auth_user.is_staff = False
         self.auth_user.save()
@@ -132,17 +143,24 @@ class SignUpTest(LiveServerTestCase):
         # Create "buyers" group
         self.buyers_group = Group.objects.create(name='buyers')
         
+    def tearDown(self):
+        """ Close selenium """
+        self.driver.quit()
+
+    def setup_selenium(self):
+        """ Start selenium and load test page """
+        
         # Configure selenium
         chrome_options = Options()
-        # chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless")
         
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(5)
         
         # Load login page
-        self.login_url = self.live_server_url + "/user/sign-up/"
-        self.driver.get(self.login_url)
+        self.sign_up_url = self.live_server_url + "/user/sign-up/"
+        self.driver.get(self.sign_up_url)
         
         # Initial fields and data
         selectors = {
@@ -166,11 +184,7 @@ class SignUpTest(LiveServerTestCase):
         
         # Initialize client
         self.client = Client()
-    
-    def tearDown(self):
-        """ Close selenium """
-        self.driver.quit()
-        
+
     def redirect(self):
         """ Redirect to sign up page """
         
@@ -180,6 +194,8 @@ class SignUpTest(LiveServerTestCase):
     
     def test_valid(self):
         """ Try to register new user with valid data """
+        
+        self.setup_selenium()
         
         # Submit form
         self.fields["email"].send_keys(self.data["email"])
@@ -216,6 +232,8 @@ class SignUpTest(LiveServerTestCase):
     def test_already_used_email(self):
         """ Try to register with already used email."""
         
+        self.setup_selenium()
+        
         # Submit form
         self.fields["email"].send_keys(self.old_auth_username)
         self.fields["password1"].send_keys(self.data["password_valid"])
@@ -244,6 +262,8 @@ class SignUpTest(LiveServerTestCase):
     def test_password_mismatch(self):
         """ Try to register with mismatched passwords."""
         
+        self.setup_selenium()
+        
         # Submit form
         self.fields["email"].send_keys(self.data["email"])
         self.fields["password1"].send_keys(self.data["password_valid"])
@@ -260,6 +280,8 @@ class SignUpTest(LiveServerTestCase):
     
     def test_password_invalid(self):
         """ Try to register with invalid password."""
+        
+        self.setup_selenium()
         
         # Submit form
         self.fields["email"].send_keys(self.data["email"])
@@ -280,6 +302,8 @@ class SignUpTest(LiveServerTestCase):
         
     def test_email_invalid(self):
         """ Try to register with invalid email."""
+        
+        self.setup_selenium()
         
         # Submit form
         self.fields["email"].send_keys("invalid email")
@@ -351,6 +375,17 @@ class AdminTest(LiveServerTestCase):
     def tearDown(self):
         """ Close selenium """
         self.driver.quit()
+        
+    def setup_selenium(self):
+        """ Start selenium and load test page """
+        
+        # Configure selenium
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
         
     def test_redirect_accounts_profile(self):
         """ Test redirect to admin page """
