@@ -1,3 +1,4 @@
+import os
 from django.test import LiveServerTestCase
 from django.test import Client
 from django.contrib.auth.models import User, Group
@@ -5,7 +6,15 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from user import tools
+from django.core import mail
+from dotenv import load_dotenv
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
+# Environment variables
+load_dotenv()
+HOST = os.getenv("HOST")
+TEST_HEADLESS = os.getenv("TEST_HEADLESS") == "True"
+        
         
 class LogInTest(LiveServerTestCase):
     """ Validate user login with selenium """
@@ -30,7 +39,8 @@ class LogInTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        if TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
         
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
@@ -152,7 +162,8 @@ class SignUpTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        if TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
         
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
@@ -215,6 +226,8 @@ class SignUpTest(LiveServerTestCase):
         user_in_group = self.buyers_group.user_set.filter(username=user).exists()
         self.assertTrue(user_in_group)
         
+        input("end?")
+        
         # Validate sweet alert confirmation
         sweet_alert_data = {
             ".swal2-title": "Done",
@@ -226,8 +239,27 @@ class SignUpTest(LiveServerTestCase):
             elem = self.driver.find_element(By.CSS_SELECTOR, selector)
             self.assertEqual(elem.text, text)
          
-        # TODO
-        # Validate activation email sent
+        # validate activation email sent
+        self.assertEqual(len(mail.outbox), 1)
+          
+        # Validate email text content
+        subject = "Activate your Nyx Trackers account"
+        cta_link_base = f"{HOST}/user/activate/"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        self.assertIn(user.first_name, sent_email.body)
+        self.assertIn(user.last_name, sent_email.body)
+        
+        # Validate email html tags
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
+        
+        # Validate token
+        token = sent_email.body.split(cta_link_base)[1].split("/")[0]
+        print(token)
+        token_manager = PasswordResetTokenGenerator()
+        token_valid = token_manager.check_token(user, token)
+        self.assertTrue(token_valid)
     
     def test_already_used_email(self):
         """ Try to register with already used email."""
@@ -339,7 +371,8 @@ class AdminTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        if TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
         
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
@@ -381,7 +414,8 @@ class AdminTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        if TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
         
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
