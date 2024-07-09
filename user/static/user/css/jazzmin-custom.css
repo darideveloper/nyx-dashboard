@@ -39,3 +39,9 @@
 .jazzmin-page .login-box-msg a:hover {
   color: #2C3333;
 }
+.jazzmin-page .input-group.is-invalid {
+  border: 2px solid red;
+  border-radius: 5px;
+}
+
+/*# sourceMappingURL=jazzmin-custom.css.map */

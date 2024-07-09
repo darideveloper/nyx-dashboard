@@ -32,21 +32,44 @@ class SignUp {
     this.errorElem.appendChild(errorPassContent)
   }
 
+  invalidInput(elem) {
+    elem.parentNode.classList.add('is-invalid')
+    elem.focus()
+  }
+
+  resetInvalidInput(elem) {
+    elem.parentNode.classList.remove ('is-invalid')
+  }
+
   onSubmit(e) {
 
-    const password1 = this.form.querySelector('input[name="password1"]').value
-    const password2 = this.form.querySelector('input[name="password2"]').value
-    const email = this.form.querySelector('input[name="email"]').value
+    // Get elements and values
+    const password1Elem = this.form.querySelector('input[name="password1"]')
+    const password2Elem  = this.form.querySelector('input[name="password2"]')
+    const emailElem = this.form.querySelector('input[name="email"]')
+
+    const password1 = password1Elem.value
+    const password2 = password2Elem.value
+    const email = emailElem.value
+
+    // Remove old errors
+    this.resetInvalidInput(password1Elem)
+    this.resetInvalidInput(password2Elem)
+    this.resetInvalidInput(emailElem)
     
     if (!this.emailRegex.test(email)) {      
       // Validate email
       this.showError('Invalid email address')
+      this.invalidInput(emailElem)
     } else if (!this.passRegex.test(password1)) {
       // Validate password strength
       this.showError('Password must be 8-50 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character')
+      this.invalidInput(password1Elem)
     } else if (password1 !== password2) {
       // Validate password match
       this.showError('Passwords do not match')
+      this.invalidInput(password2Elem)
+      this.invalidInput(password1Elem)
     } else {
       // Hide error message
       this.errorElem.classList.add('hidden')
