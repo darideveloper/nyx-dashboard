@@ -6,6 +6,9 @@ from django.contrib.auth.models import User, Group
 from user import tools
 from dotenv import load_dotenv
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_decode
+
+from django.http import JsonResponse
 
 
 # Load environment variables
@@ -56,6 +59,7 @@ class SignUp(View):
                 last_name=last_name,
                 password=password1,
                 is_staff=True,
+                is_active=False,
             )
 
             # Add user to group "buyers"
@@ -88,6 +92,37 @@ class SignUp(View):
             "message_type": message_type,
         })
 
+
+class Activate(View):
+    
+    def get(self, request, user_id, token):
+        
+        user = User.objects.filter(id=user_id)
+        
+        # Validate user found
+        if not user.exists():
+            return JsonResponse({
+                "message": "Invalid user",
+            }, status=400)
+            
+        user = user[0]
+        
+        # Validate token
+        token_manager = PasswordResetTokenGenerator()
+        is_valid = token_manager.check_token(user, token)
+        
+        if not is_valid:
+            return JsonResponse({
+                "message": "Invalid token",
+            }, status=400)
+        
+        # Activate user
+        user.is_active = True
+        user.save()
+        
+        # Redirect to login
+        return redirect('/login/')
+    
 
 def redirect_login(request):
     return redirect('/admin/login/')
