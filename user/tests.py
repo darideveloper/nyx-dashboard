@@ -408,7 +408,7 @@ class AdminTest(LiveServerTestCase):
     def tearDown(self):
         """ Close selenium """
         self.driver.quit()
-        
+                
     def setup_selenium(self):
         """ Start selenium and load test page """
         
@@ -425,5 +425,13 @@ class AdminTest(LiveServerTestCase):
         """ Test redirect to admin page """
         
         response = self.client.get("/accounts/profile/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/admin/")
+        
+    def test_redirect_sign_up_logged(self):
+        """ Test redirect to admin page if user is logged in """
+        
+        self.client.force_login(self.auth_user)
+        response = self.client.get("/user/sign-up/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/")

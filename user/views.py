@@ -16,6 +16,12 @@ HOST = os.getenv("HOST")
 class SignUp(View):
 
     def get(self, request):
+        
+        # Redirect to admin if user is already logged in
+        if request.user.is_authenticated:
+            return redirect('/admin/')
+        
+        # Render form
         return render(request, 'user/sign-up.html', context={
             "title": "Sign Up",
         })
