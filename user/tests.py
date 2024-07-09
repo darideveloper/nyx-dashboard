@@ -44,8 +44,7 @@ class LogInTest(LiveServerTestCase):
         self.error_message = "Invalid email or password"
         
     def tearDown(self):
-    
-        # Close selenium
+        """ Close selenium """
         self.driver.quit()
         
     def redirect(self):
@@ -169,8 +168,7 @@ class SignUpTest(LiveServerTestCase):
         self.client = Client()
     
     def tearDown(self):
-    
-        # Close selenium
+        """ Close selenium """
         self.driver.quit()
         
     def redirect(self):
@@ -349,6 +347,10 @@ class AdminTest(LiveServerTestCase):
         
         # Initialize client
         self.client = Client()
+        
+    def tearDown(self):
+        """ Close selenium """
+        self.driver.quit()
         
     def test_redirect_accounts_profile(self):
         """ Test redirect to admin page """

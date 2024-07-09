@@ -14,4 +14,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', views_user.redirect_login, name='redirect-login'),
     path('sign-up/', views_user.redirect_sign_up, name='redirect-sign-up'),
+    path('accounts/profile/', views_user.redirect_admin, name='redirect-admin'),
 ]

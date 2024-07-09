@@ -61,3 +61,7 @@ def redirect_login(request):
 
 def redirect_sign_up(request):
     return redirect('/user/sign-up/')
+
+
+def redirect_admin(request):
+    return redirect('/admin/')
