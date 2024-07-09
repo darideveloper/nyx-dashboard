@@ -52,7 +52,7 @@ class SignUp {
       this.errorElem.classList.add('hidden')
   
       // Submit form if all validations pass
-      // form.submit()    
+      this.form.submit()
     }
   }
 
