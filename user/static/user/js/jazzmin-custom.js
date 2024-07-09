@@ -8,7 +8,7 @@ class SignUp {
     
     // Elements
     this.form = formSignUp
-    this.errorPass = document.querySelector('.callout.scallout-danger')
+    this.errorElem = document.querySelector('.callout.callout-danger')
     this.passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$.#\?!%*&^*_\\-])[A-Za-z0-9@$.#\?!%*&^*_\\-]{8,50}$/
     this.emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 
@@ -23,13 +23,13 @@ class SignUp {
   showError(text) {
 
     // Clean old error
-    this.errorPass.innerHTML = ""
+    this.errorElem.innerHTML = ""
 
     // Add new error
-    this.errorPass.classList.remove('hidden')
+    this.errorElem.classList.remove('hidden')
     const errorPassContent = document.createElement('p')
     errorPassContent.textContent = text
-    this.errorPass.appendChild(errorPassContent)
+    this.errorElem.appendChild(errorPassContent)
   }
 
   onSubmit(e) {
@@ -37,9 +37,7 @@ class SignUp {
     const password1 = this.form.querySelector('input[name="password1"]').value
     const password2 = this.form.querySelector('input[name="password2"]').value
     const email = this.form.querySelector('input[name="email"]').value
-  
-    let validForm = true
-  
+    
     if (!this.emailRegex.test(email)) {      
       // Validate email
       this.showError('Invalid email address')
@@ -51,7 +49,7 @@ class SignUp {
       this.showError('Passwords do not match')
     } else {
       // Hide error message
-      this.errorPass.classList.add('hidden')
+      this.errorElem.classList.add('hidden')
   
       // Submit form if all validations pass
       // form.submit()    

@@ -197,7 +197,7 @@ class SignUpTest(LiveServerTestCase):
         
         # Validate error message
         error_message = self.driver.find_element(
-            By.CSS_SELECTOR, ".error-pass"
+            By.CSS_SELECTOR, ".callout.callout-danger"
         ).text
         self.assertEqual(error_message, "Passwords do not match")
     
@@ -214,7 +214,7 @@ class SignUpTest(LiveServerTestCase):
         
         # Validate error message
         error_message = self.driver.find_element(
-            By.CSS_SELECTOR, ".error-pass"
+            By.CSS_SELECTOR, ".callout.callout-danger"
         ).text
         error_message = "Password must be 8-50 characters long and contain " \
             "at least one lowercase letter one uppercase letter, one number, " \
@@ -234,6 +234,6 @@ class SignUpTest(LiveServerTestCase):
         
         # Validate error message
         error_message = self.driver.find_element(
-            By.CSS_SELECTOR, ".error-email"
+            By.CSS_SELECTOR, ".callout.callout-danger"
         ).text
         self.assertEqual(error_message, "Invalid email address")
