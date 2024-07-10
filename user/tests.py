@@ -147,6 +147,7 @@ class SignUpTest(LiveServerTestCase):
             self.old_auth_username,
             password=self.old_password,
             is_staff=True,
+            is_active=True,
         )
         
         # Create "buyers" group
@@ -281,6 +282,38 @@ class SignUpTest(LiveServerTestCase):
                                   "Try to login instead. "
                                   "If you just created an account, "
                                   "check your email to activate it.",
+        }
+        
+        for selector, text in sweet_alert_data.items():
+            elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+            self.assertEqual(elem.text, text)
+            
+    def test_already_used_email_no_active(self):
+        """ Try to register with already used email (but not active) """
+        
+        # Update user
+        self.auth_user.is_active = False
+        self.auth_user.save()
+        
+        self.setup_selenium()
+        
+        # Submit form
+        self.fields["email"].send_keys(self.old_auth_username)
+        self.fields["password1"].send_keys(self.data["password_valid"])
+        self.fields["password2"].send_keys(self.data["password_valid"])
+        self.fields["first_name"].send_keys(self.data["first_name"])
+        self.fields["last_name"].send_keys(self.data["last_name"])
+        self.fields["submit"].click()
+                        
+        # Validate user not created
+        user = User.objects.filter(username=self.data["email"])
+        self.assertFalse(user.exists())
+        
+        # Validate sweet alert error
+        sweet_alert_data = {
+            ".swal2-title": "Done",
+            ".swal2-title + div": "Account already created. "
+                                  "Check your email to confirm your account."
         }
         
         for selector, text in sweet_alert_data.items():

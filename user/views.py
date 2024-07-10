@@ -28,6 +28,8 @@ class SignUp(View):
         })
 
     def post(self, request):
+        
+        send_email = True
 
         # Get form fields
         email = request.POST.get("email")
@@ -41,13 +43,24 @@ class SignUp(View):
         message_type = "success"
 
         # Validate if the email is already used
-        if User.objects.filter(username=email).exists():
-            # Show error message
-            message_title = "Error"
-            message_text = "Email already used. " \
-                "Try to login instead. " \
-                "If you just created an account, check your email to activate it."
-            message_type = "error"
+        user = User.objects.filter(username=email)
+        if user.exists():
+            
+            user = user[0]
+            
+            # Error if user its already active
+            if user.is_active:
+                message_title = "Error"
+                message_text = "Email already used. " \
+                    "Try to login instead. " \
+                    "If you just created an account, " \
+                    "check your email to activate it."
+                message_type = "error"
+                send_email = False
+            else:
+                # Send activation email
+                message_text = "Account already created. " \
+                    "Check your email to confirm your account."
         else:
             # Create user
             user = User.objects.create_user(
@@ -64,11 +77,14 @@ class SignUp(View):
             buyers_group = Group.objects.get(name='buyers')
             buyers_group.user_set.add(user)
 
+
+        # Send activation email
+        if send_email:
+       
             # Generate token
             token_manager = PasswordResetTokenGenerator()
             user_token = token_manager.make_token(user)
-
-            # Send activation email
+       
             tools.send_email(
                 subject="Activate your Nyx Trackers account",
                 first_name=first_name,
