@@ -1,13 +1,12 @@
 import os
-from django.test import LiveServerTestCase
-from django.test import Client
+from dotenv import load_dotenv
+from django.test import LiveServerTestCase, Client, TestCase
 from django.contrib.auth.models import User, Group
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from user import tools
 from django.core import mail
-from dotenv import load_dotenv
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 # Environment variables
@@ -192,9 +191,6 @@ class SignUpTest(LiveServerTestCase):
             "first_name": "Test",
             "last_name": "User",
         }
-        
-        # Initialize client
-        self.client = Client()
 
     def redirect(self):
         """ Redirect to sign up page """
@@ -221,12 +217,11 @@ class SignUpTest(LiveServerTestCase):
         self.assertEqual(user.first_name, self.data["first_name"])
         self.assertEqual(user.last_name, self.data["last_name"])
         self.assertTrue(user.is_staff)
+        self.assertFalse(user.is_active)
         
         # Vlidate redirect user group
         user_in_group = self.buyers_group.user_set.filter(username=user).exists()
         self.assertTrue(user_in_group)
-        
-        input("end?")
         
         # Validate sweet alert confirmation
         sweet_alert_data = {
@@ -255,8 +250,9 @@ class SignUpTest(LiveServerTestCase):
         self.assertIn(cta_link_base, email_html)
         
         # Validate token
-        token = sent_email.body.split(cta_link_base)[1].split("/")[0]
-        print(token)
+        token_elems = sent_email.body.split(cta_link_base)[1].split("/")[0]
+        _, token_1, token_2 = token_elems.split("-")
+        token = f"{token_1}-{token_2}"
         token_manager = PasswordResetTokenGenerator()
         token_valid = token_manager.check_token(user, token)
         self.assertTrue(token_valid)
@@ -402,9 +398,6 @@ class AdminTest(LiveServerTestCase):
             "last_name": "User",
         }
         
-        # Initialize client
-        self.client = Client()
-        
     def tearDown(self):
         """ Close selenium """
         self.driver.quit()
@@ -435,3 +428,127 @@ class AdminTest(LiveServerTestCase):
         response = self.client.get("/user/sign-up/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/")
+        
+
+class ActivationTest(LiveServerTestCase):
+    """ Activate user account with email token """
+    
+    def setUp(self):
+        
+        # Create "buyers" group
+        self.buyers_group = Group.objects.create(name='buyers')
+        self.urls = {
+            "sign-up": "/user/sign-up/",
+        }
+        
+        # Register a user
+        self.form_data = {
+            "email": "test@gmail.com",
+            "password1": "Test_pass1**",
+            "password2": "Test_pass1**",
+            "first-name": "Test",
+            "last-name": "User",
+        }
+        self.client.post(self.urls["sign-up"], self.form_data)
+        
+        self.user = User.objects.get(username=self.form_data["email"])
+        
+        # validate activation email sent
+        self.assertEqual(len(mail.outbox), 1)
+          
+        # Validate token
+        sent_email = mail.outbox[0]
+        self.cta_link_base = f"{HOST}/user/activate/"
+        token_elems = sent_email.body.split(self.cta_link_base)[1].split("/")[0]
+        self.user_id, token_1, token_2 = token_elems.split("-")
+        self.token = f"{token_1}-{token_2}"
+        
+        # Alert data
+        self.sweet_alert_data_error = {
+            ".swal2-title": "Activation Error",
+            ".swal2-title + div": "Check the link or try to sign up again."
+        }
+                
+    def tearDown(self):
+        """ Close selenium """
+        self.driver.quit()
+        
+    def get_activation_link(self, user_id, token):
+        """ Get token link """
+        link = f"{self.live_server_url}/user/activate/{user_id}-{token}/"
+        return link
+
+    def setup_selenium(self):
+        """ Start selenium and load test page """
+        
+        # Configure selenium
+        chrome_options = Options()
+        if TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+    def validate_sweet_alert(self, sweet_alert_data):
+        """ Validate sweet alert """
+        
+        for selector, text in sweet_alert_data.items():
+            elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+            self.assertEqual(elem.text, text)
+        
+    def test_valid_token(self):
+        """ Try to activate user account with email token """
+        
+        self.setup_selenium()
+        
+        # Load activation link
+        activation_link = self.get_activation_link(self.user_id, self.token)
+        self.driver.get(activation_link)
+                
+        # Check if user is active
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+        
+        # Validate alert
+        self.validate_sweet_alert({
+            ".swal2-title": "Account Activated",
+            ".swal2-title + div": "Your account has been activated successfully. "
+                                  "Now you can login."
+        })
+                
+    def test_invalid_token(self):
+        """ Try to activate user account with invalid email token """
+        
+        self.setup_selenium()
+        
+        # Load activation link
+        activation_link = self.get_activation_link(self.user_id, "invalid_token")
+        self.driver.get(activation_link)
+        
+        # Check if user keeps inactive
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+        
+        # Validate error message
+        self.validate_sweet_alert(self.sweet_alert_data_error)
+            
+    def test_invalid_user(self):
+        """ Try to activate user account with invalid user id """
+        
+        self.setup_selenium()
+        
+        # Load activation link
+        activation_link = self.get_activation_link("99", self.token)
+        self.driver.get(activation_link)
+        
+        # Check if user keeps inactive
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+        
+        # Validate error message
+        self.validate_sweet_alert(self.sweet_alert_data_error)
+                
+        
+        
+        

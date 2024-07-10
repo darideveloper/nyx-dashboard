@@ -9,5 +9,5 @@ urlpatterns_preview_email = [
 urlpatterns = [
     path('email-preview/', include(urlpatterns_preview_email)),
     path('sign-up/', views.SignUp.as_view(), name='sign-up'),
-    path('activate/<int:user_id>/<token>/', views.Activate.as_view(), name='activate'),
+    path('activate/<int:user_id>-<token>/', views.Activate.as_view(), name='activate'),
 ]

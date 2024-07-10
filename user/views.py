@@ -6,8 +6,6 @@ from django.contrib.auth.models import User, Group
 from user import tools
 from dotenv import load_dotenv
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import urlsafe_base64_decode
-
 from django.http import JsonResponse
 
 
@@ -80,7 +78,7 @@ class SignUp(View):
                     "Your account has been created successfully.",
                     "Just one more step to start using it.",
                 ],
-                cta_link=f"{HOST}/user/activate/{user_token}/",
+                cta_link=f"{HOST}/user/activate/{user.id}-{user_token}/",
                 cta_text="Activate Now",
                 to_email=email,
             )
@@ -97,13 +95,21 @@ class Activate(View):
     
     def get(self, request, user_id, token):
         
+        title = "Activation"
+        
         user = User.objects.filter(id=user_id)
         
-        # Validate user found
+        error_context = {
+            "title": title,
+            "message_title": "Activation Error",
+            "message_text": "Check the link or try to sign up again.",
+            "message_type": "error",
+            "redirect": "/user/sign-up/",
+        }
+        
+        # render error message if user does not exist
         if not user.exists():
-            return JsonResponse({
-                "message": "Invalid user",
-            }, status=400)
+            return render(request, 'admin/login.html', context=error_context)
             
         user = user[0]
         
@@ -111,17 +117,24 @@ class Activate(View):
         token_manager = PasswordResetTokenGenerator()
         is_valid = token_manager.check_token(user, token)
         
+        # render error message if token is invalid
         if not is_valid:
-            return JsonResponse({
-                "message": "Invalid token",
-            }, status=400)
+            return render(request, 'admin/login.html', context=error_context)
         
         # Activate user
         user.is_active = True
         user.save()
         
-        # Redirect to login
-        return redirect('/login/')
+        # Success message
+        return render(request, 'admin/login.html', context={
+            "title": title,
+            "message_title": "Account Activated",
+            "message_text": "Your account has been activated successfully. "
+                            "Now you can login.",
+            "message_type": "success",
+            "redirect": "/admin/login/",
+            "skip_no_auth_message": True,
+        })
     
 
 def redirect_login(request):

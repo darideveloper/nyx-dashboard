@@ -47,6 +47,10 @@
 
     {% block extrastyle %} {% endblock %}
     {% block extrahead %} {% endblock %}
+
+    <!-- Add sweetalert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
 </head>
 <body class="hold-transition jazzmin-page">
 
@@ -79,6 +83,26 @@
 {% if jazzmin_settings.custom_js %}
     <script src="{% static jazzmin_settings.custom_js %}"></script>
 {% endif %}
+
+<script>
+    const mesageTitle = '{{message_title}}'
+    const messageText = '{{message_text}}'
+    const messageType = '{{message_type}}'
+    const redirect = '{{redirect}}'
+    
+    if (mesageTitle != '') {
+        Swal.fire({
+            title: mesageTitle,
+            text: messageText,
+            icon: messageType,
+            confirmButtonText: 'Ok'
+        })
+        .then((result) => {
+        if (redirect != '') {
+            window.location.href = redirect;
+        }})
+    }
+</script>
 
 {% block extrascript %} {% endblock %}
 

@@ -4,8 +4,14 @@
 {% get_jazzmin_settings request as jazzmin_settings %}
 {% get_jazzmin_ui_tweaks as jazzmin_ui %}
 
+
+{% block extrahead %}
+    <!-- Add sweetalert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
 {% block content %}
-    <p class="login-box-msg">Create your new account Free</p>
+    <p class="login-box-msg">Account Activation</p>
     <form action="{{ app_path }}" method="post" id="form-sign-up">
         {% csrf_token %}
         
@@ -72,4 +78,21 @@
         <!-- Links -->
         <p class="login-box-msg small">Do you aready have an account? Click <a href="/admin/login/">here</a> to Log in</p> 
     </form>
+{% endblock %}
+
+{% block extrascript %}
+<script>
+    const mesageTitle = '{{message_title}}'
+    const messageText = '{{message_text}}'
+    const messageType = '{{message_type}}'
+
+    if (mesageTitle != '') {
+        Swal.fire({
+            title: mesageTitle,
+            text: messageText,
+            icon: messageType,
+            confirmButtonText: 'Ok'
+        })
+    }
+</script>
 {% endblock %}
