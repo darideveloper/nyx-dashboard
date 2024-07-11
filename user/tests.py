@@ -31,9 +31,12 @@ class LogInTest(LiveServerTestCase):
         
     def tearDown(self):
         """ Close selenium """
-        self.driver.quit()
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
         
-    def setup_selenium(self):
+    def __setup_selenium__(self):
         """ Start selenium and load test page """
         
         # Configure selenium
@@ -59,18 +62,18 @@ class LogInTest(LiveServerTestCase):
                 
         self.error_message = "Invalid email or password"
         
-    def redirect(self):
+    def test_redirect(self):
         """ Redirect to sign up page """
         
         response = self.client.get("/login/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/aadminn/login/")
+        self.assertEqual(response.url, "/admin/login/")
     
     def test_valid(self):
         """ Test login with valid email and password.
         Expecting valid """
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["username"].send_keys(self.auth_username)
@@ -84,7 +87,7 @@ class LogInTest(LiveServerTestCase):
         """ Test login with invalid email.
         Expecting login failure """
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["username"].send_keys("invalid email")
@@ -101,7 +104,7 @@ class LogInTest(LiveServerTestCase):
         """ Test login with invalid password.
         Expecting login failure"""
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["username"].send_keys(self.auth_username)
@@ -118,7 +121,7 @@ class LogInTest(LiveServerTestCase):
         """ Test login no staff user.
         Expecting login failure"""
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         self.auth_user.is_staff = False
         self.auth_user.save()
@@ -155,9 +158,12 @@ class SignUpTest(LiveServerTestCase):
         
     def tearDown(self):
         """ Close selenium """
-        self.driver.quit()
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
 
-    def setup_selenium(self):
+    def __setup_selenium__(self):
         """ Start selenium and load test page """
         
         # Configure selenium
@@ -203,7 +209,7 @@ class SignUpTest(LiveServerTestCase):
     def test_valid(self):
         """ Try to register new user with valid data """
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["email"].send_keys(self.data["email"])
@@ -261,7 +267,7 @@ class SignUpTest(LiveServerTestCase):
     def test_already_used_email(self):
         """ Try to register with already used email."""
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["email"].send_keys(self.old_auth_username)
@@ -295,7 +301,7 @@ class SignUpTest(LiveServerTestCase):
         self.auth_user.is_active = False
         self.auth_user.save()
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["email"].send_keys(self.old_auth_username)
@@ -323,7 +329,7 @@ class SignUpTest(LiveServerTestCase):
     def test_password_mismatch(self):
         """ Try to register with mismatched passwords."""
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["email"].send_keys(self.data["email"])
@@ -342,7 +348,7 @@ class SignUpTest(LiveServerTestCase):
     def test_password_invalid(self):
         """ Try to register with invalid password."""
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["email"].send_keys(self.data["email"])
@@ -364,7 +370,7 @@ class SignUpTest(LiveServerTestCase):
     def test_email_invalid(self):
         """ Try to register with invalid email."""
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Submit form
         self.fields["email"].send_keys("invalid email")
@@ -411,9 +417,12 @@ class AdminTest(LiveServerTestCase):
         
     def tearDown(self):
         """ Close selenium """
-        self.driver.quit()
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
                 
-    def setup_selenium(self):
+    def __setup_selenium__(self):
         """ Start selenium and load test page """
         
         # Configure selenium
@@ -424,6 +433,25 @@ class AdminTest(LiveServerTestCase):
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(5)
+        
+    def __login__(self):
+        """ Login with valid user and password """
+        
+        # Load home page
+        home_page = self.live_server_url + "/login/"
+        self.__setup_selenium__()
+        self.driver.get(home_page)
+        
+        # Login
+        selectos = {
+            "username": "input[name='username']",
+            "password": "input[name='password']",
+            "submit": "button[type='submit']",
+        }
+        fields = tools.get_selenium_elems(self.driver, selectos)
+        fields["username"].send_keys(self.auth_username)
+        fields["password"].send_keys(self.password)
+        fields["submit"].click()
         
     def test_redirect_accounts_profile(self):
         """ Test redirect to admin page """
@@ -441,29 +469,28 @@ class AdminTest(LiveServerTestCase):
         self.assertEqual(response.url, "/admin/")
         
     def test_cookie_logged(self):
-        
-        # Load home page
-        home_page = self.live_server_url + "/admin/"
-        self.setup_selenium()
-        self.driver.get(home_page)
-        
-        # Login
-        selectos = {
-            "username": "input[name='username']",
-            "password": "input[name='password']",
-            "submit": "button[type='submit']",
-        }
-        fields = tools.get_selenium_elems(self.driver, selectos)
-        fields["username"].send_keys(self.auth_username)
-        fields["password"].send_keys(self.password)
-        fields["submit"].click()
+        """ Test cookie saved after login """
         
         # Validate login cookie saved
         user_full_name = f"{self.auth_user.first_name} {self.auth_user.last_name}"
         
-        # Get "nyx" cookie
+        # Login
+        self.__login__()
+        
+        # Validate "nyx" cookie
         cookie = self.driver.get_cookie("nyx")
         self.assertIn(user_full_name, cookie["value"])
+        
+    def test_cookie_logout(self):
+        """ Test cookie deleted after logout """
+        
+        # Close session
+        logout_page = self.live_server_url + "/admin/logout/"
+        self.driver.get(logout_page)
+        
+        # Validate no cookie
+        cookie = self.driver.get_cookie("nyx")
+        self.assertEqual(cookie, None)
 
 
 class ActivationTest(LiveServerTestCase):
@@ -507,14 +534,17 @@ class ActivationTest(LiveServerTestCase):
                 
     def tearDown(self):
         """ Close selenium """
-        self.driver.quit()
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
         
-    def get_activation_link(self, user_id, token):
+    def __get_activation_link__(self, user_id, token):
         """ Get token link """
         link = f"{self.live_server_url}/user/activate/{user_id}-{token}/"
         return link
 
-    def setup_selenium(self):
+    def __setup_selenium__(self):
         """ Start selenium and load test page """
         
         # Configure selenium
@@ -526,7 +556,7 @@ class ActivationTest(LiveServerTestCase):
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(5)
         
-    def validate_sweet_alert(self, sweet_alert_data):
+    def __validate_sweet_alert__(self, sweet_alert_data):
         """ Validate sweet alert """
         
         for selector, text in sweet_alert_data.items():
@@ -536,10 +566,10 @@ class ActivationTest(LiveServerTestCase):
     def test_valid_token(self):
         """ Try to activate user account with email token """
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Load activation link
-        activation_link = self.get_activation_link(self.user_id, self.token)
+        activation_link = self.__get_activation_link__(self.user_id, self.token)
         self.driver.get(activation_link)
                 
         # Check if user is active
@@ -547,7 +577,7 @@ class ActivationTest(LiveServerTestCase):
         self.assertTrue(self.user.is_active)
         
         # Validate alert
-        self.validate_sweet_alert({
+        self.__validate_sweet_alert__({
             ".swal2-title": "Account Activated",
             ".swal2-title + div": "Your account has been activated successfully. "
                                   "Now you can login."
@@ -556,10 +586,10 @@ class ActivationTest(LiveServerTestCase):
     def test_invalid_token(self):
         """ Try to activate user account with invalid email token """
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Load activation link
-        activation_link = self.get_activation_link(self.user_id, "invalid_token")
+        activation_link = self.__get_activation_link__(self.user_id, "invalid_token")
         self.driver.get(activation_link)
         
         # Check if user keeps inactive
@@ -567,15 +597,15 @@ class ActivationTest(LiveServerTestCase):
         self.assertFalse(self.user.is_active)
         
         # Validate error message
-        self.validate_sweet_alert(self.sweet_alert_data_error)
+        self.__validate_sweet_alert__(self.sweet_alert_data_error)
             
     def test_invalid_user(self):
         """ Try to activate user account with invalid user id """
         
-        self.setup_selenium()
+        self.__setup_selenium__()
         
         # Load activation link
-        activation_link = self.get_activation_link("99", self.token)
+        activation_link = self.__get_activation_link__("99", self.token)
         self.driver.get(activation_link)
         
         # Check if user keeps inactive
@@ -583,7 +613,7 @@ class ActivationTest(LiveServerTestCase):
         self.assertFalse(self.user.is_active)
         
         # Validate error message
-        self.validate_sweet_alert(self.sweet_alert_data_error)
+        self.__validate_sweet_alert__(self.sweet_alert_data_error)
                 
         
         
