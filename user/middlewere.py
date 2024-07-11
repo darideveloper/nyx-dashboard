@@ -15,7 +15,8 @@ class AdminCookieMiddleware:
         if '/admin' in request.path and request.user.is_authenticated:
             
             # Get app base domain
-            response.set_cookie('nyx', request.user.first_name, path='/')
+            name = f"{request.user.first_name} {request.user.last_name}"
+            response.set_cookie('nyx', name, path='/')
                 
             print(f'Cookie set: {request.user.first_name}')
             
