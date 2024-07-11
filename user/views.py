@@ -77,7 +77,6 @@ class SignUp(View):
             buyers_group = Group.objects.get(name='buyers')
             buyers_group.user_set.add(user)
 
-
         # Send activation email
         if send_email:
        

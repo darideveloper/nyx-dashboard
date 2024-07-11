@@ -15,10 +15,8 @@ class AdminCookieMiddleware:
         if '/admin' in request.path and request.user.is_authenticated:
             name = f"{request.user.first_name} {request.user.last_name}"
             response.set_cookie('nyx', name, path='/')
-            print(f'Cookie set: {request.user.first_name}')
             
         elif "/logout" in request.path:
             response.delete_cookie('nyx')
-            print('Cookie deleted')
             
         return response

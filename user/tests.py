@@ -387,12 +387,14 @@ class AdminTest(LiveServerTestCase):
     def setUp(self):
         
         # Create a user
-        self.old_auth_username = "old_test_user@gmail.com"
-        self.old_password = "old_test_password"
+        self.auth_username = "test_user@gmail.com"
+        self.password = "test_password"
         self.auth_user = User.objects.create_user(
-            self.old_auth_username,
-            password=self.old_password,
+            self.auth_username,
+            password=self.password,
             is_staff=True,
+            first_name="first",
+            last_name="last"
         )
         
         # Create "buyers" group
@@ -406,30 +408,6 @@ class AdminTest(LiveServerTestCase):
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(5)
-        
-        # Load login page
-        self.login_url = self.live_server_url + "/user/sign-up/"
-        self.driver.get(self.login_url)
-        
-        # Initial fields and data
-        selectors = {
-            "email": "input[name='email']",
-            "password1": "input[name='password1']",
-            "password2": "input[name='password2']",
-            "first_name": "input[name='first-name']",
-            "last_name": "input[name='last-name']",
-            "submit": "button[type='submit']",
-        }
-        
-        self.fields = tools.get_selenium_elems(self.driver, selectors)
-        
-        self.data = {
-            "email": "test@gmail.com",
-            "password_valid": "Test_pass1**",
-            "password_invalid": "test_pass",
-            "first_name": "Test",
-            "last_name": "User",
-        }
         
     def tearDown(self):
         """ Close selenium """
@@ -462,6 +440,31 @@ class AdminTest(LiveServerTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/")
         
+    def test_cookie_logged(self):
+        
+        # Load home page
+        home_page = self.live_server_url + "/admin/"
+        self.setup_selenium()
+        self.driver.get(home_page)
+        
+        # Login
+        selectos = {
+            "username": "input[name='username']",
+            "password": "input[name='password']",
+            "submit": "button[type='submit']",
+        }
+        fields = tools.get_selenium_elems(self.driver, selectos)
+        fields["username"].send_keys(self.auth_username)
+        fields["password"].send_keys(self.password)
+        fields["submit"].click()
+        
+        # Validate login cookie saved
+        user_full_name = f"{self.auth_user.first_name} {self.auth_user.last_name}"
+        
+        # Get "nyx" cookie
+        cookie = self.driver.get_cookie("nyx")
+        self.assertIn(user_full_name, cookie["value"])
+
 
 class ActivationTest(LiveServerTestCase):
     """ Activate user account with email token """
