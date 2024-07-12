@@ -10,7 +10,7 @@ class AdminCookieMiddleware:
         # Get response
         
         response = self.get_response(request)
-        domain = request.META['HTTP_HOST']
+        domain = request.get_host()
         base_domain = "." + '.'.join(domain.split('.')[1:])
         
         # Add or remove cookie
