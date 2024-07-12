@@ -10,11 +10,13 @@ class AdminCookieMiddleware:
         # Get response
         
         response = self.get_response(request)
+        domain = request.META['HTTP_HOST']
+        base_domain = "." + '.'.join(domain.split('.')[1:])
         
         # Add or remove cookie
         if '/admin' in request.path and request.user.is_authenticated:
             name = f"{request.user.first_name} {request.user.last_name}"
-            response.set_cookie('nyx', name, path='/')
+            response.set_cookie('nyx', name, path='/', domain=base_domain)
             
         elif "/logout" in request.path:
             response.delete_cookie('nyx')
