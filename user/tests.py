@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from django.test import LiveServerTestCase, Client, TestCase
+from django.test import LiveServerTestCase
 from django.contrib.auth.models import User, Group
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -616,5 +616,135 @@ class ActivationTest(LiveServerTestCase):
         self.__validate_sweet_alert__(self.sweet_alert_data_error)
                 
         
+class ForgottenPassTest(LiveServerTestCase):
+    """ Test forgotten password view """
+    
+    def setUp(self):
         
+        # Create a user
+        self.auth_username = "test_user@gmail.com"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username,
+            password=self.password,
+            is_staff=True,
+            first_name="first",
+            last_name="last"
+        )
         
+        # Create "buyers" group
+        self.buyers_group = Group.objects.create(name='buyers')
+        
+        # Configure selenium
+        chrome_options = Options()
+        if TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+    def tearDown(self):
+        """ Close selenium """
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+                
+    def __setup_selenium__(self):
+        """ Start selenium and load test page """
+        
+        # Configure selenium
+        chrome_options = Options()
+        if TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+    def test_send_form(self):
+        """ Test send form and validate password reset email """
+        
+        # Load forgotten password page
+        forgotten_pass_url = self.live_server_url + "/user/forgotten-pass/"
+        self.driver.get(forgotten_pass_url)
+        
+        # Fiend fields
+        selectos = {
+            "email": "input[name='email']",
+            "submit": "button[type='submit']",
+        }
+        fields = tools.get_selenium_elems(self.driver, selectos)
+        
+        # Submit form
+        fields["email"].send_keys(self.auth_username)
+        fields["submit"].click()
+        
+        # Validate email sent
+        self.assertEqual(len(mail.outbox), 1)
+        
+        # Validate email text content
+        subject = "Reset your Nyx Trackers password"
+        cta_link_base = f"{HOST}/user/reset-pass/"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        self.assertIn(self.auth_user.first_name, sent_email.body)
+        self.assertIn(self.auth_user.last_name, sent_email.body)
+        
+        # Validate email html tags
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
+        
+        # Validate token
+        token_elems = sent_email.body.split(cta_link_base)[1].split("/")[0]
+        _, token_1, token_2 = token_elems.split("-")
+        token = f"{token_1}-{token_2}"
+        token_manager = PasswordResetTokenGenerator()
+        token_valid = token_manager.check_token(self.auth_user, token)
+        self.assertTrue(token_valid)
+        
+        # Validate sweet alert confirmation
+        sweet_alert_data = {
+            ".swal2-title": "Email sent",
+            ".swal2-title + div": "If your email is registered, "
+                                  "you will receive an email with instructions "
+                                  "to reset your password.",
+        }
+        
+        for selector, text in sweet_alert_data.items():
+            elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+            self.assertEqual(elem.text, text)
+            
+    def test_send_form_invalid_email(self):
+        """ Test send form with invalid email """
+        
+        # Load forgotten password page
+        forgotten_pass_url = self.live_server_url + "/user/forgotten-pass/"
+        self.driver.get(forgotten_pass_url)
+        
+        # Fiend fields
+        selectos = {
+            "email": "input[name='email']",
+            "submit": "button[type='submit']",
+        }
+        fields = tools.get_selenium_elems(self.driver, selectos)
+        
+        # Submit form
+        fields["email"].send_keys("no-user@gmail.com")
+        fields["submit"].click()
+        
+        # Validate no email sent
+        self.assertEqual(len(mail.outbox), 0)
+        
+        # Validate sweet alert confirmation
+        sweet_alert_data = {
+            ".swal2-title": "Email sent",
+            ".swal2-title + div": "If your email is registered, "
+                                  "you will receive an email with instructions "
+                                  "to reset your password.",
+        }
+        
+        for selector, text in sweet_alert_data.items():
+            elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+            self.assertEqual(elem.text, text)

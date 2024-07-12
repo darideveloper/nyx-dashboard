@@ -6,7 +6,6 @@ from django.contrib.auth.models import User, Group
 from user import tools
 from dotenv import load_dotenv
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.http import JsonResponse
 
 
 # Load environment variables
@@ -14,7 +13,7 @@ load_dotenv()
 HOST = os.getenv("HOST")
 
 
-class SignUp(View):
+class SignUpView(View):
 
     def get(self, request):
         
@@ -81,8 +80,7 @@ class SignUp(View):
         if send_email:
        
             # Generate token
-            token_manager = PasswordResetTokenGenerator()
-            user_token = token_manager.make_token(user)
+            id_token = tools.get_id_token(user)
        
             tools.send_email(
                 subject="Activate your Nyx Trackers account",
@@ -93,7 +91,7 @@ class SignUp(View):
                     "Your account has been created successfully.",
                     "Just one more step to start using it.",
                 ],
-                cta_link=f"{HOST}/user/activate/{user.id}-{user_token}/",
+                cta_link=f"{HOST}/user/activate/{id_token}/",
                 cta_text="Activate Now",
                 to_email=email,
             )
@@ -106,7 +104,7 @@ class SignUp(View):
         })
 
 
-class Activate(View):
+class ActivateView(View):
     
     def get(self, request, user_id, token):
         
@@ -181,3 +179,57 @@ def preview_email_activation(request):
         
     # Return the email preview
     return render(request, 'user/email.html', context)
+
+
+class ForgottenPassView(View):
+    
+    def get(self, request):
+        """ Render forgotten pass tamplate """
+        
+        # Render form
+        return render(request, 'user/forgotten-pass.html', context={
+            "title": "Forgotten Password",
+        })
+        
+    def post(self, request):
+        """ Sent reset email or reset pass """
+        
+        context = {
+            "title": "Forgotten Password",
+            "message_title": "Email sent",
+            "message_text": "If your email is registered, "
+                            "you will receive an email with instructions "
+                            "to reset your password.",
+            "message_type": "success",
+            "redirect": "/admin/login/",
+        }
+        rendered_template = render(request, 'user/forgotten-pass.html', context)
+    
+        # Get email from form
+        email = request.POST.get("email")
+        
+        # Validate if the email exists
+        user = User.objects.filter(username=email)
+        if not user.exists():
+            return rendered_template
+        user = user[0]
+        
+        # Generate token
+        id_token = tools.get_id_token(user)
+        
+        tools.send_email(
+            subject="Reset your Nyx Trackers password",
+            first_name=user.first_name,
+            last_name=user.last_name,
+            texts=[
+                "Did you forget your password? No worries!",
+                "Click the button below to reset it.",
+                "If you didn't request this, you can ignore this email.",
+            ],
+            cta_link=f"{HOST}/user/reset-pass/{id_token}/",
+            cta_text="Reset Password",
+            to_email=email,
+        )
+            
+        # Return the email preview
+        return rendered_template

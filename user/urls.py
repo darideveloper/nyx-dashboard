@@ -8,6 +8,11 @@ urlpatterns_preview_email = [
 
 urlpatterns = [
     path('email-preview/', include(urlpatterns_preview_email)),
-    path('sign-up/', views.SignUp.as_view(), name='sign-up'),
-    path('activate/<int:user_id>-<token>/', views.Activate.as_view(), name='activate'),
+    path('sign-up/', views.SignUpView.as_view(), name='sign-up'),
+    path(
+        'activate/<int:user_id>-<token>/',
+        views.ActivateView.as_view(),
+        name='activate'
+    ),
+    path('forgotten-pass/', views.ForgottenPassView.as_view(), name="forgotten-pass")
 ]

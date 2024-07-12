@@ -1,4 +1,3 @@
-import six
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
@@ -6,10 +5,8 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from datetime import datetime
 from django.contrib.auth.models import User
-from django.utils.http import base36_to_int
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 
 def get_selenium_elems(driver: webdriver, selectors: dict) -> dict[str, WebElement]:
@@ -81,3 +78,15 @@ def send_email(subject: str, first_name: str, last_name: str,
     )
     message.attach_alternative(html_message, "text/html")
     message.send()
+    
+    
+def get_id_token(user: User):
+    """ Return the id and token of a user.
+
+    Args:
+        user (User): user to get the id and token from
+    """
+    
+    token_manager = PasswordResetTokenGenerator()
+    token = token_manager.make_token(user)
+    return f"{user.id}-{token}"
