@@ -23,13 +23,11 @@ class AdminCookieMiddleware:
                 response.set_cookie('nyx', name, path='/')
             else:
                 response.set_cookie('nyx', name, path='/', domain=base_domain)
-            print(f"Cookie added: {name}, {base_domain}")
             
         elif "/logout" in request.path:
             if is_local:
                 response.delete_cookie('nyx', path='/')
             else:
                 response.delete_cookie('nyx', path='/', domain=base_domain)
-            print(f"Cookie removed: {name}, {base_domain}")
             
         return response

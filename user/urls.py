@@ -14,5 +14,10 @@ urlpatterns = [
         views.ActivateView.as_view(),
         name='activate'
     ),
-    path('forgotten-pass/', views.ForgottenPassView.as_view(), name="forgotten-pass")
+    path('forgotten-pass/', views.ForgottenPassView.as_view(), name="forgotten-pass"),
+    path(
+        'reset-pass/<int:user_id>-<token>/',
+        views.ResetPassView.as_view(),
+        name='reset-pass'
+    )
 ]

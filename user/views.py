@@ -5,7 +5,8 @@ from django.shortcuts import redirect
 from django.contrib.auth.models import User, Group
 from user import tools
 from dotenv import load_dotenv
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from user import decorators
+from django.utils.decorators import method_decorator
 
 
 # Load environment variables
@@ -15,17 +16,15 @@ HOST = os.getenv("HOST")
 
 class SignUpView(View):
 
+    @method_decorator(decorators.not_logged(redirect_url='/admin/'))
     def get(self, request):
-        
-        # Redirect to admin if user is already logged in
-        if request.user.is_authenticated:
-            return redirect('/admin/')
         
         # Render form
         return render(request, 'user/sign-up.html', context={
             "title": "Sign Up",
         })
 
+    @method_decorator(decorators.not_logged(redirect_url='/admin/'))
     def post(self, request):
         
         send_email = True
@@ -106,7 +105,8 @@ class SignUpView(View):
 
 class ActivateView(View):
     
-    def get(self, request, user_id, token):
+    @method_decorator(decorators.not_logged(redirect_url='/admin/'))
+    def get(self, request, user_id: int, token: str):
         
         title = "Activation"
         
@@ -119,20 +119,13 @@ class ActivateView(View):
             "message_type": "error",
             "redirect": "/user/sign-up/",
         }
+        error_response = render(request, 'admin/login.html', context=error_context)
         
-        # render error message if user does not exist
-        if not user.exists():
-            return render(request, 'admin/login.html', context=error_context)
-            
-        user = user[0]
-        
-        # Validate token
-        token_manager = PasswordResetTokenGenerator()
-        is_valid = token_manager.check_token(user, token)
+        is_valid, user = tools.validate_user_token(user_id, token)
         
         # render error message if token is invalid
         if not is_valid:
-            return render(request, 'admin/login.html', context=error_context)
+            return error_response
         
         # Activate user
         user.is_active = True
@@ -183,6 +176,7 @@ def preview_email_activation(request):
 
 class ForgottenPassView(View):
     
+    @method_decorator(decorators.not_logged(redirect_url='/admin/'))
     def get(self, request):
         """ Render forgotten pass tamplate """
         
@@ -190,7 +184,8 @@ class ForgottenPassView(View):
         return render(request, 'user/forgotten-pass.html', context={
             "title": "Forgotten Password",
         })
-        
+    
+    @method_decorator(decorators.not_logged(redirect_url='/admin/'))
     def post(self, request):
         """ Sent reset email or reset pass """
         
@@ -233,3 +228,69 @@ class ForgottenPassView(View):
             
         # Return the email preview
         return rendered_template
+    
+    
+class ResetPassView(View):
+    
+    @method_decorator(decorators.not_logged(redirect_url='/admin/'))
+    def get(self, request, user_id: int, token: str):
+        
+        title = "Reset Password"
+        
+        # Generate error response
+        error_context = {
+            "title": title,
+            "message_title": "Reset Password Error",
+            "message_text": "Check the link or try to reset your password again.",
+            "message_type": "error",
+            "redirect": "/user/forgotten-pass/",
+        }
+        error_response = render(request, 'user/reset-pass.html', context=error_context)
+        
+        is_valid, user = tools.validate_user_token(user_id, token)
+        if not is_valid:
+            return error_response
+        
+        # Render form
+        return render(request, 'user/reset-pass.html', context={
+            "title": title,
+            "email": user.username,
+        })
+    
+    @method_decorator(decorators.not_logged(redirect_url='/admin/'))
+    def post(self, request, user_id: int, token: str):
+        
+        title = "Reset Password"
+        
+        user = User.objects.filter(id=user_id)
+        
+        # Generate error response
+        error_context = {
+            "title": title,
+            "message_title": "Reset Password Error",
+            "message_text": "Check the link or try to reset your password again.",
+            "message_type": "error",
+            "redirect": "/user/forgotten-pass/",
+        }
+        error_response = render(request, 'user/reset-pass.html', context=error_context)
+        
+        is_valid, user = tools.validate_user_token(user_id, token)
+        if not is_valid:
+            return error_response
+        
+        # Update password from form
+        new_password = request.POST.get("new-password-1")
+        print(new_password, user)
+        user.set_password(new_password)
+        user.save()
+        
+        # Success message
+        return render(request, 'user/reset-pass.html', context={
+            "title": title,
+            "message_title": "Password Updated",
+            "message_text": "Your password has been updated successfully. "
+                            "Now you can login.",
+            "message_type": "success",
+            "redirect": "/admin/login/",
+            "email": user.username,
+        })
