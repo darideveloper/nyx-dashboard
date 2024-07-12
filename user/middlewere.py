@@ -19,6 +19,6 @@ class AdminCookieMiddleware:
             response.set_cookie('nyx', name, path='/', domain=base_domain)
             
         elif "/logout" in request.path:
-            response.delete_cookie('nyx')
+            response.delete_cookie('nyx', path='/', domain=base_domain)
             
         return response

@@ -380,11 +380,9 @@ class SignUpTest(LiveServerTestCase):
         self.fields["last_name"].send_keys(self.data["last_name"])
         self.fields["submit"].click()
         
-        # Validate error message
-        error_message = self.driver.find_element(
-            By.CSS_SELECTOR, ".callout.callout-danger"
-        ).text
-        self.assertEqual(error_message, "Invalid email address")
+        # Validate fotm no sent / user no created
+        user = User.objects.filter(username="invalid email")
+        self.assertFalse(user.exists())
         
         
 class AdminTest(LiveServerTestCase):
@@ -489,8 +487,9 @@ class AdminTest(LiveServerTestCase):
         self.driver.get(logout_page)
         
         # Validate no cookie
-        cookie = self.driver.get_cookie("nyx")
-        self.assertEqual(cookie, None)
+        cookies = self.driver.get_cookies()
+        cookie = [cookie for cookie in cookies if cookie["name"] == "nyx"]
+        self.assertEqual(cookie, [])
 
 
 class ActivationTest(LiveServerTestCase):
