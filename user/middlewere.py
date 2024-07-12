@@ -12,13 +12,24 @@ class AdminCookieMiddleware:
         response = self.get_response(request)
         domain = request.get_host()
         base_domain = "." + '.'.join(domain.split('.')[1:])
+        is_local = False
+        if "localhost" in domain or "127" in domain:
+            is_local = True
         
         # Add or remove cookie
         if '/admin' in request.path and request.user.is_authenticated:
             name = f"{request.user.first_name} {request.user.last_name}"
-            response.set_cookie('nyx', name, path='/', domain=base_domain)
+            if is_local:
+                response.set_cookie('nyx', name, path='/')
+            else:
+                response.set_cookie('nyx', name, path='/', domain=base_domain)
+            print(f"Cookie added: {name}, {base_domain}")
             
         elif "/logout" in request.path:
-            response.delete_cookie('nyx', path='/', domain=base_domain)
+            if is_local:
+                response.delete_cookie('nyx', path='/')
+            else:
+                response.delete_cookie('nyx', path='/', domain=base_domain)
+            print(f"Cookie removed: {name}, {base_domain}")
             
         return response

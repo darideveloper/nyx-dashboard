@@ -436,8 +436,8 @@ class AdminTest(LiveServerTestCase):
         """ Login with valid user and password """
         
         # Load home page
-        home_page = self.live_server_url + "/login/"
         self.__setup_selenium__()
+        home_page = self.live_server_url + "/login/"
         self.driver.get(home_page)
         
         # Login
@@ -474,6 +474,10 @@ class AdminTest(LiveServerTestCase):
         
         # Login
         self.__login__()
+        
+        # Go to admin
+        admin_page = self.live_server_url + "/admin/"
+        self.driver.get(admin_page)
         
         # Validate "nyx" cookie
         cookie = self.driver.get_cookie("nyx")
