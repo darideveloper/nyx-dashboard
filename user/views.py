@@ -121,7 +121,7 @@ class ActivateView(View):
         }
         error_response = render(request, 'admin/login.html', context=error_context)
         
-        is_valid, user = tools.validate_user_token(user_id, token)
+        is_valid, user = tools.validate_user_token(user_id, token, filter_active=False)
         
         # render error message if token is invalid
         if not is_valid:

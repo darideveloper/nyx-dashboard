@@ -92,12 +92,14 @@ def get_id_token(user: User):
     return f"{user.id}-{token}"
 
 
-def validate_user_token(user_id: int, token: str) -> tuple[bool, User]:
+def validate_user_token(user_id: int, token: str,
+                        filter_active: bool = True) -> tuple[bool, User]:
     """ Validate user_id and token from url
 
     Args:
         user_id (int): id of the user to reset password
         token (str): django token to validate
+        filter_active (bool): filter active users only
 
     Returns:
         tuple[bool, User]:
@@ -105,7 +107,7 @@ def validate_user_token(user_id: int, token: str) -> tuple[bool, User]:
             User: user object
     """
     
-    user = User.objects.filter(id=user_id, is_active=True)
+    user = User.objects.filter(id=user_id, is_active=filter_active)
     
     # render error message if user does not exist
     if not user.exists():
