@@ -39,7 +39,7 @@ class ValdiatePass extends ErrorMessages {
     this.isValid = false
     
     // Regex
-    this.passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$.#\?!%*&^*_\-+()\[\]{}|~<>,:;'"\/=])[A-Za-z0-9@$.#\?!%*&^*_\-+()\[\]{}|~<>,:;'"\/=]{8,50}$/
+    this.passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[A-Za-z0-9]{8,50}$/
   }
   
   validate() {
@@ -53,7 +53,7 @@ class ValdiatePass extends ErrorMessages {
 
     // Validate password strength
     if (!this.passRegex.test(password1)) {
-      this.showError('Password must be 8-50 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character')
+      this.showError('Password must be 8-50 characters long and contain at least one lowercase letter, one uppercase letter and one number')
       this.invalidInput(this.password1Elem)
 
     // Validate password match

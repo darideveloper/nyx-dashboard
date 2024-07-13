@@ -361,8 +361,7 @@ class SignUpTest(LiveServerTestCase):
             By.CSS_SELECTOR, ".callout.callout-danger"
         ).text
         error_message = "Password must be 8-50 characters long and contain " \
-            "at least one lowercase letter one uppercase letter, one number, " \
-            "and one special character"
+            "at least one lowercase letter one uppercase letter and one number"
         self.assertEqual(error_message, error_message)
         
     def test_email_invalid(self):
@@ -948,8 +947,7 @@ class ResetPassTest(LiveServerTestCase):
             By.CSS_SELECTOR, ".callout.callout-danger"
         ).text
         error_message = "Password must be 8-50 characters long and contain " \
-            "at least one lowercase letter one uppercase letter, one number, " \
-            "and one special character"
+            "at least one lowercase letter one uppercase letter and one number"
         self.assertEqual(error_message, error_message)
         
     def test_missmatch_password(self):
