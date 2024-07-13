@@ -280,7 +280,6 @@ class ResetPassView(View):
         
         # Update password from form
         new_password = request.POST.get("new-password-1")
-        print(new_password, user)
         user.set_password(new_password)
         user.save()
         

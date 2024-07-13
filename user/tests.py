@@ -43,12 +43,12 @@ class LogInTest(LiveServerTestCase):
         self.driver.get(self.login_url)
         
         # Fiend fields
-        selectos = {
+        selectors = {
             "username": "input[name='username']",
             "password": "input[name='password']",
             "submit": "button[type='submit']",
         }
-        self.fields = tools.get_selenium_elems(self.driver, selectos)
+        self.fields = tools.get_selenium_elems(self.driver, selectors)
                 
         self.error_message = "Invalid email or password"
         
@@ -79,7 +79,7 @@ class LogInTest(LiveServerTestCase):
         self.assertNotEqual(self.driver.current_url, self.login_url)
         
     def test_already_logged(self):
-        """ Test login with valid email and password."""
+        """ Test login when its already logged. """
         
         # Login
         self.client.force_login(self.auth_user)
@@ -433,12 +433,12 @@ class AdminTest(LiveServerTestCase):
         self.driver.get(home_page)
         
         # Login
-        selectos = {
+        selectors = {
             "username": "input[name='username']",
             "password": "input[name='password']",
             "submit": "button[type='submit']",
         }
-        fields = tools.get_selenium_elems(self.driver, selectos)
+        fields = tools.get_selenium_elems(self.driver, selectors)
         fields["username"].send_keys(self.auth_username)
         fields["password"].send_keys(self.password)
         fields["submit"].click()
@@ -575,7 +575,7 @@ class ActivationTest(LiveServerTestCase):
         })
     
     def test_already_logged(self):
-        """ Test login with valid email and password."""
+        """ Test activation with valid email and password."""
         
         # Login
         self.client.force_login(self.auth_user)
@@ -659,7 +659,7 @@ class ForgottenPassTest(LiveServerTestCase):
             pass
     
     def test_already_logged(self):
-        """ Test login with valid email and password."""
+        """ Test activation when its already logged. """
         
         # Login
         self.client.force_login(self.auth_user)
@@ -677,11 +677,11 @@ class ForgottenPassTest(LiveServerTestCase):
         self.driver.get(forgotten_pass_url)
         
         # Fiend fields
-        selectos = {
+        selectors = {
             "email": "input[name='email']",
             "submit": "button[type='submit']",
         }
-        fields = tools.get_selenium_elems(self.driver, selectos)
+        fields = tools.get_selenium_elems(self.driver, selectors)
         
         # Submit form
         fields["email"].send_keys(self.auth_username)
@@ -730,11 +730,11 @@ class ForgottenPassTest(LiveServerTestCase):
         self.driver.get(forgotten_pass_url)
         
         # Fiend fields
-        selectos = {
+        selectors = {
             "email": "input[name='email']",
             "submit": "button[type='submit']",
         }
-        fields = tools.get_selenium_elems(self.driver, selectos)
+        fields = tools.get_selenium_elems(self.driver, selectors)
         
         # Submit form
         fields["email"].send_keys("no-user@gmail.com")
@@ -754,3 +754,219 @@ class ForgottenPassTest(LiveServerTestCase):
         for selector, text in sweet_alert_data.items():
             elem = self.driver.find_element(By.CSS_SELECTOR, selector)
             self.assertEqual(elem.text, text)
+            
+            
+class ResetPassTest(LiveServerTestCase):
+    """ Activate user account with email token """
+    
+    def setUp(self):
+        
+        # Create a user
+        self.auth_username = "test_user@gmail.com"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username,
+            password=self.password,
+            is_staff=True,
+            is_active=True,
+        )
+        self.user_id = self.auth_user.id
+        
+        self.id_token = tools.get_id_token(self.auth_user)
+        self.token = "-".join(self.id_token.split("-")[1:])
+        
+        # Configure selenium
+        chrome_options = Options()
+        if TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Error message
+        self.sweet_alert_data_error = {
+            "title": "Reset Password Error",
+            "body": "Check the link or try to reset your password again.",
+        }
+        
+        # Passwords
+        self.password_valid = "Test_pass1**"
+        self.password_invalid = "test_pass"
+        
+        # Form inputs
+        self.form_selectors = {
+            "password1": "input[name='new-password-1']",
+            "password2": "input[name='new-password-2']",
+            "submit": "button[type='submit']",
+        }
+                
+    def tearDown(self):
+        """ Close selenium """
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+        
+    def __get_reset_link__(self, user_id, token):
+        """ Get token link """
+        link = f"{self.live_server_url}/user/reset-pass/{user_id}-{token}/"
+        return link
+        
+    def __validate_sweet_alert__(self, title: str, body: str):
+        """ Validate sweet alert """
+        
+        selectors = {
+            "title": ".swal2-title",
+            "body": ".swal2-title + div",
+        }
+        
+        title_elem = self.driver.find_element(By.CSS_SELECTOR, selectors["title"])
+        body_elem = self.driver.find_element(By.CSS_SELECTOR, selectors["body"])
+        self.assertEqual(title_elem.text, title)
+        self.assertEqual(body_elem.text, body)
+        
+    def test_already_logged(self):
+        """ Test reset pass when its already logged. """
+        
+        # Login
+        self.client.force_login(self.auth_user)
+        
+        # Load login page
+        response = self.client.get("/user/activate/1-1/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/admin/")
+        
+    def test_get_valid_id_token(self):
+        """ Try toload reset pass form with valid email token """
+                
+        # Load activation link
+        activation_link = self.__get_reset_link__(self.user_id, self.token)
+        self.driver.get(activation_link)
+        
+        # Validate no alert
+        alert_elems = self.driver.find_elements(By.CSS_SELECTOR, ".swal2-title")
+        self.assertEqual(alert_elems, [])
+    
+    def test_get_invalid_token(self):
+        """ Try to reset password with invalid email token """
+                
+        # Load activation link
+        activation_link = self.__get_reset_link__(self.user_id, "invalid_token")
+        self.driver.get(activation_link)
+        
+        # Validate error message
+        self.__validate_sweet_alert__(**self.sweet_alert_data_error)
+            
+    def test_get_invalid_user(self):
+        """ Try to reset password with invalid user id """
+                
+        # Load activation link
+        activation_link = self.__get_reset_link__("99", self.token)
+        self.driver.get(activation_link)
+        
+        # Validate error message
+        self.__validate_sweet_alert__(**self.sweet_alert_data_error)
+    
+    def test_post_invalid_token(self):
+        """ Try to reset password with invalid email token """
+                
+        # Load activation link
+        activation_link = self.__get_reset_link__(self.user_id, self.token)
+        self.driver.get(activation_link)
+        
+        # Update form action
+        activation_link = self.__get_reset_link__(self.user_id, "invalid_token")
+        code = f"document.querySelector('form').action = '{activation_link}';"
+        self.driver.execute_script(code)
+        
+        # Submit post data
+        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields["password1"].send_keys(self.password_valid)
+        fields["password2"].send_keys(self.password_valid)
+        fields["submit"].click()
+        
+        # Validate error message
+        self.__validate_sweet_alert__(**self.sweet_alert_data_error)
+        
+    def test_post_invalid_user(self):
+        """ Try to reset password with invalid user id """
+                
+        # Load activation link
+        activation_link = self.__get_reset_link__(self.user_id, self.token)
+        self.driver.get(activation_link)
+        
+        # Update form action with js
+        activation_link = self.__get_reset_link__("99", self.token)
+        code = f"document.querySelector('form').action = '{activation_link}';"
+        self.driver.execute_script(code)
+                
+        # Submit post data
+        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields["password1"].send_keys(self.password_valid)
+        fields["password2"].send_keys(self.password_valid)
+        fields["submit"].click()
+        
+        # Validate error message
+        self.__validate_sweet_alert__(**self.sweet_alert_data_error)
+        
+    def test_post_valid(self):
+        """ Try to reset password with valid user id and token"""
+                
+        # Load activation link
+        activation_link = self.__get_reset_link__(self.user_id, self.token)
+        self.driver.get(activation_link)
+        
+        # Submit post data
+        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields["password1"].send_keys(self.password_valid)
+        fields["password2"].send_keys(self.password_valid)
+        fields["submit"].click()
+        
+        # Validate error message
+        self.__validate_sweet_alert__(
+            title="Password Updated",
+            body="Your password has been updated successfully. "
+                 "Now you can login."
+        )
+        
+    def test_invalid_password(self):
+        """ Try to reset password with invalid password """
+                
+        # Load activation link
+        activation_link = self.__get_reset_link__(self.user_id, self.token)
+        self.driver.get(activation_link)
+        
+        # Submit post data
+        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields["password1"].send_keys(self.password_invalid)
+        fields["password2"].send_keys(self.password_invalid)
+        fields["submit"].click()
+        
+        # Validate error message
+        error_message = self.driver.find_element(
+            By.CSS_SELECTOR, ".callout.callout-danger"
+        ).text
+        error_message = "Password must be 8-50 characters long and contain " \
+            "at least one lowercase letter one uppercase letter, one number, " \
+            "and one special character"
+        self.assertEqual(error_message, error_message)
+        
+    def test_missmatch_password(self):
+        """ Try to reset password with mismatched passwords """
+                
+        # Load activation link
+        activation_link = self.__get_reset_link__(self.user_id, self.token)
+        self.driver.get(activation_link)
+        
+        # Submit post data
+        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields["password1"].send_keys(self.password_valid)
+        fields["password2"].send_keys(self.password_valid + "extra text")
+        fields["submit"].click()
+        
+        # Validate error message
+        error_message = self.driver.find_element(
+            By.CSS_SELECTOR, ".callout.callout-danger"
+        ).text
+        self.assertEqual(error_message, "Passwords do not match")
