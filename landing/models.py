@@ -6,8 +6,8 @@ class category(models.Model):
     name = models.CharField(max_length=255)
     
     class Meta:
-        verbose_name = 'Categoría'
-        verbose_name_plural = 'Categorías'
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
     
     def __str__(self):
         return self.name
@@ -21,8 +21,8 @@ class Text(models.Model):
     link = models.URLField(max_length=255, blank=True, null=True)
     
     class Meta:
-        verbose_name = 'Texto'
-        verbose_name_plural = 'Textos'
+        verbose_name = 'Text'
+        verbose_name_plural = 'Texts'
 
     def __str__(self):
         return self.key
@@ -36,8 +36,8 @@ class Image(models.Model):
     link = models.URLField(max_length=255, blank=True, null=True)
     
     class Meta:
-        verbose_name = 'Imagen'
-        verbose_name_plural = 'Imágenes'
+        verbose_name = 'Image'
+        verbose_name_plural = 'Images'
     
     def __str__(self):
         return self.key
