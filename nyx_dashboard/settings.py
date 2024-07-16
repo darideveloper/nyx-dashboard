@@ -22,6 +22,7 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     'landing',
     'user',
+    'store',
     'jazzmin',
     'corsheaders',
     'django.contrib.admin',
