@@ -53,12 +53,14 @@ class LandingViewsTestCase(TestCase):
             video='videos/test_video_2.mp4',
             category=self.category
         )
+        
+        self.api_base = "/api/landing"
 
     def test_get_texts(self):
         """ Get data from text api, and validate json response """
 
         # Request api and validate response
-        response = self.client.get('/api/texts/')
+        response = self.client.get(f"{self.api_base}/texts/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -88,7 +90,7 @@ class LandingViewsTestCase(TestCase):
         models.Text.objects.all().delete()
 
         # Request api and validate response
-        response = self.client.get('/api/texts/')
+        response = self.client.get(f"{self.api_base}/texts/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -100,7 +102,7 @@ class LandingViewsTestCase(TestCase):
         """ Get data from image api, and validate json response """
 
         # Request api and validate response
-        response = self.client.get('/api/images/')
+        response = self.client.get(f"{self.api_base}/images/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -130,7 +132,7 @@ class LandingViewsTestCase(TestCase):
         models.Image.objects.all().delete()
 
         # Request api and validate response
-        response = self.client.get('/api/images/')
+        response = self.client.get(f"{self.api_base}/images/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -142,7 +144,7 @@ class LandingViewsTestCase(TestCase):
         """ Get data from image api, and validate json response """
 
         # Request api and validate response
-        response = self.client.get('/api/videos/')
+        response = self.client.get(f"{self.api_base}/videos/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -170,7 +172,7 @@ class LandingViewsTestCase(TestCase):
         models.Video.objects.all().delete()
 
         # Request api and validate response
-        response = self.client.get('/api/videos/')
+        response = self.client.get(f"{self.api_base}/videos/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -182,7 +184,7 @@ class LandingViewsTestCase(TestCase):
         """ get data from all models, and validate json response """
 
         # Request api and validate response
-        response = self.client.get('/api/batch/')
+        response = self.client.get(f"{self.api_base}/batch/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -240,7 +242,7 @@ class LandingViewsTestCase(TestCase):
         models.Video.objects.all().delete()
 
         # Request api and validate response
-        response = self.client.get('/api/batch/')
+        response = self.client.get(f"{self.api_base}/batch/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
