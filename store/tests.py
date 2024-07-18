@@ -22,10 +22,9 @@ class FutureStockTestCase(TestCase):
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
-        self.assertEqual(
-            json_data["next_future_stock"],
-            self.tomorrow.strftime('%Y-%m-%d %H:%M:%S')
-        )
+        tomorrow_seconds = (self.tomorrow - self.today).total_seconds()
+        self.assertTrue(json_data["next_future_stock"] <= tomorrow_seconds)
+        self.assertTrue(json_data["next_future_stock"] + 2 > tomorrow_seconds)
 
     def test_get_next_future_stock_with_added(self):
         """ Test when future stock is already added and
@@ -37,7 +36,4 @@ class FutureStockTestCase(TestCase):
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
-        self.assertEqual(
-            json_data["next_future_stock"],
-            self.today.strftime('%Y-%m-%d %H:%M:%S')
-        )
+        self.assertEqual(json_data["next_future_stock"], 0)
