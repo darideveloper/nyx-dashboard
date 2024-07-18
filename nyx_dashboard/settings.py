@@ -60,6 +60,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'store.context_processors.load_env_variables'
             ],
         },
     },
@@ -272,6 +273,7 @@ JAZZMIN_SETTINGS = {
 CORS_ALLOWED_ORIGINS = [
     "https://www.nyxtrackers.com",
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 # Storage settings
