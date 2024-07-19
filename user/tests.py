@@ -2,12 +2,12 @@ import os
 from dotenv import load_dotenv
 from django.test import LiveServerTestCase
 from django.contrib.auth.models import User, Group
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from user import tools
 from django.core import mail
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 # Environment variables
 load_dotenv()

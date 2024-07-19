@@ -20,6 +20,34 @@
         {% widthratio dashboard_list|length 2 1 as middle %}
     {% endif %}
 
+    <!-- Countdown -->
+    <section id="countdown" class="countdown">
+        <h2 id="status">New sets coming soon!</h2>
+        <div class="counters">
+          <p class="counter-item">
+            <span id="days">00</span>
+            <span>Days</span>
+          </p>
+          <p class="counter-item">
+            <span id="hours">00</span>
+            <span>Hours</span>
+          </p>
+          <p class="counter-item">
+            <span id="minutes">00</span>
+            <span>Min</span>
+          </p>
+          <p class="counter-item">
+            <span id="seconds">00</span>
+            <span>Sec</span>
+          </p>
+        </div>
+        
+        <div class="buttons">
+            <a id="actionButton" class="btn btn-md btn-info changelink m-2" href="{{LANDING_HOST}}#mailing-list-form" target="_blank">Notify me</a>
+            <a id="actionButton" class="btn btn-md btn-primary changelink m-2" href="{{LANDING_HOST}}#buy-form" target="_blank">Buy now</a>
+        </div>
+      </section>
+
     <div class="col-lg-9 col-12">
         <div class="row">
             <div class="col-md-6 col-sm-12">
