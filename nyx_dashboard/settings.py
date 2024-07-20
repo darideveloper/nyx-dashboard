@@ -244,8 +244,8 @@ JAZZMIN_SETTINGS = {
     # UI Tweaks #
     #############
     # Relative paths to custom CSS/JS scripts (must be present in static files)
-    "custom_css": "user/css/jazzmin-custom.css",
-    "custom_js": "user/js/jazzmin-custom.js",
+    "custom_css": "jazzmin/css/custom.css",
+    "custom_js": "jazzmin/js/custom.js",
     # Whether to link font from fonts.googleapis.com
     # (use custom_css to supply font otherwise)
     "use_google_fonts_cdn": True,
