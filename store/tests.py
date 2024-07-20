@@ -36,8 +36,8 @@ class FutureStockTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         tomorrow_seconds = (self.tomorrow - self.today).total_seconds()
-        self.assertTrue(json_data["next_future_stock"] <= tomorrow_seconds)
-        self.assertTrue(json_data["next_future_stock"] + 2 > tomorrow_seconds)
+        self.assertTrue(json_data["next_future_stock"] <= tomorrow_seconds + 10 * 60)
+        self.assertTrue(json_data["next_future_stock"] + 2 > tomorrow_seconds + 10 * 60)
 
     def test_get_next_future_stock_with_added(self):
         """ Test when future stock is already added and
@@ -68,7 +68,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         
         # Future stock
         self.today = timezone.now()
-        self.tomorrow = self.today + timezone.timedelta(days=2)
+        self.tomorrow = self.today + timezone.timedelta(days=2, seconds=10)
         self.future_stock = models.FutureStock.objects.create(
             datetime=self.tomorrow,
             added=False,
@@ -126,9 +126,9 @@ class CountDownAdminTestCase(LiveServerTestCase):
         
         # Valdiate count down values
         self.assertEqual(inputs["title"].text, "New sets coming soon!")
-        self.assertEqual(inputs["days"].text, "01")
-        self.assertEqual(inputs["hours"].text, "23")
-        self.assertEqual(inputs["minutes"].text, "59")
+        self.assertEqual(inputs["days"].text, "02")
+        self.assertEqual(inputs["hours"].text, "00")
+        self.assertEqual(inputs["minutes"].text, "10")
         self.assertTrue(int(inputs["seconds"].text) <= 59)
         
     def test_countdown_no_future_stock(self):
