@@ -3,22 +3,29 @@ import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Env variables
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Setup .env file
 load_dotenv()
+ENV = os.getenv('ENV')
+env_path = os.path.join(BASE_DIR, f'.env.{ENV}')
+load_dotenv(env_path)
+print(f'\nEnvironment: {ENV}')
+
+# Env variables
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 HOST = os.environ.get("HOST")
-ENV = os.environ.get("ENV")
+STORAGE_AWS = os.environ.get("STORAGE_AWS") == "True"
+
 print(f"DEBUG: {DEBUG}")
 print(f"HOST: {HOST}")
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+print(f"STORAGE_AWS: {STORAGE_AWS}\n")
 
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
-
 INSTALLED_APPS = [
     'landing',
     'user',
@@ -95,7 +102,6 @@ else:
             },
         }
     }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -277,9 +283,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # Storage settings
-if ENV == "local":
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-elif ENV == "prod":
+if STORAGE_AWS:
     # aws settings
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -301,7 +305,9 @@ elif ENV == "prod":
     # s3 private media settings
     PRIVATE_MEDIA_LOCATION = 'private'
     PRIVATE_FILE_STORAGE = 'nyx_dashboard.storage_backends.PrivateMediaStorage'
-    
+else:
+    # django storage settings
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     
 # Email settings
 EMAIL_HOST = os.getenv('EMAIL_HOST')
