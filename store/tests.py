@@ -1,13 +1,15 @@
 import os
-from django.test import TestCase
-from store import models
-from django.utils import timezone
-from django.test import LiveServerTestCase
-from dotenv import load_dotenv
-from selenium.webdriver.chrome.options import Options
-from selenium import webdriver
-from django.contrib.auth.models import User
+import json
 from time import sleep
+
+from dotenv import load_dotenv
+from django.contrib.auth.models import User
+from django.utils import timezone
+from django.test import LiveServerTestCase, TestCase
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+from store import models
 from utils.automation import get_selenium_elems
 
 
@@ -147,6 +149,133 @@ class CountDownAdminTestCase(LiveServerTestCase):
         self.assertEqual(inputs["minutes"].text, "00")
         self.assertEqual(inputs["seconds"].text, "00")
         
+        
+class FutureStockSubscriptionTestCase(TestCase):
+    
+    def setUp(self):
+        """ Create initial data """
+        
+        # Auth user
+        self.auth_username = "test_user@gmail.com"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username,
+            password=self.password,
+            email=self.auth_username,
+            is_staff=True,
+        )
+        
+        # Future stock
+        self.today = timezone.now()
+        self.tomorrow = self.today + timezone.timedelta(days=1)
+        self.future_stock = models.FutureStock.objects.create(
+            datetime=self.tomorrow,
+            amount=100,
+        )
+        
+        self.endpoint = "/api/store/future-stock-subcription/"
+        
+    def test_invalid_subscription_type(self):
+        """ Send invalid subscription type
+        (only 'add' and 'remove' are allowed) """
+        
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": self.auth_username,
+                "type": "invalid",
+                "stock_id": 1
+            }),
+            content_type="application/json"
+        )
+        
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(subscriptions.count(), 0)
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json()["message"], "Invalid subscription type")
+        
+    def test_future_stock_not_found(self):
+        """ Send a future stock that does not exist """
+        
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": self.auth_username,
+                "type": "add",
+                "stock_id": 100
+            }),
+            content_type="application/json"
+        )
+        
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(subscriptions.count(), 0)
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.json()["message"], "Future stock not found")
+        
+    def test_add_subscription(self):
+        """ Add a subscription """
+        
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": self.auth_username,
+                "type": "add",
+                "stock_id": self.future_stock.id
+            }),
+            content_type="application/json"
+        )
+        
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(subscriptions.count(), 1)
+        self.assertEqual(subscriptions[0].user, self.auth_user)
+        self.assertEqual(subscriptions[0].future_stock, self.future_stock)
+        self.assertTrue(subscriptions[0].active)
+        self.assertFalse(subscriptions[0].notified)
+        
+    def test_remove_subscription(self):
+        """ Remove a subscription """
+        
+        # Add subscription
+        subscription = models.FutureStockSubcription.objects.create(
+            user=self.auth_user,
+            future_stock=self.future_stock,
+        )
+        
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": self.auth_username,
+                "type": "remove",
+                "stock_id": self.future_stock.id
+            }),
+            content_type="application/json"
+        )
+        
+        subscription.refresh_from_db()
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(subscriptions.count(), 1)
+        self.assertFalse(subscription.active)
+        self.assertFalse(subscription.notified)
+    
+    def test_remove_subscription_not_found(self):
+        """ Remove a subscription that does not exist """
+        
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": self.auth_username,
+                "type": "remove",
+                "stock_id": self.future_stock.id
+            }),
+            content_type="application/json"
+        )
+        
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(subscriptions.count(), 0)
+        self.assertEqual(res.json()["message"], "Subscription not found")
         
         
         
