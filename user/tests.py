@@ -6,8 +6,9 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from user import tools
 from django.core import mail
+from utils.automation import get_selenium_elems
+from utils.tokens import get_id_token
 
 # Environment variables
 load_dotenv()
@@ -48,7 +49,7 @@ class LogInTest(LiveServerTestCase):
             "password": "input[name='password']",
             "submit": "button[type='submit']",
         }
-        self.fields = tools.get_selenium_elems(self.driver, selectors)
+        self.fields = get_selenium_elems(self.driver, selectors)
                 
         self.error_message = "Invalid email or password"
         
@@ -179,7 +180,7 @@ class SignUpTest(LiveServerTestCase):
             "submit": "button[type='submit']",
         }
         
-        self.fields = tools.get_selenium_elems(self.driver, selectors)
+        self.fields = get_selenium_elems(self.driver, selectors)
         
         self.data = {
             "email": "test@gmail.com",
@@ -437,7 +438,7 @@ class AdminTest(LiveServerTestCase):
             "password": "input[name='password']",
             "submit": "button[type='submit']",
         }
-        fields = tools.get_selenium_elems(self.driver, selectors)
+        fields = get_selenium_elems(self.driver, selectors)
         fields["username"].send_keys(self.auth_username)
         fields["password"].send_keys(self.password)
         fields["submit"].click()
@@ -680,7 +681,7 @@ class ForgottenPassTest(LiveServerTestCase):
             "email": "input[name='email']",
             "submit": "button[type='submit']",
         }
-        fields = tools.get_selenium_elems(self.driver, selectors)
+        fields = get_selenium_elems(self.driver, selectors)
         
         # Submit form
         fields["email"].send_keys(self.auth_username)
@@ -733,7 +734,7 @@ class ForgottenPassTest(LiveServerTestCase):
             "email": "input[name='email']",
             "submit": "button[type='submit']",
         }
-        fields = tools.get_selenium_elems(self.driver, selectors)
+        fields = get_selenium_elems(self.driver, selectors)
         
         # Submit form
         fields["email"].send_keys("no-user@gmail.com")
@@ -771,7 +772,7 @@ class ResetPassTest(LiveServerTestCase):
         )
         self.user_id = self.auth_user.id
         
-        self.id_token = tools.get_id_token(self.auth_user)
+        self.id_token = get_id_token(self.auth_user)
         self.token = "-".join(self.id_token.split("-")[1:])
         
         # Configure selenium
@@ -880,11 +881,11 @@ class ResetPassTest(LiveServerTestCase):
         self.driver.execute_script(code)
         
         # Submit post data
-        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields = get_selenium_elems(self.driver, self.form_selectors)
         fields["password1"].send_keys(self.password_valid)
         fields["password2"].send_keys(self.password_valid)
         fields["submit"].click()
-        
+                
         # Validate error message
         self.__validate_sweet_alert__(**self.sweet_alert_data_error)
         
@@ -901,7 +902,7 @@ class ResetPassTest(LiveServerTestCase):
         self.driver.execute_script(code)
                 
         # Submit post data
-        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields = get_selenium_elems(self.driver, self.form_selectors)
         fields["password1"].send_keys(self.password_valid)
         fields["password2"].send_keys(self.password_valid)
         fields["submit"].click()
@@ -917,7 +918,7 @@ class ResetPassTest(LiveServerTestCase):
         self.driver.get(activation_link)
         
         # Submit post data
-        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields = get_selenium_elems(self.driver, self.form_selectors)
         fields["password1"].send_keys(self.password_valid)
         fields["password2"].send_keys(self.password_valid)
         fields["submit"].click()
@@ -937,7 +938,7 @@ class ResetPassTest(LiveServerTestCase):
         self.driver.get(activation_link)
         
         # Submit post data
-        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields = get_selenium_elems(self.driver, self.form_selectors)
         fields["password1"].send_keys(self.password_invalid)
         fields["password2"].send_keys(self.password_invalid)
         fields["submit"].click()
@@ -958,7 +959,7 @@ class ResetPassTest(LiveServerTestCase):
         self.driver.get(activation_link)
         
         # Submit post data
-        fields = tools.get_selenium_elems(self.driver, self.form_selectors)
+        fields = get_selenium_elems(self.driver, self.form_selectors)
         fields["password1"].send_keys(self.password_valid)
         fields["password2"].send_keys(self.password_valid + "extra text")
         fields["submit"].click()

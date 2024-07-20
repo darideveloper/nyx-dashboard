@@ -40,7 +40,7 @@ class ValdiatePass extends ErrorMessages {
     this.isValid = false
 
     // Regex
-    this.passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[A-Za-z0-9]{8,50}$/
+    this.passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[A-Za-z0-9\W_]{8,50}$/
   }
 
   validate() {

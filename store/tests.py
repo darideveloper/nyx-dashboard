@@ -6,10 +6,9 @@ from django.test import LiveServerTestCase
 from dotenv import load_dotenv
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from django.contrib.auth.models import User
 from time import sleep
-from user import tools
+from utils.automation import get_selenium_elems
 
 
 # Environment variables
@@ -109,7 +108,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
             "password": "input[name='password']",
             "submit": "button[type='submit']",
         }
-        fields_login = tools.get_selenium_elems(self.driver, selectors_login)
+        fields_login = get_selenium_elems(self.driver, selectors_login)
         
         # Login
         fields_login["username"].send_keys(self.auth_username)
@@ -123,7 +122,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         """ Login and validate count down values """
         
         self.__login__()
-        inputs = tools.get_selenium_elems(self.driver, self.selectors)
+        inputs = get_selenium_elems(self.driver, self.selectors)
         
         # Valdiate count down values
         self.assertEqual(inputs["title"].text, "New sets coming soon!")
@@ -139,7 +138,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         self.future_stock.delete()
         
         self.__login__()
-        inputs = tools.get_selenium_elems(self.driver, self.selectors)
+        inputs = get_selenium_elems(self.driver, self.selectors)
         
         # Valdiate count down values
         self.assertEqual(inputs["title"].text, "New sets coming soon!")

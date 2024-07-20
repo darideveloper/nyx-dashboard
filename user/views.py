@@ -3,10 +3,10 @@ from django.shortcuts import render
 from django.views import View
 from django.shortcuts import redirect
 from django.contrib.auth.models import User, Group
-from user import tools
 from dotenv import load_dotenv
 from user import decorators
 from django.utils.decorators import method_decorator
+from utils import emails, tokens
 
 
 # Load environment variables
@@ -79,9 +79,9 @@ class SignUpView(View):
         if send_email:
        
             # Generate token
-            id_token = tools.get_id_token(user)
+            id_token = tokens.get_id_token(user)
        
-            tools.send_email(
+            emails.send_email(
                 subject="Activate your Nyx Trackers account",
                 first_name=first_name,
                 last_name=last_name,
@@ -121,7 +121,7 @@ class ActivateView(View):
         }
         error_response = render(request, 'admin/login.html', context=error_context)
         
-        is_valid, user = tools.validate_user_token(user_id, token, filter_active=False)
+        is_valid, user = tokens.validate_user_token(user_id, token, filter_active=False)
         
         # render error message if token is invalid
         if not is_valid:
@@ -210,9 +210,9 @@ class ForgottenPassView(View):
         user = user[0]
         
         # Generate token
-        id_token = tools.get_id_token(user)
+        id_token = tokens.get_id_token(user)
         
-        tools.send_email(
+        emails.send_email(
             subject="Reset your Nyx Trackers password",
             first_name=user.first_name,
             last_name=user.last_name,
@@ -247,7 +247,7 @@ class ResetPassView(View):
         }
         error_response = render(request, 'user/reset-pass.html', context=error_context)
         
-        is_valid, user = tools.validate_user_token(user_id, token)
+        is_valid, user = tokens.validate_user_token(user_id, token)
         if not is_valid:
             return error_response
         
@@ -274,7 +274,7 @@ class ResetPassView(View):
         }
         error_response = render(request, 'user/reset-pass.html', context=error_context)
         
-        is_valid, user = tools.validate_user_token(user_id, token)
+        is_valid, user = tokens.validate_user_token(user_id, token)
         if not is_valid:
             return error_response
         
