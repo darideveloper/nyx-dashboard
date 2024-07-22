@@ -122,8 +122,8 @@ class CountDownAdminTestCase(LiveServerTestCase):
         self.auth_user = User.objects.create_user(
             self.auth_username,
             password=self.password,
-            is_staff=True,
             email=self.auth_username,
+            is_staff=True,
         )
         
         # Future stock
@@ -178,6 +178,18 @@ class CountDownAdminTestCase(LiveServerTestCase):
         # Wait after login
         sleep(3)
         
+    def __validate_sweet_alert__(self, title, body):
+        """ Validate sweet alert """
+        
+        # Get sweet alert
+        selectors = {
+            "title": ".swal2-title",
+            "body": ".swal2-title + div",
+        }
+        sweet_alert_elems = get_selenium_elems(self.driver, selectors)
+        self.assertEqual(sweet_alert_elems["title"].text, title)
+        self.assertEqual(sweet_alert_elems["body"].text, body)
+        
     def test_countdown(self):
         """ Login and validate count down values """
         
@@ -225,6 +237,44 @@ class CountDownAdminTestCase(LiveServerTestCase):
         self.assertEqual(subscription.future_stock, self.future_stock)
         self.assertTrue(subscription.active)
         self.assertFalse(subscription.notified)
+        
+        # Validate sweet alert
+        self.__validate_sweet_alert__(
+            "Subscription successful",
+            "You will be notified by email when new sets are available",
+        )
+    
+    def test_unsubscribe_button(self):
+        """ Click in unsubscribe button and validation subscription in db """
+        
+        # Presubscribe
+        models.FutureStockSubcription.objects.create(
+            user=self.auth_user,
+            future_stock=self.future_stock,
+            active=True,
+        )
+        
+        self.__login__()
+        
+        # Click in notify me button
+        selector = "#actionButtonUnsubscribe"
+        self.driver.find_element(By.CSS_SELECTOR, selector).click()
+        
+        # Validate subscription created
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(subscriptions.count(), 1)
+        
+        subscription = subscriptions[0]
+        self.assertEqual(subscription.user, self.auth_user)
+        self.assertEqual(subscription.future_stock, self.future_stock)
+        self.assertFalse(subscription.active)
+        self.assertFalse(subscription.notified)
+        
+        # Validate sweet alert
+        self.__validate_sweet_alert__(
+            "Unsubscription successful",
+            "You will no longer receive notifications by email",
+        )
         
         
 class FutureStockSubscriptionTestCase(TestCase):

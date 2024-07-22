@@ -159,7 +159,7 @@ class ResetPass extends ValdiatePass {
 
 // Countdown component in index page
 class Countdown {
-  
+
   constructor() {
 
     // Elements
@@ -168,7 +168,7 @@ class Countdown {
     this.minutesElement = document.getElementById('minutes')
     this.secondsElement = document.getElementById('seconds')
     this.statusElement = document.getElementById('status')
-    
+
     this.buttonNotify = document.querySelector('#actionButtonNotify')
     this.buttonBuy = document.querySelector('#actionButtonBuy')
     this.buttonUnsubscribe = document.querySelector('#actionButtonUnsubscribe')
@@ -220,7 +220,7 @@ class Countdown {
     this.secondsElement.textContent = seconds.toString().padStart(2, '0')
   }
 
-  endCountdown () {
+  endCountdown() {
     // Update text 
     this.statusElement.textContent = 'New sets are available now!'
 
@@ -229,21 +229,21 @@ class Countdown {
     this.buttonBuy.classList.remove("hidden")
   }
 
-  setupCounter() {  
-    
+  setupCounter() {
+
     console.log(this.totalSeconds)
-  
+
     if (this.totalSeconds <= 0) {
-     this.endCountdown() 
+      this.endCountdown()
     } else {
       const interval = setInterval(() => {
         if (this.totalSeconds > 0) {
           this.totalSeconds -= 1
           this.updateCounter()
-  
+
           if (this.totalSeconds <= 0) {
             clearInterval(interval)
-            this.endCountdown()         
+            this.endCountdown()
           }
         }
       }, 1000)
@@ -254,7 +254,7 @@ class Countdown {
     // Send json when click notify me button
     this.buttonNotify.addEventListener("click", (e) => {
       const email = e.target.getAttribute('data-email')
-      
+
       // Send json post
       const jsonData = {
         "email": email,
@@ -268,11 +268,44 @@ class Countdown {
         },
         body: JSON.stringify(jsonData)
       })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Success:', data)
-        this.toggleButtons()
+        .then(response => response.json())
+        .then(data => {
+          this.toggleButtons()
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Subscription successful',
+            text: 'You will be notified by email when new sets are available',
+          })
+        })
+    })
+
+    this.buttonUnsubscribe.addEventListener("click", (e) => {
+      const email = e.target.getAttribute('data-email')
+
+      // Send json post
+      const jsonData = {
+        "email": email,
+        "type": "remove",
+      }
+      const endpoint = `/api/store/future-stock-subscription/`
+      fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
       })
+        .then(response => response.json())
+        .then(data => {
+          this.toggleButtons()
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Unsubscription successful',
+            text: 'You will no longer receive notifications by email',
+          })
+        })
     })
   }
 }
@@ -287,4 +320,4 @@ if (formSignUp) {
   new Countdown()
 }
 
-console.log({adminH1})
+console.log({ adminH1 })
