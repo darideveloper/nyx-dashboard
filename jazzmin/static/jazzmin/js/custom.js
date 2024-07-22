@@ -156,59 +156,63 @@ class ResetPass extends ValdiatePass {
   }
 }
 
-function setupCounter() {
+class Countdown {
+  
+  constructor() {
 
-  // Count down timer
-  let totalSeconds = 0
-  let totalSecondsLoaded = false
-  const nextFutureStock = 10 // Replace this with your actual value
+    // Elements
+    this.daysElement = document.getElementById('days')
+    this.hoursElement = document.getElementById('hours')
+    this.minutesElement = document.getElementById('minutes')
+    this.secondsElement = document.getElementById('seconds')
+    this.statusElement = document.getElementById('status')
 
-  // Get next future strock from api
-  fetch('/api/store/next-future-stock')
-    .then(response => response.json())
-    .then(data => {
-      totalSeconds = data.next_future_stock
-      console.log({ totalSeconds })
-      totalSecondsLoaded = true
+    // Control variables
+    this.totalSeconds = 0
+
+    // Run main functions
+    this.loadSeconds().then(() => {
+      this.setupCounter()
     })
-
-  const daysElement = document.getElementById('days')
-  const hoursElement = document.getElementById('hours')
-  const minutesElement = document.getElementById('minutes')
-  const secondsElement = document.getElementById('seconds')
-  const statusElement = document.getElementById('status')
-
-  function updateCounter() {
-    const days = Math.floor(totalSeconds / (3600 * 24))
-    const hours = Math.floor(totalSeconds % (3600 * 24) / 3600)
-    const minutes = Math.floor(totalSeconds % 3600 / 60)
-    const seconds = Math.floor(totalSeconds % 60)
-
-    daysElement.textContent = days.toString().padStart(2, '0')
-    hoursElement.textContent = hours.toString().padStart(2, '0')
-    minutesElement.textContent = minutes.toString().padStart(2, '0')
-    secondsElement.textContent = seconds.toString().padStart(2, '0')
   }
 
-  if (!totalSecondsLoaded && nextFutureStock !== 0) {
-    totalSeconds = nextFutureStock
-    totalSecondsLoaded = true
+  async loadSeconds() {
+    // set in class next future strock from api
+    const response = await fetch('/api/store/next-future-stock')
+    const data = await response.json()
+    this.totalSeconds = data.next_future_stock
   }
 
-  if (totalSecondsLoaded) {
-    const interval = setInterval(() => {
-      if (totalSeconds > 0) {
-        totalSeconds -= 1
-        updateCounter()
+  updateCounter() {
+    const days = Math.floor(this.totalSeconds / (3600 * 24))
+    const hours = Math.floor(this.totalSeconds % (3600 * 24) / 3600)
+    const minutes = Math.floor(this.totalSeconds % 3600 / 60)
+    const seconds = Math.floor(this.totalSeconds % 60)
 
-        if (totalSeconds <= 0) {
-          clearInterval(interval)
-          statusElement.textContent = 'New sets are available now!'
+    this.daysElement.textContent = days.toString().padStart(2, '0')
+    this.hoursElement.textContent = hours.toString().padStart(2, '0')
+    this.minutesElement.textContent = minutes.toString().padStart(2, '0')
+    this.secondsElement.textContent = seconds.toString().padStart(2, '0')
+  }
+
+  setupCounter() {  
+  
+    if (this.totalSeconds != 0) {
+      const interval = setInterval(() => {
+        if (this.totalSeconds > 0) {
+          this.totalSeconds -= 1
+          this.updateCounter()
+  
+          if (this.totalSeconds <= 0) {
+            clearInterval(interval)
+            this.statusElement.textContent = 'New sets are available now!'
+          }
         }
-      }
-    }, 1000)
+      }, 1000)
+    }
   }
 }
+
 
 // Run main components custom functions
 if (formSignUp) {
@@ -216,7 +220,7 @@ if (formSignUp) {
 } else if (formResetPass) {
   new ResetPass()
 } else if (adminH1 == 'dashboard') {
-  setupCounter()
+  new Countdown()
 }
 
 console.log({adminH1})
