@@ -1,7 +1,16 @@
+import os
+
+from dotenv import load_dotenv
 from django.core.management import call_command
 from django.test import TestCase
-from store import models
 from django.utils import timezone
+from django.core import mail
+
+from store import models
+
+# Env variables
+load_dotenv()
+LANDING_HOST = os.getenv("LANDING_HOST")
 
 
 class UpdateStockCommandTestCase(TestCase):
@@ -19,7 +28,21 @@ class UpdateStockCommandTestCase(TestCase):
             added=False
         )
         
-        self.cron_name = "future_stock_update_status"
+        # Create subscriptions
+        self.user_name = "test@email.com"
+        self.user = models.User.objects.create_user(
+            username=self.user_name,
+            email=self.user_name,
+            password="test1234",
+            is_active=True,
+            is_staff=False,
+        )
+        self.subscription = models.FutureStockSubcription.objects.create(
+            future_stock=self.future_stock,
+            user=self.user
+        )
+            
+        self.cron_name = "future_stock_update"
 
     def test_datetime_reached(self):
         """ Test add stock when future stock datetime is reached """
@@ -34,6 +57,21 @@ class UpdateStockCommandTestCase(TestCase):
         # Check if the current stock was updated
         self.current_stock.refresh_from_db()
         self.assertEqual(int(self.current_stock.value), 5)
+        
+        # Validate emails sent
+        self.assertEqual(len(mail.outbox), 1)
+        
+        # Validate email text content
+        subject = "New sets available now!"
+        cta_link_base = f"{LANDING_HOST}#buy-form"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        self.assertIn(self.user.first_name, sent_email.body)
+        self.assertIn(self.user.last_name, sent_email.body)
+        
+        # Validate email html tags
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
         
     def test_datetime_not_reached(self):
         """ Test add stock when future stock datetime is not reached """
