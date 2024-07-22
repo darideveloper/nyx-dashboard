@@ -4,6 +4,7 @@ const formResetPass = document.querySelector('#form-reset-pass')
 const errorElem = document.querySelector('.callout.callout-danger')
 const adminH1 = document.querySelector('h1').textContent.toLowerCase().trim()
 
+// Base class for error messages in forms
 class ErrorMessages {
   showError(text) {
 
@@ -156,6 +157,7 @@ class ResetPass extends ValdiatePass {
   }
 }
 
+// Countdown component in index page
 class Countdown {
   
   constructor() {
@@ -166,21 +168,44 @@ class Countdown {
     this.minutesElement = document.getElementById('minutes')
     this.secondsElement = document.getElementById('seconds')
     this.statusElement = document.getElementById('status')
+    
+    this.buttonNotify = document.querySelector('#actionButtonNotify')
+    this.buttonBuy = document.querySelector('#actionButtonBuy')
+    this.buttonUnsubscribe = document.querySelector('#actionButtonUnsubscribe')
 
     // Control variables
     this.totalSeconds = 0
+    this.alreadySubscribed = false
+    this.actionType = 'add'
+
 
     // Run main functions
+    this.setupButtonEvents()
     this.loadSeconds().then(() => {
+
+      // Update counter values
       this.setupCounter()
+
+      // Update buttons
+      if (this.alreadySubscribed) {
+        this.toggleButtons()
+      }
     })
+  }
+
+  toggleButtons() {
+    // Toggle ubsubscribe and notify me buttons
+    this.buttonNotify.classList.toggle("hidden")
+    this.buttonUnsubscribe.classList.toggle("hidden")
   }
 
   async loadSeconds() {
     // set in class next future strock from api
-    const response = await fetch('/api/store/next-future-stock')
+    const response = await fetch(`/api/store/next-future-stock/${userEmail}`)
     const data = await response.json()
     this.totalSeconds = data.next_future_stock
+    this.alreadySubscribed = data.already_subscribed
+    console.log(data)
   }
 
   updateCounter() {
@@ -195,9 +220,22 @@ class Countdown {
     this.secondsElement.textContent = seconds.toString().padStart(2, '0')
   }
 
+  endCountdown () {
+    // Update text 
+    this.statusElement.textContent = 'New sets are available now!'
+
+    // Disable notify me button and enabe buy button
+    this.buttonNotify.classList.add("hidden")
+    this.buttonBuy.classList.remove("hidden")
+  }
+
   setupCounter() {  
+    
+    console.log(this.totalSeconds)
   
-    if (this.totalSeconds != 0) {
+    if (this.totalSeconds <= 0) {
+     this.endCountdown() 
+    } else {
       const interval = setInterval(() => {
         if (this.totalSeconds > 0) {
           this.totalSeconds -= 1
@@ -205,11 +243,37 @@ class Countdown {
   
           if (this.totalSeconds <= 0) {
             clearInterval(interval)
-            this.statusElement.textContent = 'New sets are available now!'
+            this.endCountdown()         
           }
         }
       }, 1000)
     }
+  }
+
+  setupButtonEvents() {
+    // Send json when click notify me button
+    this.buttonNotify.addEventListener("click", (e) => {
+      const email = e.target.getAttribute('data-email')
+      
+      // Send json post
+      const jsonData = {
+        "email": email,
+        "type": "add",
+      }
+      const endpoint = `/api/store/future-stock-subscription/`
+      fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data)
+        this.toggleButtons()
+      })
+    })
   }
 }
 

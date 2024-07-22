@@ -278,9 +278,12 @@ JAZZMIN_SETTINGS = {
 # Cors
 CORS_ALLOWED_ORIGINS = [
     "https://www.nyxtrackers.com",
+    "https://dashboard.nyxtrackers.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:8000",
 ]
+
 
 # Storage settings
 if STORAGE_AWS:

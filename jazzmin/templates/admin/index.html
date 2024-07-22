@@ -43,8 +43,9 @@
         </div>
         
         <div class="buttons">
-            <a id="actionButton" class="btn btn-md btn-info changelink m-2" href="{{LANDING_HOST}}#mailing-list-form" target="_blank">Notify me</a>
-            <a id="actionButton" class="btn btn-md btn-primary changelink m-2" href="{{LANDING_HOST}}#buy-form" target="_blank">Buy now</a>
+            <a id="actionButtonNotify" class="btn btn-md btn-info changelink m-2" href="#" data-email="{{user.email}}">Notify me</a>
+            <a id="actionButtonBuy" class="hidden btn btn-md btn-primary changelink m-2" href="{{LANDING_HOST}}#buy-form" target="_blank">Buy now</a>
+            <a id="actionButtonUnsubscribe" class="hidden btn btn-md btn-danger changelink m-2" href="#" data-email="{{user.email}}">Unsuscribe</a>
         </div>
       </section>
 

@@ -369,6 +369,12 @@
 <!-- Django customisations -->
 <script src="{% static "jazzmin/js/main.js" %}"></script>
 
+
+<!-- >Global variables to js -->
+<script>
+    const userEmail = "{{ user.email }}";
+</script>
+
 {% if jazzmin_settings.custom_js %}
 <script src="{% static jazzmin_settings.custom_js %}"></script>
 {% endif %}

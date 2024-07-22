@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.test import LiveServerTestCase, TestCase
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 
 from store import models
 from utils.automation import get_selenium_elems
@@ -22,6 +23,17 @@ class FutureStockTestCase(TestCase):
     
     def setUp(self):
         """ Create initial data """
+        
+        # Create user
+        self.user = User.objects.create_user(
+            username="test@gmail.com",
+            password="test_password",
+            email="test@gmail.com",
+            is_active=True,
+            is_staff=True,
+        )
+        
+        # Create future stock
         self.today = timezone.now()
         self.tomorrow = self.today + timezone.timedelta(days=1)
         self.future_stock = models.FutureStock.objects.create(
@@ -29,19 +41,25 @@ class FutureStockTestCase(TestCase):
             added=False,
             amount=100,
         )
-        self.endpoint = "/api/store/next-future-stock/"
+        self.endpoint = f"/api/store/next-future-stock/{self.user.email}"
+        self.tomorrow_seconds = (self.tomorrow - self.today).total_seconds()
     
-    def test_get_next_future_stock(self):
+    def test_get(self):
         """ Test get next future stock """
         
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, 200)
+        
         json_data = response.json()
-        tomorrow_seconds = (self.tomorrow - self.today).total_seconds()
-        self.assertTrue(json_data["next_future_stock"] <= tomorrow_seconds + 10 * 60)
-        self.assertTrue(json_data["next_future_stock"] + 2 > tomorrow_seconds + 10 * 60)
+        self.assertTrue(
+            json_data["next_future_stock"] <= self.tomorrow_seconds + 10 * 60
+        )
+        self.assertTrue(
+            json_data["next_future_stock"] + 2 > self.tomorrow_seconds + 10 * 60
+        )
+        self.assertFalse(json_data["already_subscribed"])
 
-    def test_get_next_future_stock_with_added(self):
+    def test_get_already_added(self):
         """ Test when future stock is already added and
         no more future stock to add """
         
@@ -50,8 +68,47 @@ class FutureStockTestCase(TestCase):
         
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, 200)
+        
         json_data = response.json()
         self.assertEqual(json_data["next_future_stock"], 0)
+        self.assertFalse(json_data["already_subscribed"])
+        
+    def test_get_email(self):
+        """ Test get next future stock with email endpoint """
+        
+        response = self.client.get(f"{self.endpoint}")
+        self.assertEqual(response.status_code, 200)
+        
+        json_data = response.json()
+        self.assertTrue(
+            json_data["next_future_stock"] <= self.tomorrow_seconds + 10 * 60
+        )
+        self.assertTrue(
+            json_data["next_future_stock"] + 2 > self.tomorrow_seconds + 10 * 60
+        )
+        self.assertFalse(json_data["already_subscribed"])
+        
+    def test_get_email_already_subscribed(self):
+        """ Test get next future stock with email endpoint,
+        and user is already subscribed """
+        
+        models.FutureStockSubcription.objects.create(
+            user=self.user,
+            future_stock=self.future_stock,
+            active=True,
+        )
+        
+        response = self.client.get(f"{self.endpoint}")
+        self.assertEqual(response.status_code, 200)
+        
+        json_data = response.json()
+        self.assertTrue(
+            json_data["next_future_stock"] <= self.tomorrow_seconds + 10 * 60
+        )
+        self.assertTrue(
+            json_data["next_future_stock"] + 2 > self.tomorrow_seconds + 10 * 60
+        )
+        self.assertTrue(json_data["already_subscribed"])
         
         
 class CountDownAdminTestCase(LiveServerTestCase):
@@ -66,6 +123,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
             self.auth_username,
             password=self.password,
             is_staff=True,
+            email=self.auth_username,
         )
         
         # Future stock
@@ -125,7 +183,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         
         self.__login__()
         inputs = get_selenium_elems(self.driver, self.selectors)
-        
+                
         # Valdiate count down values
         self.assertEqual(inputs["title"].text, "New sets coming soon!")
         self.assertEqual(inputs["days"].text, "02")
@@ -143,11 +201,30 @@ class CountDownAdminTestCase(LiveServerTestCase):
         inputs = get_selenium_elems(self.driver, self.selectors)
         
         # Valdiate count down values
-        self.assertEqual(inputs["title"].text, "New sets coming soon!")
+        self.assertEqual(inputs["title"].text, "New sets are available now!")
         self.assertEqual(inputs["days"].text, "00")
         self.assertEqual(inputs["hours"].text, "00")
         self.assertEqual(inputs["minutes"].text, "00")
         self.assertEqual(inputs["seconds"].text, "00")
+    
+    def test_notify_me_button(self):
+        """ Click in notify button and validation subscription in db """
+        
+        self.__login__()
+        
+        # Click in notify me button
+        selector = "#actionButtonNotify"
+        self.driver.find_element(By.CSS_SELECTOR, selector).click()
+        
+        # Validate subscription created
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(subscriptions.count(), 1)
+        
+        subscription = subscriptions[0]
+        self.assertEqual(subscription.user, self.auth_user)
+        self.assertEqual(subscription.future_stock, self.future_stock)
+        self.assertTrue(subscription.active)
+        self.assertFalse(subscription.notified)
         
         
 class FutureStockSubscriptionTestCase(TestCase):
@@ -173,7 +250,7 @@ class FutureStockSubscriptionTestCase(TestCase):
             amount=100,
         )
         
-        self.endpoint = "/api/store/future-stock-subcription/"
+        self.endpoint = "/api/store/future-stock-subscription/"
         
     def test_invalid_subscription_type(self):
         """ Send invalid subscription type
@@ -184,7 +261,6 @@ class FutureStockSubscriptionTestCase(TestCase):
             data=json.dumps({
                 "email": self.auth_username,
                 "type": "invalid",
-                "stock_id": 1
             }),
             content_type="application/json"
         )
@@ -192,17 +268,21 @@ class FutureStockSubscriptionTestCase(TestCase):
         subscriptions = models.FutureStockSubcription.objects.all()
         self.assertEqual(subscriptions.count(), 0)
         self.assertEqual(res.status_code, 400)
+        
+        # Validate message
         self.assertEqual(res.json()["message"], "Invalid subscription type")
         
     def test_future_stock_not_found(self):
         """ Send a future stock that does not exist """
+        
+        # Delete future stock
+        self.future_stock.delete()
         
         res = self.client.post(
             self.endpoint,
             data=json.dumps({
                 "email": self.auth_username,
                 "type": "add",
-                "stock_id": 100
             }),
             content_type="application/json"
         )
@@ -210,6 +290,8 @@ class FutureStockSubscriptionTestCase(TestCase):
         subscriptions = models.FutureStockSubcription.objects.all()
         self.assertEqual(subscriptions.count(), 0)
         self.assertEqual(res.status_code, 404)
+        
+        # Validate message
         self.assertEqual(res.json()["message"], "Future stock not found")
         
     def test_add_subscription(self):
@@ -232,6 +314,40 @@ class FutureStockSubscriptionTestCase(TestCase):
         self.assertEqual(subscriptions[0].future_stock, self.future_stock)
         self.assertTrue(subscriptions[0].active)
         self.assertFalse(subscriptions[0].notified)
+        
+        # Validate message
+        self.assertEqual(res.json()["message"], "Subscribed to future stock")
+    
+    def test_add_subscription_already_subscribed(self):
+        """ Add a subscription that is already subscribed """
+
+        # Create subscription
+        models.FutureStockSubcription.objects.create(
+            user=self.auth_user,
+            future_stock=self.future_stock,
+            active=True,
+        )
+        
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": self.auth_username,
+                "type": "add",
+                "stock_id": self.future_stock.id
+            }),
+            content_type="application/json"
+        )
+        
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(subscriptions.count(), 1)
+        self.assertEqual(subscriptions[0].user, self.auth_user)
+        self.assertEqual(subscriptions[0].future_stock, self.future_stock)
+        self.assertTrue(subscriptions[0].active)
+        self.assertFalse(subscriptions[0].notified)
+        
+        # Validate message
+        self.assertEqual(res.json()["message"], "Already subscribed")
         
     def test_remove_subscription(self):
         """ Remove a subscription """
@@ -258,6 +374,9 @@ class FutureStockSubscriptionTestCase(TestCase):
         self.assertEqual(subscriptions.count(), 1)
         self.assertFalse(subscription.active)
         self.assertFalse(subscription.notified)
+        
+        # Validate message
+        self.assertEqual(res.json()["message"], "Unsubscribed from future stock")
     
     def test_remove_subscription_not_found(self):
         """ Remove a subscription that does not exist """
@@ -275,7 +394,8 @@ class FutureStockSubscriptionTestCase(TestCase):
         subscriptions = models.FutureStockSubcription.objects.all()
         self.assertEqual(res.status_code, 404)
         self.assertEqual(subscriptions.count(), 0)
+        
+        # Validate message
         self.assertEqual(res.json()["message"], "Subscription not found")
         
-        
-        
+    

@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 
 
 class Status(models.Model):
-    # No edit key after creation
     key = models.CharField(max_length=255, primary_key=True)
     value = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -53,5 +52,5 @@ class FutureStockSubcription(models.Model):
         return f"({self.user}) {self.future_stock}"
     
     class Meta:
-        verbose_name = 'Future Stock Subscription User'
-        verbose_name_plural = 'Future Stock Subscription Users'
+        verbose_name = 'Future Stock Subscription'
+        verbose_name_plural = 'Future Stock Subscriptions'

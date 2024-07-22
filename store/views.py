@@ -3,9 +3,11 @@ from store import models
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
-def get_next_future_stock(request):
+def get_next_future_stock(request, email=""):
     """ Return next future stock datetime """
     
     future_stock = models.FutureStock.objects.filter(
@@ -17,23 +19,33 @@ def get_next_future_stock(request):
     next_future_stock_seconds = int((next_future_stock - now).total_seconds())
     if next_future_stock_seconds:
         next_future_stock_seconds += extra_minutes * 60
+        
+    already_subscribed = False
+    user = models.User.objects.filter(email=email)
+    if user:
+        user = user[0]
+        already_subscribed = models.FutureStockSubcription.objects.filter(
+            user=user,
+            future_stock=future_stock,
+            active=True
+        ).exists()
             
     return JsonResponse({
-        'next_future_stock': next_future_stock_seconds
+        'next_future_stock': next_future_stock_seconds,
+        'already_subscribed': already_subscribed,
     })
+
     
-    
+@method_decorator(csrf_exempt, name='dispatch')
 class FutureStockSubscription(View):
     
     def post(self, request):
         """ Subscribe to future stock """
         
         # Get json data
-        print("request.body", request.body)
         json_data = json.loads(request.body)
         subscription_email = json_data.get('email')
         subscription_type = json_data.get('type')
-        subscription_stock_id = json_data.get('stock_id')
         
         # Validate susbcription type
         if subscription_type not in ["add", "remove"]:
@@ -44,12 +56,11 @@ class FutureStockSubscription(View):
         # Get or create auth user
         user, _ = models.User.objects.get_or_create(
             email=subscription_email,
-            username=subscription_email
         )
 
         # Get and validate future stock
         future_stock = models.FutureStock.objects.filter(
-            id=subscription_stock_id
+            added=False
         )
         if not future_stock:
             return JsonResponse({
@@ -57,13 +68,32 @@ class FutureStockSubscription(View):
             }, status=404)
         future_stock = future_stock[0]
         
+        # Validate if user is already subscribed
+        already_subscribed = models.FutureStockSubcription.objects.filter(
+            user=user,
+            future_stock=future_stock,
+            active=True
+        ).exists()
+        
         # Save subscription
         if subscription_type == "add":
+            
+            # Show error if already subscribed
+            if already_subscribed:
+                return JsonResponse({
+                    'message': 'Already subscribed'
+                }, status=200)
+            
+            # Save subscription
             models.FutureStockSubcription.objects.create(
                 user=user,
                 future_stock=future_stock
             )
+            return JsonResponse({
+                'message': 'Subscribed to future stock'
+            })
         else:
+            # Deactivate subscription
             subscription = models.FutureStockSubcription.objects.filter(
                 user=user,
                 future_stock=future_stock
@@ -75,7 +105,9 @@ class FutureStockSubscription(View):
             subscription = subscription[0]
             subscription.active = False
             subscription.save()
+            
+            return JsonResponse({
+                'message': 'Unsubscribed from future stock'
+            })
         
-        return JsonResponse({
-            'message': 'Subscribed to future stock'
-        })
+        

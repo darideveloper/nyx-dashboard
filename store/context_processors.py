@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from store import models
 
 # Env variables
 load_dotenv()

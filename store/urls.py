@@ -3,10 +3,19 @@ from store import views
 
 urlpatterns = [
     # Api endpoints
-    path('next-future-stock/', views.get_next_future_stock, name='next-future-stock'),
     path(
-        'future-stock-subcription/',
+        'next-future-stock/<email>',
+        views.get_next_future_stock,
+        name='next-future-stock'
+    ),
+    path(
+        'next-future-stock/',
+        views.get_next_future_stock,
+        name='next-future-stock'
+    ),
+    path(
+        'future-stock-subscription/',
         views.FutureStockSubscription.as_view(),
-        name='future-stock-subcription'
+        name='future-stock-subscription'
     ),
 ]
