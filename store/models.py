@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class Status(models.Model):
@@ -32,7 +33,9 @@ class FutureStock(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"({self.amount}) {self.datetime}"
+        # Localize timezon in spain
+        datetime = timezone.localtime(self.datetime).strftime("%Y-%m-%d %H:%M:%S")
+        return f"({self.amount}) {datetime}"
     
     class Meta:
         verbose_name = 'Future Stock'
