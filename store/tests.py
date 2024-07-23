@@ -391,7 +391,6 @@ class FutureStockSubscriptionTestCase(TestCase):
             data=json.dumps({
                 "email": self.auth_username,
                 "type": "add",
-                "stock_id": self.future_stock.id
             }),
             content_type="application/json"
         )
@@ -400,6 +399,39 @@ class FutureStockSubscriptionTestCase(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(subscriptions.count(), 1)
         self.assertEqual(subscriptions[0].user, self.auth_user)
+        self.assertEqual(subscriptions[0].future_stock, self.future_stock)
+        self.assertTrue(subscriptions[0].active)
+        self.assertFalse(subscriptions[0].notified)
+        
+        # Validate message
+        self.assertEqual(res.json()["message"], "Subscribed to future stock")
+        
+    def test_add_subscription_new_user(self):
+        """ Add a subscription with a new user """
+        
+        user_email = "newuser@email.com"
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": user_email,
+                "type": "add",
+            }),
+            content_type="application/json"
+        )
+        
+        # Validate user created
+        users = User.objects.filter(email=user_email)
+        user = users[0]
+        self.assertEqual(users.count(), 1)
+        self.assertTrue(user.is_active)
+        self.assertFalse(user.is_staff)
+        self.assertEqual(user.username, user_email)
+        self.assertEqual(user.email, user_email)
+        
+        subscriptions = models.FutureStockSubscription.objects.all()
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(subscriptions.count(), 1)
+        self.assertEqual(subscriptions[0].user, user)
         self.assertEqual(subscriptions[0].future_stock, self.future_stock)
         self.assertTrue(subscriptions[0].active)
         self.assertFalse(subscriptions[0].notified)
@@ -422,7 +454,6 @@ class FutureStockSubscriptionTestCase(TestCase):
             data=json.dumps({
                 "email": self.auth_username,
                 "type": "add",
-                "stock_id": self.future_stock.id
             }),
             content_type="application/json"
         )
@@ -452,7 +483,6 @@ class FutureStockSubscriptionTestCase(TestCase):
             data=json.dumps({
                 "email": self.auth_username,
                 "type": "remove",
-                "stock_id": self.future_stock.id
             }),
             content_type="application/json"
         )
@@ -475,7 +505,6 @@ class FutureStockSubscriptionTestCase(TestCase):
             data=json.dumps({
                 "email": self.auth_username,
                 "type": "remove",
-                "stock_id": self.future_stock.id
             }),
             content_type="application/json"
         )

@@ -56,6 +56,8 @@ class FutureStockSubscription(View):
         # Get or create auth user
         user, _ = models.User.objects.get_or_create(
             email=subscription_email,
+            username=subscription_email,
+            is_active=True
         )
 
         # Get and validate future stock
