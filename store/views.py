@@ -24,7 +24,7 @@ def get_next_future_stock(request, email=""):
     user = models.User.objects.filter(email=email)
     if user:
         user = user[0]
-        already_subscribed = models.FutureStockSubcription.objects.filter(
+        already_subscribed = models.FutureStockSubscription.objects.filter(
             user=user,
             future_stock=future_stock,
             active=True
@@ -69,7 +69,7 @@ class FutureStockSubscription(View):
         future_stock = future_stock[0]
         
         # Validate if user is already subscribed
-        current_suscription = models.FutureStockSubcription.objects.filter(
+        current_subscription = models.FutureStockSubscription.objects.filter(
             user=user,
             future_stock=future_stock
         )
@@ -78,13 +78,13 @@ class FutureStockSubscription(View):
         if subscription_type == "add":
             
             # reactivating subscription
-            if current_suscription:
-                current_suscription[0].active = True
-                current_suscription[0].save()
+            if current_subscription:
+                current_subscription[0].active = True
+                current_subscription[0].save()
             else:
                 
                 # Save subscription
-                models.FutureStockSubcription.objects.create(
+                models.FutureStockSubscription.objects.create(
                     user=user,
                     future_stock=future_stock
                 )
@@ -93,7 +93,7 @@ class FutureStockSubscription(View):
             })
         else:
             # Deactivate subscription
-            subscription = models.FutureStockSubcription.objects.filter(
+            subscription = models.FutureStockSubscription.objects.filter(
                 user=user,
                 future_stock=future_stock
             )

@@ -42,7 +42,7 @@ class FutureStock(models.Model):
         verbose_name_plural = 'Future Stocks'
         
 
-class FutureStockSubcription(models.Model):
+class FutureStockSubscription(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     future_stock = models.ForeignKey(FutureStock, on_delete=models.CASCADE)

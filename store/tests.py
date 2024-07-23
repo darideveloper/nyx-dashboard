@@ -92,7 +92,7 @@ class FutureStockTestCase(TestCase):
         """ Test get next future stock with email endpoint,
         and user is already subscribed """
         
-        models.FutureStockSubcription.objects.create(
+        models.FutureStockSubscription.objects.create(
             user=self.user,
             future_stock=self.future_stock,
             active=True,
@@ -229,7 +229,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, selector).click()
         
         # Validate subscription created
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(subscriptions.count(), 1)
         
         subscription = subscriptions[0]
@@ -268,7 +268,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
             sleep(1)
         
         # Validate subscription created
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(subscriptions.count(), 1)
         
         subscription = subscriptions[0]
@@ -287,7 +287,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         """ Click in unsubscribe button and validation subscription in db """
         
         # Presubscribe
-        models.FutureStockSubcription.objects.create(
+        models.FutureStockSubscription.objects.create(
             user=self.auth_user,
             future_stock=self.future_stock,
             active=True,
@@ -300,7 +300,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, selector).click()
         
         # Validate subscription created
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(subscriptions.count(), 1)
         
         subscription = subscriptions[0]
@@ -354,7 +354,7 @@ class FutureStockSubscriptionTestCase(TestCase):
             content_type="application/json"
         )
         
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(subscriptions.count(), 0)
         self.assertEqual(res.status_code, 400)
         
@@ -376,7 +376,7 @@ class FutureStockSubscriptionTestCase(TestCase):
             content_type="application/json"
         )
         
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(subscriptions.count(), 0)
         self.assertEqual(res.status_code, 404)
         
@@ -396,7 +396,7 @@ class FutureStockSubscriptionTestCase(TestCase):
             content_type="application/json"
         )
         
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(res.status_code, 200)
         self.assertEqual(subscriptions.count(), 1)
         self.assertEqual(subscriptions[0].user, self.auth_user)
@@ -411,7 +411,7 @@ class FutureStockSubscriptionTestCase(TestCase):
         """ Add a subscription that is already subscribed """
 
         # Create subscription
-        models.FutureStockSubcription.objects.create(
+        models.FutureStockSubscription.objects.create(
             user=self.auth_user,
             future_stock=self.future_stock,
             active=True,
@@ -427,7 +427,7 @@ class FutureStockSubscriptionTestCase(TestCase):
             content_type="application/json"
         )
         
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(res.status_code, 200)
         self.assertEqual(subscriptions.count(), 1)
         self.assertEqual(subscriptions[0].user, self.auth_user)
@@ -442,7 +442,7 @@ class FutureStockSubscriptionTestCase(TestCase):
         """ Remove a subscription """
         
         # Add subscription
-        subscription = models.FutureStockSubcription.objects.create(
+        subscription = models.FutureStockSubscription.objects.create(
             user=self.auth_user,
             future_stock=self.future_stock,
         )
@@ -458,7 +458,7 @@ class FutureStockSubscriptionTestCase(TestCase):
         )
         
         subscription.refresh_from_db()
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(res.status_code, 200)
         self.assertEqual(subscriptions.count(), 1)
         self.assertFalse(subscription.active)
@@ -480,7 +480,7 @@ class FutureStockSubscriptionTestCase(TestCase):
             content_type="application/json"
         )
         
-        subscriptions = models.FutureStockSubcription.objects.all()
+        subscriptions = models.FutureStockSubscription.objects.all()
         self.assertEqual(res.status_code, 404)
         self.assertEqual(subscriptions.count(), 0)
         

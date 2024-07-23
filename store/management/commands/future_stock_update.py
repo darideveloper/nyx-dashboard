@@ -38,7 +38,7 @@ class Command(BaseCommand):
             print(f"{BASE_FILE}: Stock updated to {current_stock_value}")
             
             # Send email to subscribers
-            subscriptions = models.FutureStockSubcription.objects.filter(
+            subscriptions = models.FutureStockSubscription.objects.filter(
                 future_stock=future_stock
             )
             for subscription in subscriptions:

@@ -37,7 +37,7 @@ class UpdateStockCommandTestCase(TestCase):
             is_active=True,
             is_staff=False,
         )
-        self.subscription = models.FutureStockSubcription.objects.create(
+        self.subscription = models.FutureStockSubscription.objects.create(
             future_stock=self.future_stock,
             user=self.user
         )
