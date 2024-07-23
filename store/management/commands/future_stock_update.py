@@ -39,7 +39,9 @@ class Command(BaseCommand):
             
             # Send email to subscribers
             subscriptions = models.FutureStockSubscription.objects.filter(
-                future_stock=future_stock
+                future_stock=future_stock,
+                active=True,
+                notified=False
             )
             for subscription in subscriptions:
                 

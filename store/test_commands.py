@@ -1,4 +1,5 @@
 import os
+import json
 
 from dotenv import load_dotenv
 from django.core.management import call_command
@@ -60,6 +61,76 @@ class UpdateStockCommandTestCase(TestCase):
         
         # Validate emails sent
         self.assertEqual(len(mail.outbox), 1)
+        
+        # Validate email text content
+        subject = "New sets available now!"
+        cta_link_base = f"{LANDING_HOST}#buy-form"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        self.assertIn(self.user.first_name, sent_email.body)
+        self.assertIn(self.user.last_name, sent_email.body)
+        
+        # Validate email html tags
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
+        
+    def test_datetime_reached_inactive_subscription(self):
+        """ Test add stock when future stock datetime is reached
+        but subscription is inactive """
+        
+        # Deactivate subscription
+        self.subscription.active = False
+        self.subscription.save()
+        
+        # Freeze time to ensure consistent test results
+        call_command(self.cron_name)
+
+        # Check if the future stock was updated
+        self.future_stock.refresh_from_db()
+        self.assertTrue(self.future_stock.added)
+        
+        # Check if the current stock was updated
+        self.current_stock.refresh_from_db()
+        self.assertEqual(int(self.current_stock.value), 5)
+        
+        # Validate emails sent
+        self.assertEqual(len(mail.outbox), 0)
+        
+    def test_datetime_reached_new_user(self):
+        """ Test add stock when future stock datetime is reached
+        but the user its new (from landing) """
+        
+        # Delete original user
+        self.user.delete()
+
+        user_email = "new@test.com"
+        res = self.client.post(
+            "/api/store/future-stock-subscription/",
+            data=json.dumps({
+                "email": user_email,
+                "type": "add",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(res.status_code, 200)
+        
+        # Freeze time to ensure consistent test results
+        call_command(self.cron_name)
+
+        # Check if the future stock was updated
+        self.future_stock.refresh_from_db()
+        self.assertTrue(self.future_stock.added)
+        
+        # Check if the current stock was updated
+        self.current_stock.refresh_from_db()
+        self.assertEqual(int(self.current_stock.value), 5)
+        
+        # Validate emails sent
+        self.assertEqual(len(mail.outbox), 1)
+        
+        # Vsalite email address
+        sent_email = mail.outbox[0]
+        self.assertEqual(sent_email.to, [user_email])
         
         # Validate email text content
         subject = "New sets available now!"
