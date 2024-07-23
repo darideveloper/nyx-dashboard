@@ -436,7 +436,7 @@ class FutureStockSubscriptionTestCase(TestCase):
         self.assertFalse(subscriptions[0].notified)
         
         # Validate message
-        self.assertEqual(res.json()["message"], "Already subscribed")
+        self.assertEqual(res.json()["message"], "Subscribed to future stock")
         
     def test_remove_subscription(self):
         """ Remove a subscription """
