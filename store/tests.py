@@ -243,6 +243,45 @@ class CountDownAdminTestCase(LiveServerTestCase):
             "Subscription successful",
             "You will be notified by email when new sets are available",
         )
+        
+    def test_notify_me_button_resubscribe(self):
+        """ Click in notify button for second time, and validation subscription in db """
+        
+        self.__login__()
+        
+        selectors = {
+            "notify": "#actionButtonNotify",
+            "unsubscribe": "#actionButtonUnsubscribe",
+            "sweet_alert_ok": '.swal2-confirm'
+        }
+        
+        # Click in buttons
+        buttons_order = [
+            selectors["notify"],
+            selectors["sweet_alert_ok"],
+            selectors["unsubscribe"],
+            selectors["sweet_alert_ok"],
+            selectors["notify"],
+        ]
+        for button in buttons_order:
+            self.driver.find_element(By.CSS_SELECTOR, button).click()
+            sleep(1)
+        
+        # Validate subscription created
+        subscriptions = models.FutureStockSubcription.objects.all()
+        self.assertEqual(subscriptions.count(), 1)
+        
+        subscription = subscriptions[0]
+        self.assertEqual(subscription.user, self.auth_user)
+        self.assertEqual(subscription.future_stock, self.future_stock)
+        self.assertTrue(subscription.active)
+        self.assertFalse(subscription.notified)
+        
+        # Validate sweet alert
+        self.__validate_sweet_alert__(
+            "Subscription successful",
+            "You will be notified by email when new sets are available",
+        )
     
     def test_unsubscribe_button(self):
         """ Click in unsubscribe button and validation subscription in db """

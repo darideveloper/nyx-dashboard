@@ -69,26 +69,25 @@ class FutureStockSubscription(View):
         future_stock = future_stock[0]
         
         # Validate if user is already subscribed
-        already_subscribed = models.FutureStockSubcription.objects.filter(
+        current_suscription = models.FutureStockSubcription.objects.filter(
             user=user,
-            future_stock=future_stock,
-            active=True
-        ).exists()
+            future_stock=future_stock
+        )
         
         # Save subscription
         if subscription_type == "add":
             
-            # Show error if already subscribed
-            if already_subscribed:
-                return JsonResponse({
-                    'message': 'Already subscribed'
-                }, status=200)
-            
-            # Save subscription
-            models.FutureStockSubcription.objects.create(
-                user=user,
-                future_stock=future_stock
-            )
+            # reactivating subscription
+            if current_suscription:
+                current_suscription[0].active = True
+                current_suscription[0].save()
+            else:
+                
+                # Save subscription
+                models.FutureStockSubcription.objects.create(
+                    user=user,
+                    future_stock=future_stock
+                )
             return JsonResponse({
                 'message': 'Subscribed to future stock'
             })
