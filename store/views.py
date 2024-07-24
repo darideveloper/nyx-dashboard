@@ -29,6 +29,12 @@ def get_next_future_stock(request, email=""):
             future_stock=future_stock,
             active=True
         ).exists()
+        
+        print(models.FutureStockSubscription.objects.filter(
+            user=user,
+            future_stock=future_stock,
+            active=True
+        ))
             
     return JsonResponse({
         'next_future_stock': next_future_stock_seconds,
@@ -56,7 +62,6 @@ class FutureStockSubscription(View):
         # Get or create auth user
         user, _ = models.User.objects.get_or_create(
             email=subscription_email,
-            username=subscription_email,
             is_active=True
         )
 
