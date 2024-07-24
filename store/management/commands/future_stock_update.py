@@ -1,13 +1,10 @@
 import os
-from dotenv import load_dotenv
 from store import models
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from utils.emails import send_email
+from django.conf import settings
 
-# Env variables
-load_dotenv()
-LANDING_HOST = os.getenv("LANDING_HOST")
 
 BASE_FILE = os.path.basename(__file__)
 
@@ -54,7 +51,7 @@ class Command(BaseCommand):
                         "We have added new sets to our store.",
                         "Check them out now!"
                     ],
-                    cta_link=f"{LANDING_HOST}#buy-form",
+                    cta_link=f"{settings.LANDING_HOST}#buy-form",
                     cta_text="Buy now",
                     to_email=subscription.user.email
                 )

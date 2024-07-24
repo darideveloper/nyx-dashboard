@@ -18,6 +18,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 HOST = os.environ.get("HOST")
 STORAGE_AWS = os.environ.get("STORAGE_AWS") == "True"
+LANDING_HOST = os.getenv('LANDING_HOST')
+TEST_HEADLESS = os.getenv('TEST_HEADLESS') == 'True'
 
 print(f"DEBUG: {DEBUG}")
 print(f"HOST: {HOST}")

@@ -1,17 +1,12 @@
-import os
 import json
 
-from dotenv import load_dotenv
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 from django.core import mail
+from django.conf import settings
 
 from store import models
-
-# Env variables
-load_dotenv()
-LANDING_HOST = os.getenv("LANDING_HOST")
 
 
 class UpdateStockCommandTestCase(TestCase):
@@ -64,7 +59,7 @@ class UpdateStockCommandTestCase(TestCase):
         
         # Validate email text content
         subject = "New sets available now!"
-        cta_link_base = f"{LANDING_HOST}#buy-form"
+        cta_link_base = f"{settings.LANDING_HOST}#buy-form"
         sent_email = mail.outbox[0]
         self.assertEqual(subject, sent_email.subject)
         self.assertIn(self.user.first_name, sent_email.body)
@@ -134,7 +129,7 @@ class UpdateStockCommandTestCase(TestCase):
         
         # Validate email text content
         subject = "New sets available now!"
-        cta_link_base = f"{LANDING_HOST}#buy-form"
+        cta_link_base = f"{settings.LANDING_HOST}#buy-form"
         sent_email = mail.outbox[0]
         self.assertEqual(subject, sent_email.subject)
         self.assertIn(self.user.first_name, sent_email.body)

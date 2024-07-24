@@ -1,17 +1,11 @@
-import os
 from django.shortcuts import render
 from django.views import View
 from django.shortcuts import redirect
 from django.contrib.auth.models import User, Group
-from dotenv import load_dotenv
 from user import decorators
 from django.utils.decorators import method_decorator
 from utils import emails, tokens
-
-
-# Load environment variables
-load_dotenv()
-HOST = os.getenv("HOST")
+from django.conf import settings
 
 
 class SignUpView(View):
@@ -90,7 +84,7 @@ class SignUpView(View):
                     "Your account has been created successfully.",
                     "Just one more step to start using it.",
                 ],
-                cta_link=f"{HOST}/user/activate/{id_token}/",
+                cta_link=f"{settings.HOST}/user/activate/{id_token}/",
                 cta_text="Activate Now",
                 to_email=email,
             )
@@ -166,7 +160,7 @@ def preview_email_activation(request):
             "Your account has been created successfully.",
             "Just one more step to start using it.",
         ],
-        "cta_link": f"{HOST}/user/activate/12345/",
+        "cta_link": f"{settings.HOST}/user/activate/12345/",
         "cta_text": "Activate Now",
     }
         
@@ -221,7 +215,7 @@ class ForgottenPassView(View):
                 "Click the button below to reset it.",
                 "If you didn't request this, you can ignore this email.",
             ],
-            cta_link=f"{HOST}/user/reset-pass/{id_token}/",
+            cta_link=f"{settings.HOST}/user/reset-pass/{id_token}/",
             cta_text="Reset Password",
             to_email=email,
         )

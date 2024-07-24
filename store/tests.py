@@ -1,22 +1,16 @@
-import os
 import json
 from time import sleep
 
-from dotenv import load_dotenv
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.test import LiveServerTestCase, TestCase
+from django.conf import settings
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 from store import models
 from utils.automation import get_selenium_elems
-
-
-# Environment variables
-load_dotenv()
-TEST_HEADLESS = os.getenv("TEST_HEADLESS") == "True"
 
 
 class FutureStockTestCase(TestCase):
@@ -137,7 +131,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         
         # Setup chrome instance
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(5)

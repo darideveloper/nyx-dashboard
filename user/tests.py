@@ -1,19 +1,13 @@
-import os
-from dotenv import load_dotenv
 from django.test import LiveServerTestCase
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.conf import settings
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from django.core import mail
 from utils.automation import get_selenium_elems
 from utils.tokens import get_id_token
-
-# Environment variables
-load_dotenv()
-HOST = os.getenv("HOST")
-TEST_HEADLESS = os.getenv("TEST_HEADLESS") == "True"
         
         
 class LogInTest(LiveServerTestCase):
@@ -32,7 +26,7 @@ class LogInTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         
         # Start selenium
@@ -159,7 +153,7 @@ class SignUpTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         
         # Start selenium
@@ -242,7 +236,7 @@ class SignUpTest(LiveServerTestCase):
           
         # Validate email text content
         subject = "Activate your Nyx Trackers account"
-        cta_link_base = f"{HOST}/user/activate/"
+        cta_link_base = f"{settings.HOST}/user/activate/"
         sent_email = mail.outbox[0]
         self.assertEqual(subject, sent_email.subject)
         self.assertIn(user.first_name, sent_email.body)
@@ -402,7 +396,7 @@ class AdminTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         
         # Start selenium
@@ -411,7 +405,7 @@ class AdminTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         
         # Start selenium
@@ -517,7 +511,7 @@ class ActivationTest(LiveServerTestCase):
           
         # Validate token
         sent_email = mail.outbox[0]
-        self.cta_link_base = f"{HOST}/user/activate/"
+        self.cta_link_base = f"{settings.HOST}/user/activate/"
         token_elems = sent_email.body.split(self.cta_link_base)[1].split("/")[0]
         self.user_id, token_1, token_2 = token_elems.split("-")
         self.token = f"{token_1}-{token_2}"
@@ -530,7 +524,7 @@ class ActivationTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         
         # Start selenium
@@ -635,7 +629,7 @@ class ForgottenPassTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         
         # Start selenium
@@ -644,7 +638,7 @@ class ForgottenPassTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         
         # Start selenium
@@ -692,7 +686,7 @@ class ForgottenPassTest(LiveServerTestCase):
         
         # Validate email text content
         subject = "Reset your Nyx Trackers password"
-        cta_link_base = f"{HOST}/user/reset-pass/"
+        cta_link_base = f"{settings.HOST}/user/reset-pass/"
         sent_email = mail.outbox[0]
         self.assertEqual(subject, sent_email.subject)
         self.assertIn(self.auth_user.first_name, sent_email.body)
@@ -777,7 +771,7 @@ class ResetPassTest(LiveServerTestCase):
         
         # Configure selenium
         chrome_options = Options()
-        if TEST_HEADLESS:
+        if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         
         # Start selenium

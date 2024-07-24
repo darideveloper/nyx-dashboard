@@ -1,13 +1,7 @@
-import os
-from dotenv import load_dotenv
-from store import models
-
-# Env variables
-load_dotenv()
-LANDING_HOST = os.getenv('LANDING_HOST')
+from django.conf import settings
 
 
 def load_env_variables(request):
     return {
-        'LANDING_HOST': LANDING_HOST
+        'LANDING_HOST': settings.LANDING_HOST
     }
