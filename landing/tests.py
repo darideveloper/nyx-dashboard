@@ -1,5 +1,6 @@
 from django.test import TestCase
 from landing import models
+from utils.media import get_media_url
 
 
 class LandingViewsTestCase(TestCase):
@@ -30,27 +31,27 @@ class LandingViewsTestCase(TestCase):
         # Create images
         self.image_1 = models.Image.objects.create(
             key='test_key_1',
-            image='images/test_image_1.jpg',
+            image='/media/images/test_image_1.jpg',
             category=self.category,
             link='http://test.com'
         )
 
         self.image_2 = models.Image.objects.create(
             key='test_key_2',
-            image='images/test_image_2.jpg',
+            image='/media/images/test_image_2.jpg',
             category=self.category
         )
 
         # Create videos
         self.video_1 = models.Video.objects.create(
             key='test_key_1',
-            video='videos/test_video_1.mp4',
+            video='/media/videos/test_video_1.mp4',
             category=self.category
         )
 
         self.video_2 = models.Video.objects.create(
             key='test_key_2',
-            video='videos/test_video_2.mp4',
+            video='/media/videos/test_video_2.mp4',
             category=self.category
         )
         
@@ -111,13 +112,13 @@ class LandingViewsTestCase(TestCase):
         json_data_expected = [
             {
                 'key': self.image_1.key,
-                'image': self.image_1.image.url,
+                'image': get_media_url(self.image_1.image.url),
                 'category': self.category.name,
                 'link': self.image_1.link
             },
             {
                 'key': self.image_2.key,
-                'image': self.image_2.image.url,
+                'image': get_media_url(self.image_2.image.url),
                 'category': self.category.name,
                 'link': None
             }
@@ -153,12 +154,12 @@ class LandingViewsTestCase(TestCase):
         json_data_expected = [
             {
                 'key': self.video_1.key,
-                'video': self.video_1.video.url,
+                'video': get_media_url(self.video_1.video.url),
                 'category': self.category.name
             },
             {
                 'key': self.video_2.key,
-                'video': self.video_2.video.url,
+                'video': get_media_url(self.video_2.video.url),
                 'category': self.category.name
             }
         ]
@@ -208,13 +209,13 @@ class LandingViewsTestCase(TestCase):
             "images": [
                 {
                     'key': self.image_1.key,
-                    'image': self.image_1.image.url,
+                    'image': get_media_url(self.image_1.image.url),
                     'category': self.category.name,
                     'link': self.image_1.link
                 },
                 {
                     'key': self.image_2.key,
-                    'image': self.image_2.image.url,
+                    'image': get_media_url(self.image_2.image.url),
                     'category': self.category.name,
                     'link': None
                 }
@@ -222,17 +223,19 @@ class LandingViewsTestCase(TestCase):
             "videos": [
                 {
                     'key': self.video_1.key,
-                    'video': self.video_1.video.url,
+                    'video': get_media_url(self.video_1.video.url),
                     'category': self.category.name
                 },
                 {
                     'key': self.video_2.key,
-                    'video': self.video_2.video.url,
+                    'video': get_media_url(self.video_2.video.url),
                     'category': self.category.name
                 }
             ]
         }
-        self.assertEqual(json_data_response, json_data_expected)
+        self.assertEqual(json_data_response["texts"], json_data_expected["texts"])
+        self.assertEqual(json_data_response["images"], json_data_expected["images"])
+        self.assertEqual(json_data_response["videos"], json_data_expected["videos"])
 
     def test_get_batch_no_data(self):
         
