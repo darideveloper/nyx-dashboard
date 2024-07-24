@@ -221,6 +221,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         # Click in notify me button
         selector = "#actionButtonNotify"
         self.driver.find_element(By.CSS_SELECTOR, selector).click()
+        sleep(1)
         
         # Validate subscription created
         subscriptions = models.FutureStockSubscription.objects.all()
@@ -292,6 +293,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         # Click in notify me button
         selector = "#actionButtonUnsubscribe"
         self.driver.find_element(By.CSS_SELECTOR, selector).click()
+        sleep(1)
         
         # Validate subscription created
         subscriptions = models.FutureStockSubscription.objects.all()
@@ -416,6 +418,7 @@ class FutureStockSubscriptionTestCase(TestCase):
         # Validate user created
         users = User.objects.filter(email=user_email)
         user = users[0]
+        print(user_email)
         self.assertEqual(users.count(), 1)
         self.assertTrue(user.is_active)
         self.assertFalse(user.is_staff)
