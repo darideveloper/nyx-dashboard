@@ -5,6 +5,9 @@ from store import urls as store_urls
 from user import urls as user_urls
 from landing import views as views_landing
 from user import views as views_user
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     
@@ -18,3 +21,6 @@ urlpatterns = [
     path('sign-up/', views_user.redirect_sign_up, name='redirect-sign-up'),
     path('accounts/profile/', views_user.redirect_admin, name='redirect-admin'),
 ]
+
+if not settings.STORAGE_AWS:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

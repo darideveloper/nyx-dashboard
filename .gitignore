@@ -12,3 +12,4 @@ db.*
 *.pyc
 staticfiles
 .env.*
+media/
