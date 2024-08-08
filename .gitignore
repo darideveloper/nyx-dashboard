@@ -10,3 +10,6 @@ debug.*
 db.*
 *.sqlite3
 *.pyc
+client-ddetails.txt
+media/
+staticfiles/
