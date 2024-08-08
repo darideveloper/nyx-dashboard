@@ -291,7 +291,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
-
 # Storage settings
 if STORAGE_AWS:
     # aws settings

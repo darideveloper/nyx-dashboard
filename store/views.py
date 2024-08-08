@@ -1,10 +1,14 @@
+import re
 import json
-from store import models
+import base64
+
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+
+from store import models
 
 
 def get_next_future_stock(request, email=""):
@@ -113,5 +117,41 @@ class FutureStockSubscription(View):
             return JsonResponse({
                 'message': 'Unsubscribed from future stock'
             })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class Sale(View):
+    
+    def post(self, request):
+        """ Sale sale from landing """
         
+        # Get json data
+        json_data = json.loads(request.body)
         
+        # get image file in base64 and save
+        logo_base64 = json_data.get('logo')
+        if logo_base64:
+        
+            # Validate logo format
+            match = re.match(r'data:image/(png|svg\+xml);base64,(.*)', logo_base64)
+            if not match:
+                return JsonResponse({
+                    'message': 'Invalid logo format'
+                }, status=400)
+
+            # Get logo parts
+            logo_file_type = match.group(1)
+            logo_base64_string = match.group(2)
+            if logo_file_type == "svg+xml":
+                logo_file_type = "svg"
+            logo_data = base64.b64decode(logo_base64_string)
+            
+            file_name = f'logo.{logo_file_type}'
+            
+            with open(file_name, 'wb') as f:
+                f.write(logo_data)
+        
+        return JsonResponse({
+            'message': 'Logo saved'
+        })
+            

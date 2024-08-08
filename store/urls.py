@@ -18,4 +18,5 @@ urlpatterns = [
         views.FutureStockSubscription.as_view(),
         name='future-stock-subscription'
     ),
+    path('sale/', views.Sale.as_view(), name='Sale'),
 ]
