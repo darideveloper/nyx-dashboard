@@ -4,7 +4,7 @@
 
 {% block content %}
     <p class="login-box-msg">{{ jazzmin_settings.welcome_sign }}</p>
-    <a class="btn {{ jazzmin_ui.button_classes.primary }} btn-block" href="{% url 'admin:index' %}">
+    <a class="btn {{ jazzmin_ui.button_classes.primary }} btn-block" href="/login/">
         {% trans 'Log in again' %}
     </a>
 {% endblock %}

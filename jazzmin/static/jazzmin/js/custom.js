@@ -313,11 +313,25 @@ class Countdown {
 
 // Run main components custom functions
 if (formSignUp) {
-  new SignUp()
-} else if (formResetPass) {
-  new ResetPass()
-} else if (adminH1 == 'dashboard') {
-  new Countdown()
-}
 
-console.log({ adminH1 })
+  // Validate sign up form
+  new SignUp()
+
+} else if (formResetPass) {
+
+  // Validate reset pass form
+  new ResetPass()
+
+} else if (adminH1 == 'dashboard') {
+
+  // Start countdown component
+  new Countdown()
+
+  // redirect to landing page
+  const urlParams = new URLSearchParams(window.location.search)
+  console.log(urlParams)
+  if (urlParams.has('landing')) {
+    console.log(landingHost)
+    window.location.href = landingHost
+  }
+}

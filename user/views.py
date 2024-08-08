@@ -138,7 +138,7 @@ class ActivateView(View):
     
 
 def redirect_login(request):
-    return redirect('/admin/login/')
+    return redirect('/admin/login/?next=/admin/?landing=true')
 
 
 def redirect_sign_up(request):
