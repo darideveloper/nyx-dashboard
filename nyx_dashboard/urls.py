@@ -20,6 +20,7 @@ urlpatterns = [
     path('login/', views_user.redirect_login, name='redirect-login'),
     path('sign-up/', views_user.redirect_sign_up, name='redirect-sign-up'),
     path('accounts/profile/', views_user.redirect_admin, name='redirect-admin'),
+    path('landing/', views_user.redirect_landing, name='redirect-landing'),
 ]
 
 if not settings.STORAGE_AWS:

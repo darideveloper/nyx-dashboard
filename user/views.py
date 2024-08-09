@@ -138,7 +138,7 @@ class ActivateView(View):
     
 
 def redirect_login(request):
-    return redirect('/admin/login/?next=/admin/?landing=true')
+    return redirect('/admin/login/?next=/landing')
 
 
 def redirect_sign_up(request):
@@ -147,6 +147,10 @@ def redirect_sign_up(request):
 
 def redirect_admin(request):
     return redirect('/admin/')
+
+
+def redirect_landing(request):
+    return redirect(settings.LANDING_HOST)
 
 
 def preview_email_activation(request):

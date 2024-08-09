@@ -326,12 +326,4 @@ if (formSignUp) {
 
   // Start countdown component
   new Countdown()
-
-  // redirect to landing page
-  const urlParams = new URLSearchParams(window.location.search)
-  console.log(urlParams)
-  if (urlParams.has('landing')) {
-    console.log(landingHost)
-    window.location.href = landingHost
-  }
 }
