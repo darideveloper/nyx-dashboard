@@ -1,27 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-
-
-class Status(models.Model):
-    key = models.CharField(max_length=255, primary_key=True)
-    value = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def get_readonly_fields(self, request, obj=None):
-        # No edit key after creation
-        if obj:
-            return ['key']
-        else:
-            return []
-    
-    def __str__(self):
-        return f"({self.key}) {self.value}"
-    
-    class Meta:
-        verbose_name = 'Status'
-        verbose_name_plural = 'Status'
     
     
 class FutureStock(models.Model):
@@ -59,12 +38,46 @@ class FutureStockSubscription(models.Model):
         verbose_name_plural = 'Future Stock Subscriptions'
 
 
+class StoreStatus(models.Model):
+    key = models.CharField(max_length=255, primary_key=True)
+    value = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def get_readonly_fields(self, request, obj=None):
+        # No edit key after creation
+        if obj:
+            return ['key']
+        else:
+            return []
+    
+    def __str__(self):
+        return f"({self.key}) {self.value}"
+    
+    class Meta:
+        verbose_name = 'Store status'
+        verbose_name_plural = 'Store status'
+        
+        
+class SaleStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    value = models.TextField(primary_key=False)
+    
+    def __str__(self):
+        return self.value
+    
+    class Meta:
+        verbose_name = 'Sale status'
+        verbose_name_plural = 'Sale status'
+        
+
 class Set(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     price = models.FloatField()
     recommended = models.BooleanField(default=False)
     logos = models.IntegerField()
+    points = models.IntegerField()
     
     def __str__(self):
         return self.name
@@ -74,7 +87,7 @@ class Set(models.Model):
         verbose_name_plural = 'Sets'
         
 
-class Colors(models.Model):
+class ColorsNum(models.Model):
     id = models.AutoField(primary_key=True)
     num = models.IntegerField()
     price = models.FloatField()
@@ -84,13 +97,26 @@ class Colors(models.Model):
         return self.name
     
     class Meta:
-        verbose_name = 'Set'
-        verbose_name_plural = 'Sets'
+        verbose_name = 'Colors Num'
+        verbose_name_plural = 'Colors Num'
+        
+        
+class Color(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = 'Color'
+        verbose_name_plural = 'Colors'
 
 
 class Addon(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
+    price = models.FloatField()
     
     def __str__(self):
         return self.name
@@ -117,24 +143,24 @@ class Sale(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     set = models.ForeignKey(Set, on_delete=models.CASCADE)
-    colors_num = models.IntegerField()
+    colors_num = models.ForeignKey(ColorsNum, on_delete=models.CASCADE)
     color_set = models.ForeignKey(
-        Colors,
+        Color,
         on_delete=models.CASCADE,
         related_name='color_set'
     )
     logo_color_1 = models.ForeignKey(
-        Colors,
+        Color,
         on_delete=models.CASCADE,
         related_name='logo_color_1'
     )
     logo_color_2 = models.ForeignKey(
-        Colors,
+        Color,
         on_delete=models.CASCADE,
         related_name='logo_color_2'
     )
     logo_color_3 = models.ForeignKey(
-        Colors,
+        Color,
         on_delete=models.CASCADE,
         related_name='logo_color_3'
     )
@@ -149,6 +175,9 @@ class Sale(models.Model):
     street_address = models.CharField(max_length=255)
     phone = models.CharField(max_length=255)
     total = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.ForeignKey(SaleStatus, on_delete=models.CASCADE)
     
     def __str__(self):
         return f"{self.id} - ({self.user}) {self.set}"
