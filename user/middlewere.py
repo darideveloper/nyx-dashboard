@@ -17,7 +17,7 @@ class AdminCookieMiddleware:
             is_local = True
         
         # Add or remove cookie
-        if '/admin' in request.path and request.user.is_authenticated:
+        if request.user.is_authenticated:
             name = f"{request.user.first_name} {request.user.last_name}"
             email = request.user.email
             if is_local:

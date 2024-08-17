@@ -59,7 +59,7 @@ class LogInTest(LiveServerTestCase):
         
         response = self.client.get("/login/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/login/")
+        self.assertEqual(response.url, "/admin/login/?next=/landing")
     
     def test_valid(self):
         """ Test login with valid email and password.
@@ -388,7 +388,8 @@ class AdminTest(LiveServerTestCase):
             password=self.password,
             is_staff=True,
             first_name="first",
-            last_name="last"
+            last_name="last",
+            email="test@mail.com",
         )
         
         # Create "buyers" group
@@ -437,6 +438,10 @@ class AdminTest(LiveServerTestCase):
         fields["password"].send_keys(self.password)
         fields["submit"].click()
         
+        # go to admin
+        admin_page = self.live_server_url + "/admin/"
+        self.driver.get(admin_page)
+        
     def test_redirect_accounts_profile(self):
         """ Test redirect to admin page """
         
@@ -458,8 +463,10 @@ class AdminTest(LiveServerTestCase):
         self.driver.get(admin_page)
         
         # Validate "nyx" cookie
-        cookie = self.driver.get_cookie("nyx")
-        self.assertIn(user_full_name, cookie["value"])
+        cookie_username = self.driver.get_cookie("nyx_username")
+        cookie_email = self.driver.get_cookie("nyx_email")
+        self.assertIn(user_full_name, cookie_username["value"])
+        self.assertIn(self.auth_user.email, cookie_email["value"])
         
     def test_cookie_logout(self):
         """ Test cookie deleted after logout """
@@ -473,6 +480,34 @@ class AdminTest(LiveServerTestCase):
         cookie = [cookie for cookie in cookies if cookie["name"] == "nyx"]
         self.assertEqual(cookie, [])
 
+    def test_landing_top_bar_link(self):
+        """ Validate landing button in top bar """
+        
+        # Data and selectors
+        links = {
+            "home": {
+                "text": "Home",
+                "selector": ".d-sm-inline-block a.nav-link",
+                "value": settings.LANDING_HOST + "/"
+            }
+        }
+        
+        links_selectors = {}
+        for link_key, link_data in links.items():
+            links_selectors[link_key] = link_data["selector"]
+        
+        # Login
+        self.__login__()
+        
+        # Get links
+        links_elems = get_selenium_elems(self.driver, links_selectors)
+        for link_key, link_data in links.items():
+            link_elem = links_elems[link_key]
+            
+            # Validate data
+            self.assertEqual(link_elem.get_attribute("href"), link_data["value"])
+            self.assertEqual(link_elem.text, link_data["text"])
+        
 
 class ActivationTest(LiveServerTestCase):
     """ Activate user account with email token """

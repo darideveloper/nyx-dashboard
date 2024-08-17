@@ -192,7 +192,7 @@ JAZZMIN_SETTINGS = {
 
     # Links to put along the top menu
     "topmenu_links": [
-        # {"model": "auth.user"}
+        {"name": "Home", "url": LANDING_HOST},
     ],
 
     #############

@@ -327,3 +327,13 @@ if (formSignUp) {
   // Start countdown component
   new Countdown()
 }
+
+// Global styles
+const menuItems = document.querySelectorAll('.d-sm-inline-block a.nav-link')
+console.log(menuItems)
+menuItems.forEach(item => {
+  console.log(item)
+  item.classList.add('btn')
+  item.classList.add('btn-primary')
+  item.classList.add('text-light')
+})

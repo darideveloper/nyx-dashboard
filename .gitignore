@@ -13,4 +13,4 @@ db.*
 staticfiles
 .env.*
 media/
-client-ddetails.txt
+client-details.txt
