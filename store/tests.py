@@ -260,7 +260,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         ]
         for button in buttons_order:
             self.driver.find_element(By.CSS_SELECTOR, button).click()
-            sleep(1)
+            sleep(2)
         
         # Validate subscription created
         subscriptions = models.FutureStockSubscription.objects.all()
