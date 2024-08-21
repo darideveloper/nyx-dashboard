@@ -8,6 +8,8 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
+
 
 from store import models
 
@@ -125,64 +127,28 @@ class Sale(View):
 
     def post(self, request):
         """ Sale sale from landing """
-
-        sample_data = {
-            "email": "darideveloper@gmail.com",
-            "set": {
-                "name": "basic",
-                "points": 5,
-                "price": 275,
-                "recommended": False,
-                "logos": 5
-            },
-            "colors_num": {
-                "num": 4,
-                "price": 20,
-                "details": "4 Colors (Trackers and 3 logo colors) +20USD"
-            },
-            "set_color": "blue",
-            "logo_color_1": "white",
-            "logo_color_2": "grey",
-            "logo_color_3": "green",
-            "logo": "",
-            "included_extras": [
-                [
-                    {
-                        "name": "Wifi 2.4ghz USB Dongle",
-                        "price": 14,
-                        "exclude_sets": []
-                    },
-                    {
-                        "name": "Straps",
-                        "price": 25,
-                        "exclude_sets": []
-                    }
-                ]
-            ],
-            "promo": {
-                "code": "DARI",
-                "discount": 10
-            },
-            "full_name": "dari",
-            "country": "dev",
-            "state": "street",
-            "city": "ags",
-            "postal_code": "20010",
-            "street_address": "street 1",
-            "phone": "12323123"
-        }
-
+        
         # Get json data
         json_data = json.loads(request.body)
+        
+        # Validate required fields
+        required_fields = [
+            "email", "set", "colors_num", "logo", "included_extras",
+            "promo", "full_name", "country", "state", "city",
+            "postal_code", "street_address", "phone"
+        ]
+        for field in required_fields:
+            if field not in json_data:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Missing field: {field}',
+                    'data': {}
+                }, status=400)
 
         # Get info
         email = json_data['email']
         set = json_data['set']
         colors_num = json_data['colors_num']
-        color_set = json_data['set_color']
-        logo_color_1 = json_data['logo_color_1']
-        logo_color_2 = json_data['logo_color_2']
-        logo_color_3 = json_data['logo_color_3']
         logo_base64 = json_data['logo']
         addons = json_data['included_extras']
         promo = json_data['promo']
@@ -193,6 +159,18 @@ class Sale(View):
         postal_code = json_data['postal_code']
         street_address = json_data['street_address']
         phone = json_data['phone']
+        
+        # Generate colors instances
+        colors = {
+            "color_set": json_data['set_color'],
+            "logo_color_1": json_data['logo_color_1'],
+            "logo_color_2": json_data['logo_color_2'],
+            "logo_color_3": json_data['logo_color_3'],
+        }
+        colors_instances = {}
+        for color_key, color_name in colors.items():
+            color_obj, _ = models.Color.objects.get_or_create(name=color_name)
+            colors_instances[color_key] = color_obj
         
         # Get user or create a new one
         user, created = User.objects.get_or_create(email=email)
@@ -225,10 +203,17 @@ class Sale(View):
                 price=addon['price']
             )
             addons_objs.append(addon_obj)
-            
-        promo_obj, _ = models.PromoCodes.objects.get_or_create(
+        
+        promo_type = promo['discount']['type']
+        promo_value = promo['discount']['value']
+        promo_type_obj, _ = models.PromoCodeType.objects.get_or_create(
+            name=promo_type
+        )
+        
+        promo_obj, _ = models.PromoCode.objects.get_or_create(
             code=promo['code'],
-            discount=promo['discount']
+            discount=promo_value,
+            type=promo_type_obj,
         )
         
         # Calculate total
@@ -237,20 +222,18 @@ class Sale(View):
         total += colors_num_obj.price
         for addon in addons_objs:
             total += addon.price
-        # TODO: calculate discount
-        # total -= promo_obj.discount
+        total -= promo_obj.discount
         total = round(total, 2)
         
+        # Get status
+        status, _ = models.SaleStatus.objects.get_or_create(value="Pending")
+        
         # Save sale
-        models.Sale.objects.create(
+        sale = models.Sale.objects.create(
             user=user,
             set=set_obj,
             colors_num=colors_num_obj,
-            color_set=color_set,
-            logo_color_1=logo_color_1,
-            logo_color_2=logo_color_2,
-            logo_color_3=logo_color_3,
-            addons=addons_objs,
+            color_set=colors_instances['color_set'],
             promo_code=promo_obj,
             full_name=full_name,
             country=country,
@@ -259,31 +242,47 @@ class Sale(View):
             postal_code=postal_code,
             street_address=street_address,
             phone=phone,
-            total=total
+            total=total,
+            status=status,
         )
+        
+        # Add extra colors
+        if colors_num['num'] >= 2:
+            sale.logo_color_1 = colors_instances['logo_color_1']
+        if colors_num['num'] >= 3:
+            sale.logo_color_2 = colors_instances['logo_color_2']
+        if colors_num['num'] == 4:
+            sale.logo_color_3 = colors_instances['logo_color_3']
+        sale.save()
+        
+        # Set addons
+        sale.addons.set(addons_objs)
 
-        # # get image file in base64 and save
-        # if logo_base64:
+        # get image file in base64 and save
+        if logo_base64:
 
-        #     # Validate logo format
-        #     match = re.match(
-        #         r'data:image/(png|svg\+xml);base64,(.*)', logo_base64)
-        #     if not match:
-        #         return JsonResponse({
-        #             'message': 'Invalid logo format'
-        #         }, status=400)
+            # Validate logo format
+            match = re.match(
+                r'data:image/(png|svg\+xml);base64,(.*)', logo_base64)
+            if not match:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid logo format',
+                    'data': {}
+                }, status=400)
 
-        #     # Get logo parts
-        #     logo_file_type = match.group(1)
-        #     logo_base64_string = match.group(2)
-        #     if logo_file_type == "svg+xml":
-        #         logo_file_type = "svg"
-        #     logo_data = base64.b64decode(logo_base64_string)
+            # Get logo parts
+            logo_file_type = match.group(1)
+            logo_base64_string = match.group(2)
+            if logo_file_type == "svg+xml":
+                logo_file_type = "svg"
+            logo_data = base64.b64decode(logo_base64_string)
+            
+            # Create a file name
+            file_name = f'sale_{sale.id}_logo.{logo_file_type}'
 
-        #     file_name = f'logo.{logo_file_type}'
-
-        #     with open(file_name, 'wb') as f:
-        #         f.write(logo_data)
+            # Save the logo file
+            sale.logo.save(file_name, ContentFile(logo_data))
 
         return JsonResponse({
             "status": "success",

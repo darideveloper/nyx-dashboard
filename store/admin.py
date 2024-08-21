@@ -41,7 +41,12 @@ class SetAdmin(admin.ModelAdmin):
 class ColorsNumAdmin(admin.ModelAdmin):
     list_display = ('id', 'num', 'price', 'details')
     search_fields = ('num', 'price', 'details')
-
+    
+    
+@admin.register(models.Color)
+class ColorAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    
 
 @admin.register(models.Addon)
 class AddonAdmin(admin.ModelAdmin):
@@ -49,8 +54,8 @@ class AddonAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price')
 
 
-@admin.register(models.PromoCodes)
-class PromoCodesAdmin(admin.ModelAdmin):
+@admin.register(models.PromoCode)
+class PromoCodeAdmin(admin.ModelAdmin):
     list_display = ('code', 'discount')
     search_fields = ('code', 'discount')
 

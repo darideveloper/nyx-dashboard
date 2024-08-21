@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -36,11 +38,12 @@ class FutureStockSubscription(models.Model):
     class Meta:
         verbose_name = 'Future Stock Subscription'
         verbose_name_plural = 'Future Stock Subscriptions'
-
-
+        
+        
 class StoreStatus(models.Model):
-    key = models.CharField(max_length=255, primary_key=True)
-    value = models.TextField()
+    id = models.AutoField(primary_key=True)
+    key = models.CharField(max_length=255, unique=True)
+    value = models.TextField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -58,10 +61,10 @@ class StoreStatus(models.Model):
         verbose_name = 'Store status'
         verbose_name_plural = 'Store status'
         
-        
+
 class SaleStatus(models.Model):
     id = models.AutoField(primary_key=True)
-    value = models.TextField(primary_key=False)
+    value = models.CharField(unique=True, max_length=255)
     
     def __str__(self):
         return self.value
@@ -73,7 +76,7 @@ class SaleStatus(models.Model):
 
 class Set(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     price = models.FloatField()
     recommended = models.BooleanField(default=False)
     logos = models.IntegerField()
@@ -89,21 +92,21 @@ class Set(models.Model):
 
 class ColorsNum(models.Model):
     id = models.AutoField(primary_key=True)
-    num = models.IntegerField()
+    num = models.IntegerField(unique=True)
     price = models.FloatField()
     details = models.TextField()
     
     def __str__(self):
-        return self.name
+        return f"{self.num} - {self.price}"
     
     class Meta:
         verbose_name = 'Colors Num'
         verbose_name_plural = 'Colors Num'
         
-        
+
 class Color(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     
     def __str__(self):
         return self.name
@@ -111,11 +114,11 @@ class Color(models.Model):
     class Meta:
         verbose_name = 'Color'
         verbose_name_plural = 'Colors'
-
+        
 
 class Addon(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     price = models.FloatField()
     
     def __str__(self):
@@ -124,12 +127,25 @@ class Addon(models.Model):
     class Meta:
         verbose_name = 'Extra'
         verbose_name_plural = 'Extras'
-
-
-class PromoCodes(models.Model):
+        
+        
+class PromoCodeType(models.Model):
     id = models.AutoField(primary_key=True)
-    code = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
+    
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Promo Code Type'
+        verbose_name_plural = 'Promo Code Types'
+
+
+class PromoCode(models.Model):
+    id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=255, unique=True)
     discount = models.FloatField()
+    type = models.ForeignKey(PromoCodeType, on_delete=models.CASCADE)
     
     def __str__(self):
         return self.code
@@ -137,10 +153,15 @@ class PromoCodes(models.Model):
     class Meta:
         verbose_name = 'Promo Code'
         verbose_name_plural = 'Promo Codes'
-
-
+        
+        
 class Sale(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.CharField(
+        primary_key=True,
+        max_length=32,
+        editable=False,
+        default=uuid.uuid4().hex
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     set = models.ForeignKey(Set, on_delete=models.CASCADE)
     colors_num = models.ForeignKey(ColorsNum, on_delete=models.CASCADE)
@@ -152,21 +173,27 @@ class Sale(models.Model):
     logo_color_1 = models.ForeignKey(
         Color,
         on_delete=models.CASCADE,
-        related_name='logo_color_1'
+        related_name='logo_color_1',
+        null=True,
+        blank=True,
     )
     logo_color_2 = models.ForeignKey(
         Color,
         on_delete=models.CASCADE,
-        related_name='logo_color_2'
+        related_name='logo_color_2',
+        null=True,
+        blank=True,
     )
     logo_color_3 = models.ForeignKey(
         Color,
         on_delete=models.CASCADE,
-        related_name='logo_color_3'
+        related_name='logo_color_3',
+        null=True,
+        blank=True,
     )
     logo = models.ImageField()
     addons = models.ManyToManyField(Addon)
-    promo_code = models.ForeignKey(PromoCodes, on_delete=models.CASCADE)
+    promo_code = models.ForeignKey(PromoCode, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
     state = models.CharField(max_length=255)
