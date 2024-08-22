@@ -524,9 +524,9 @@ class SaleTestCase(TestCase):
 
         # Auth user
         self.auth_user = User.objects.create_user(
-            username="test",
+            username="test@gmail.com",
             password="test_password",
-            email="test user"
+            email="test@gmail.com"
         )
 
         self.endpoint = "/api/store/sale/"
@@ -634,8 +634,8 @@ class SaleTestCase(TestCase):
         self.assertEqual(json_res["message"], "Sale saved")
         
         # Validate stripe link
-        self.assertTrue(json_res["data"]["stripe_url"])
-        self.assertTrue("checkout.stripe.com" in json_res["data"]["stripe_url"])
+        self.assertTrue(json_res["data"]["stripe_link"])
+        self.assertTrue("checkout.stripe.com" in json_res["data"]["stripe_link"])
 
         # Validate colors
         colors = {
