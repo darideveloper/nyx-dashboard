@@ -62,8 +62,8 @@ class PromoCodeAdmin(admin.ModelAdmin):
 
 @admin.register(models.Sale)
 class SaleAdmin(admin.ModelAdmin):
-    list_display = ('user', 'set', 'colors_num', 'promo_code', 'status', 'created_at',
-                    'updated_at')
+    list_display = ('id', 'user', 'set', 'colors_num', 'promo_code', 'status',
+                    'created_at', 'updated_at')
     search_fields = ('id', 'user__email', 'full_name', 'set__name', 'colors_num__num',
                      'addons__name', 'promo_code__code', 'full_name', 'country', 'state',
                      'city', 'postal_code', 'street_address', 'phone')

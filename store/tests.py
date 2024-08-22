@@ -1243,3 +1243,41 @@ class AdminBuyerTestCase(LiveServerTestCase):
         filters = get_selenium_elems(self.driver, selectors_filters)
         for filter in filters.values():
             self.assertIsNotNone(filter)
+            
+    def test_hide_user_colum_buyer(self):
+        """ Check removed user column for buyer user """
+        
+        self.__login__()
+        
+        self.driver.get(self.live_server_url + "/admin/store/sale/")
+        sleep(0.1)
+        
+        # Index 2 in buyer view because missing checkboxes
+        selectors = {
+            "th_user": "th:nth-child(2)",
+        }
+        elems = get_selenium_elems(self.driver, selectors)
+        
+        # Validate user column is hidden
+        self.assertNotEqual(elems["th_user"].text, "User")
+        
+    def test_no_hide_user_colum_admin(self):
+        """ Check no removed user column for admin user"""
+        
+        # UPdate user
+        self.auth_user.is_superuser = True
+        self.auth_user.save()
+        
+        self.__login__()
+        
+        self.driver.get(self.live_server_url + "/admin/store/sale/")
+        sleep(0.1)
+        
+        # Index 3 in buyer view because checkboxes
+        selectors = {
+            "th_user": "th:nth-child(3)",
+        }
+        elems = get_selenium_elems(self.driver, selectors)
+        
+        # Validate user column is hidden
+        self.assertEqual(elems["th_user"].text, "User")

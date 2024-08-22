@@ -312,6 +312,7 @@ class AdminSale {
 
   constructor() {
     this.hideFilters()
+    this.hideUserColumn()
   }
 
   // Hide some filter to no-admin users
@@ -327,10 +328,20 @@ class AdminSale {
 
       const filtersSelector = filtersSelectors.join(', ')
       const filters = document.querySelectorAll(filtersSelector)
-      console.log({filters})
       filters.forEach(filter => {
         const parentFilter = filter.parentNode
         parentFilter.remove()
+      })
+    }
+  }
+
+  hideUserColumn() {
+    if (!isAdmin) {
+      const userCellsSelector = "th:nth-child(2), td:nth-child(2)"
+      const userCells = document.querySelectorAll(userCellsSelector)
+      console.log({userCells})
+      userCells.forEach(cell => {
+        cell.remove()
       })
     }
   }
