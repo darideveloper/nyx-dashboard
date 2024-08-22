@@ -234,6 +234,7 @@ class Countdown {
     console.log(this.totalSeconds)
 
     if (this.totalSeconds <= 0) {
+      console.log(this.totalSeconds)
       this.endCountdown()
     } else {
       const interval = setInterval(() => {

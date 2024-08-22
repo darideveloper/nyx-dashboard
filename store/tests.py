@@ -190,14 +190,14 @@ class CountDownAdminTestCase(LiveServerTestCase):
         """ Login and validate count down values """
 
         self.__login__()
-        inputs = get_selenium_elems(self.driver, self.selectors)
+        elems = get_selenium_elems(self.driver, self.selectors)
 
         # Valdiate count down values
-        self.assertEqual(inputs["title"].text, "New sets coming soon!")
-        self.assertEqual(inputs["days"].text, "02")
-        self.assertEqual(inputs["hours"].text, "00")
-        self.assertEqual(inputs["minutes"].text, "10")
-        self.assertTrue(int(inputs["seconds"].text) <= 59)
+        self.assertEqual(elems["title"].text, "New sets coming soon!")
+        self.assertEqual(elems["days"].text, "02")
+        self.assertEqual(elems["hours"].text, "00")
+        self.assertEqual(elems["minutes"].text, "10")
+        self.assertTrue(int(elems["seconds"].text) <= 59)
 
     def test_countdown_no_future_stock(self):
         """ Login and validate count down value in 0 """
@@ -206,14 +206,14 @@ class CountDownAdminTestCase(LiveServerTestCase):
         self.future_stock.delete()
 
         self.__login__()
-        inputs = get_selenium_elems(self.driver, self.selectors)
+        elems = get_selenium_elems(self.driver, self.selectors)
 
         # Valdiate count down values
-        self.assertEqual(inputs["title"].text, "New sets are available now!")
-        self.assertEqual(inputs["days"].text, "00")
-        self.assertEqual(inputs["hours"].text, "00")
-        self.assertEqual(inputs["minutes"].text, "00")
-        self.assertEqual(inputs["seconds"].text, "00")
+        self.assertEqual(elems["days"].text, "00")
+        self.assertEqual(elems["hours"].text, "00")
+        self.assertEqual(elems["minutes"].text, "00")
+        self.assertEqual(elems["seconds"].text, "00")
+        self.assertEqual(elems["title"].text, "New sets are available now!")
 
     def test_notify_me_button(self):
         """ Click in notify button and validation subscription in db """

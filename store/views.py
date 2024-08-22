@@ -14,38 +14,40 @@ from store import models
 from utils.stripe import get_stripe_link
 
 
-def get_next_future_stock(request, email=""):
-    """ Return next future stock datetime
+class NextFutureStock(View):
     
-    Args:
-        request (HttpRequest): Django request object
-        email (str): User email to check if already subscribed
-    """
+    def get(self, request, email=""):
+        """ Return next future stock datetime
+        
+        Args:
+            request (HttpRequest): Django request object
+            email (str): User email to check if already subscribed
+        """
 
-    future_stock = models.FutureStock.objects.filter(
-        added=False
-    ).order_by('datetime').first()
-    now = timezone.now()
-    extra_minutes = 10
-    next_future_stock = future_stock.datetime if future_stock else now
-    next_future_stock_seconds = int((next_future_stock - now).total_seconds())
-    if next_future_stock_seconds:
-        next_future_stock_seconds += extra_minutes * 60
+        future_stock = models.FutureStock.objects.filter(
+            added=False
+        ).order_by('datetime').first()
+        now = timezone.now()
+        extra_minutes = 10
+        next_future_stock = future_stock.datetime if future_stock else now
+        next_future_stock_seconds = int((next_future_stock - now).total_seconds())
+        if next_future_stock_seconds:
+            next_future_stock_seconds += extra_minutes * 60
 
-    already_subscribed = False
-    user = models.User.objects.filter(email=email)
-    if user:
-        user = user[0]
-        already_subscribed = models.FutureStockSubscription.objects.filter(
-            user=user,
-            future_stock=future_stock,
-            active=True
-        ).exists()
+        already_subscribed = False
+        user = models.User.objects.filter(email=email)
+        if user:
+            user = user[0]
+            already_subscribed = models.FutureStockSubscription.objects.filter(
+                user=user,
+                future_stock=future_stock,
+                active=True
+            ).exists()
 
-    return JsonResponse({
-        'next_future_stock': next_future_stock_seconds,
-        'already_subscribed': already_subscribed,
-    })
+        return JsonResponse({
+            'next_future_stock': next_future_stock_seconds,
+            'already_subscribed': already_subscribed,
+        })
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -342,3 +344,4 @@ class CurrentStock(View):
                 "current_stock": current_stock_int
             }
         })
+        
