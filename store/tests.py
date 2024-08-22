@@ -582,6 +582,12 @@ class SaleTestCase(TestCase):
         # Files paths
         current_path = os.path.dirname(os.path.abspath(__file__))
         self.test_files_folder = os.path.join(current_path, "test_files")
+        
+        # Add current stock to store status
+        self.current_stock = models.StoreStatus.objects.create(
+            key="current_stock",
+            value="100",
+        )
 
     def __get_logo_base64__(self, file_name: str) -> str:
         """ Get logo in base64 string
@@ -908,6 +914,27 @@ class SaleTestCase(TestCase):
         self.assertFalse(user.is_staff)
         self.assertEqual(user.username, self.data["email"])
         self.assertEqual(user.email, self.data["email"])
+        
+    def test_no_stock(self):
+        """ Skip sale when there is no stock """
+    
+        # Update stock
+        self.current_stock.value = "0"
+        self.current_stock.save()
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        self.assertEqual(res.status_code, 400)
+        json_data = res.json()
+        self.assertEqual(json_data["message"], "No stock available")
+        self.assertEqual(json_data["status"], "error")
+        self.assertEqual(json_data["data"], {})
         
         
 class CurrentStockTestCase(TestCase):
