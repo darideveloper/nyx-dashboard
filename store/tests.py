@@ -7,9 +7,11 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.test import LiveServerTestCase, TestCase
 from django.conf import settings
+from django.contrib.auth.models import Group
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from django.contrib.auth.models import Permission
 
 from store import models
 from utils.automation import get_selenium_elems
@@ -1062,8 +1064,182 @@ class SaleDoneTestCase(TestCase):
         self.sale.refresh_from_db()
         self.assertEqual(self.sale.status.value, "Pending")
         
+
+class AdminBuyerTestCase(LiveServerTestCase):
+    """ Validate buyers custom functions """
+    
+    def setUp(self):
         
+        # Create a user
+        self.auth_username = "test_user@gmail.com"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username,
+            password=self.password,
+            is_staff=True,
+            first_name="first",
+            last_name="last",
+            email="test@mail.com",
+        )
         
+        # Create second user
+        User.objects.create_user(
+            "user_2",
+            password="pass_2",
+            is_staff=True,
+            first_name="first",
+            last_name="last",
+            email="test2@mail.com",
+        )
         
+        # Create "buyers" group
+        buyers_group = Group.objects.create(name='buyers')
+        view_sale_perm = Permission.objects.get(codename='view_sale')
+        buyers_group.permissions.add(view_sale_perm)
         
+        # Add permision to only see sale model
+        self.auth_user.groups.add(buyers_group)
+        self.auth_user.save()
         
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Create sales
+        set = models.Set.objects.create(
+            name="set name",
+            points=5,
+            price=275,
+            recommended=False,
+            logos=5
+        )
+        colors_num = models.ColorsNum.objects.create(
+            num=4,
+            price=20,
+            details="4 Colors (Trackers and 3 logo colors) +20USD"
+        )
+        color = models.Color.objects.create(name="blue")
+        status = models.SaleStatus.objects.create(value="Pending")
+        promo_code_type = models.PromoCodeType.objects.create(name="amount")
+        promo_code = models.PromoCode.objects.create(
+            code="sample-promo",
+            discount=100,
+            type=promo_code_type,
+        )
+        
+        models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+            promo_code=promo_code,
+        )
+        
+        models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country 2",
+            state="test state 2",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+            promo_code=promo_code,
+        )
+        
+    def tearDown(self):
+        """ Close selenium """
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+        
+    def __login__(self):
+        """ Login with valid user and password """
+        
+        # Load home page
+        home_page = self.live_server_url + "/login/"
+        self.driver.get(home_page)
+        
+        # Login
+        selectors = {
+            "username": "input[name='username']",
+            "password": "input[name='password']",
+            "submit": "button[type='submit']",
+        }
+        fields = get_selenium_elems(self.driver, selectors)
+        fields["username"].send_keys(self.auth_username)
+        fields["password"].send_keys(self.password)
+        fields["submit"].click()
+        
+        # go to admin
+        admin_page = self.live_server_url + "/admin/"
+        self.driver.get(admin_page)
+        
+    def test_hide_filters_buyer(self):
+        """ Check removed filters for buyer user """
+        
+        self.__login__()
+        
+        self.driver.get(self.live_server_url + "/admin/store/sale/")
+        sleep(0.1)
+        
+        selectors_filters = {
+            "user": 'select[data-name="user"]',
+            "country": 'select[data-name="country"]',
+            "state": 'select[data-name="state"]',
+            "promo_code": 'select[data-name="promo_code"]',
+        }
+        filters = get_selenium_elems(self.driver, selectors_filters)
+        for filter in filters.values():
+            self.assertIsNone(filter)
+            
+    def test_no_hide_filters_admin(self):
+        """ Check no removed filters for admin user """
+        
+        # UPdate user
+        self.auth_user.is_superuser = True
+        self.auth_user.save()
+        
+        self.__login__()
+        
+        self.driver.get(self.live_server_url + "/admin/store/sale/")
+        sleep(0.1)
+        
+        selectors_filters = {
+            "user": 'select[data-name="user"]',
+            "country": 'select[data-name="country"]',
+            "state": 'select[data-name="state"]',
+            "promo_code": 'select[data-name="promo_code"]',
+        }
+        filters = get_selenium_elems(self.driver, selectors_filters)
+        for filter in filters.values():
+            self.assertIsNotNone(filter)

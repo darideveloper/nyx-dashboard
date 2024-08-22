@@ -205,7 +205,6 @@ class Countdown {
     const data = await response.json()
     this.totalSeconds = data.next_future_stock
     this.alreadySubscribed = data.already_subscribed
-    console.log(data)
   }
 
   updateCounter() {
@@ -231,10 +230,7 @@ class Countdown {
 
   setupCounter() {
 
-    console.log(this.totalSeconds)
-
     if (this.totalSeconds <= 0) {
-      console.log(this.totalSeconds)
       this.endCountdown()
     } else {
       const interval = setInterval(() => {
@@ -312,28 +308,54 @@ class Countdown {
 }
 
 
+class AdminSale {
+
+  constructor() {
+    this.hideFilters()
+  }
+
+  // Hide some filter to no-admin users
+  hideFilters() {
+    if (!isAdmin) {
+
+      const filtersSelectors = [
+        'select[data-name="user"]',
+        'select[data-name="country"]',
+        'select[data-name="state"]',
+        'select[data-name="promo_code"]',
+      ]
+
+      const filtersSelector = filtersSelectors.join(', ')
+      const filters = document.querySelectorAll(filtersSelector)
+      console.log({filters})
+      filters.forEach(filter => {
+        const parentFilter = filter.parentNode
+        parentFilter.remove()
+      })
+    }
+  }
+
+}
+
+
 // Run main components custom functions
 if (formSignUp) {
-
   // Validate sign up form
   new SignUp()
-
 } else if (formResetPass) {
-
   // Validate reset pass form
   new ResetPass()
-
 } else if (adminH1 == 'dashboard') {
-
   // Start countdown component
   new Countdown()
+} else if (adminH1 == 'orders') {
+  // Start admin sales component
+  new AdminSale()
 }
 
 // Global styles
 const menuItems = document.querySelectorAll('.d-sm-inline-block a.nav-link')
-console.log(menuItems)
 menuItems.forEach(item => {
-  console.log(item)
   item.classList.add('btn')
   item.classList.add('btn-primary')
   item.classList.add('text-light')

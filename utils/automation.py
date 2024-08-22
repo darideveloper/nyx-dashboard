@@ -6,5 +6,8 @@ from selenium.webdriver.common.by import By
 def get_selenium_elems(driver: webdriver, selectors: dict) -> dict[str, WebElement]:
     fields = {}
     for key, value in selectors.items():
-        fields[key] = driver.find_element(By.CSS_SELECTOR, value)
+        try:
+            fields[key] = driver.find_element(By.CSS_SELECTOR, value)
+        except Exception:
+            fields[key] = None
     return fields
