@@ -160,7 +160,7 @@ class Sale(models.Model):
         primary_key=True,
         max_length=32,
         editable=False,
-        default=uuid.uuid4().hex
+        unique=True
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     set = models.ForeignKey(Set, on_delete=models.CASCADE)
@@ -208,6 +208,13 @@ class Sale(models.Model):
     
     def __str__(self):
         return f"{self.id} - ({self.user}) {self.set}"
+    
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = uuid.uuid4().hex
+            while Sale.objects.filter(id=self.id).exists():
+                self.id = uuid.uuid4().hex
+        super(Sale, self).save(*args, **kwargs)
     
     class Meta:
         verbose_name = 'Sale'
