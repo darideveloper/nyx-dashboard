@@ -976,3 +976,84 @@ class CurrentStockTestCase(TestCase):
         self.assertEqual(json_data["status"], "success")
         self.assertEqual(json_data["message"], "Current stock")
         self.assertEqual(json_data["data"]["current_stock"], 0)
+        
+        
+class SaleDoneTestCase(TestCase):
+
+    def setUp(self):
+        """ Create initial data """
+
+        # Auth user
+        self.auth_user = User.objects.create_user(
+            username="test@gmail.com",
+            password="test_password",
+            email="test@gmail.com"
+        )
+        
+        # Create sale
+        set = models.Set.objects.create(
+            name="set name",
+            points=5,
+            price=275,
+            recommended=False,
+            logos=5
+        )
+        
+        colors_num = models.ColorsNum.objects.create(
+            num=4,
+            price=20,
+            details="4 Colors (Trackers and 3 logo colors) +20USD"
+        )
+        
+        color = models.Color.objects.create(name="blue")
+        status = models.SaleStatus.objects.create(value="Pending")
+        
+        self.sale = models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+        )
+        
+        # Request data
+        self.endpoint = "/api/store/sale-done"
+        
+        # Setup current stock
+        models.StoreStatus.objects.create(
+            key="current_stock",
+            value="100",
+        )
+        
+        self.redirect_page = settings.LANDING_HOST
+        
+    def test_get(self):
+        
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        
+        # Validate redirect
+        self.assertEqual(res.status_code, 302)
+        self.redirect_page += f"?sale-id={self.sale.id}&sale-status=success"
+        self.assertEqual(res.url, self.redirect_page)
+        
+    def test_get_invalid_id(self):
+        
+        fake_id = "fake-id"
+        res = self.client.get(f"{self.endpoint}/{fake_id}/")
+        
+        # Validate redirect
+        self.assertEqual(res.status_code, 302)
+        self.redirect_page += f"?sale-id={fake_id}&sale-status=error"
+        self.assertEqual(res.url, self.redirect_page)
+        
+        
+        
+        

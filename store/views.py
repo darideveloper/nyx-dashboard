@@ -2,13 +2,15 @@ import re
 import json
 import base64
 
-from django.utils import timezone
-from django.http import JsonResponse
-from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 
 from store import models
 from utils.stripe import get_stripe_link
@@ -328,7 +330,6 @@ class Sale(View):
         })
         
 
-@method_decorator(csrf_exempt, name='dispatch')
 class CurrentStock(View):
     
     def get(self, request):
@@ -344,4 +345,38 @@ class CurrentStock(View):
                 "current_stock": current_stock_int
             }
         })
+
+
+class SaleDone(View):
+    
+    def get(self, request, sale_id: str):
+        """ Update sale status and redirect to landing
         
+        Args:
+            request (HttpRequest): Django request object
+            sale_id (str): sale id from url
+        """
+        
+        landing_done_page = settings.LANDING_HOST
+        
+        # Get sale
+        sale = models.Sale.objects.filter(id=sale_id).first()
+        if not sale:
+            landing_done_page += f"?sale-id={sale_id}&sale-status=error"
+            return redirect(landing_done_page)
+        
+        # Update status
+        status, _ = models.SaleStatus.objects.get_or_create(value="Done")
+        sale.status = status
+        sale.save()
+        
+        # Update stock
+        current_stock, _ = models.StoreStatus.objects.get_or_create(key='current_stock')
+        current_stock_int = int(current_stock.value)
+        current_stock.value = str(current_stock_int - 1)
+        current_stock.save()
+        
+        # TODO: Confirmation email afrter payment
+        
+        landing_done_page += f"?sale-id={sale_id}&sale-status=success"
+        return redirect(landing_done_page)
