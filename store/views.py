@@ -2,7 +2,6 @@ import re
 import json
 import base64
 
-from django.conf import settings
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views import View
@@ -12,8 +11,7 @@ from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 
 from store import models
-
-import requests
+from utils.stripe import get_stripe_link
 
 
 def get_next_future_stock(request, email=""):
@@ -293,27 +291,19 @@ class Sale(View):
         description += f"Colors: {colors_num_obj.num} | "
         description += f"Client Email: {email} | "
         description += f"Client Full Name: {full_name} | "
- 
-        products = {}
-        products[product_name] = {
-            "amount": 1,
-            "image_url": "https://www.nyxtrackers.com/logo.png",
-            "price": total,
-            "description": description
-        }
         
-        request_json = {
-            "user": settings.STRIPE_API_USER,
-            "url": f"{settings.LANDING_HOST}/?sale={sale.id}",
-            "products": products,
-            "email": email,
-        }
-        
-        res = requests.post(settings.STRIPE_API_HOST, json=request_json)
-        res_data = res.json()
+        stripe_link = get_stripe_link(
+            product_name,
+            total,
+            description,
+            email,
+            sale.id
+        )
         
         return JsonResponse({
             "status": "success",
             "message": "Sale saved",
-            "data": res_data,
+            "data": {
+                "stripe_link": stripe_link,
+            },
         })
