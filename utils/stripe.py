@@ -28,7 +28,7 @@ def get_stripe_link(product_name: str, total: float,
     request_json = {
         "user": settings.STRIPE_API_USER,
         "url": f"{settings.LANDING_HOST}/",
-        "url_success": f"{settings.HOST}/api/sale-done/{sale_id}",
+        "url_success": f"{settings.HOST}/api/store/sale-done/{sale_id}",
         "products": products,
         "email": email,
     }
