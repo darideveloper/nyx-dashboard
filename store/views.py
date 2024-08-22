@@ -15,7 +15,12 @@ from utils.stripe import get_stripe_link
 
 
 def get_next_future_stock(request, email=""):
-    """ Return next future stock datetime """
+    """ Return next future stock datetime
+    
+    Args:
+        request (HttpRequest): Django request object
+        email (str): User email to check if already subscribed
+    """
 
     future_stock = models.FutureStock.objects.filter(
         added=False
@@ -306,4 +311,22 @@ class Sale(View):
             "data": {
                 "stripe_link": stripe_link,
             },
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CurrentStock(View):
+    
+    def get(self, request):
+        """ Get current stock """
+        
+        current_stock = models.StoreStatus.objects.get(key='current_stock')
+        current_stock_int = int(current_stock.value)
+        
+        return JsonResponse({
+            "status": "success",
+            "message": "Current stock",
+            "data": {
+                "current_stock": current_stock_int
+            }
         })

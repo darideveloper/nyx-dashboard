@@ -908,3 +908,44 @@ class SaleTestCase(TestCase):
         self.assertFalse(user.is_staff)
         self.assertEqual(user.username, self.data["email"])
         self.assertEqual(user.email, self.data["email"])
+        
+        
+class CurrentStockTestCase(TestCase):
+
+    def setUp(self):
+        """ Create initial data """
+        
+        self.current_stock = models.StoreStatus.objects.create(
+            key="current_stock",
+            value="100",
+        )
+        
+        self.endpoint = "/api/store/current-stock/"
+        
+    def test_get(self):
+        """ Get current stock """
+        
+        res = self.client.get(self.endpoint)
+        
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        json_data = res.json()
+        self.assertEqual(json_data["status"], "success")
+        self.assertEqual(json_data["message"], "Current stock")
+        self.assertEqual(json_data["data"]["current_stock"], 100)
+        
+    def test_get_0(self):
+        """ Get current stock with 0 value """
+        
+        # Update stock
+        self.current_stock.value = "0"
+        self.current_stock.save()
+        
+        res = self.client.get(self.endpoint)
+        
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        json_data = res.json()
+        self.assertEqual(json_data["status"], "success")
+        self.assertEqual(json_data["message"], "Current stock")
+        self.assertEqual(json_data["data"]["current_stock"], 0)

@@ -28,7 +28,7 @@ class Command(BaseCommand):
             future_stock.save()
             
             # Update stock in Status model
-            current_stock = models.Status.objects.get(key='current_stock')
+            current_stock = models.StoreStatus.objects.get(key='current_stock')
             current_stock_value = int(current_stock.value) + future_stock.amount
             current_stock.value = str(current_stock_value)
             current_stock.save()

@@ -12,7 +12,7 @@ from store import models
 class UpdateStockCommandTestCase(TestCase):
     def setUp(self):
         # Create initial status
-        self.current_stock = models.Status.objects.create(
+        self.current_stock = models.StoreStatus.objects.create(
             key='current_stock',
             value='0'
         )
