@@ -366,7 +366,7 @@ class SaleDone(View):
             return redirect(landing_done_page)
         
         # Update status
-        status, _ = models.SaleStatus.objects.get_or_create(value="Done")
+        status, _ = models.SaleStatus.objects.get_or_create(value="Paid")
         sale.status = status
         sale.save()
         

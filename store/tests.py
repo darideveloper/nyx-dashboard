@@ -1044,6 +1044,10 @@ class SaleDoneTestCase(TestCase):
         self.redirect_page += f"?sale-id={self.sale.id}&sale-status=success"
         self.assertEqual(res.url, self.redirect_page)
         
+        # Valisate sale status
+        self.sale.refresh_from_db()
+        self.assertEqual(self.sale.status.value, "Paid")
+                
     def test_get_invalid_id(self):
         
         fake_id = "fake-id"
@@ -1053,6 +1057,12 @@ class SaleDoneTestCase(TestCase):
         self.assertEqual(res.status_code, 302)
         self.redirect_page += f"?sale-id={fake_id}&sale-status=error"
         self.assertEqual(res.url, self.redirect_page)
+        
+        # Valisate sale status
+        self.sale.refresh_from_db()
+        self.assertEqual(self.sale.status.value, "Pending")
+        
+        
         
         
         
