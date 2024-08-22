@@ -208,9 +208,9 @@ class Sale(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.id:
-            self.id = uuid.uuid4().hex
+            self.id = uuid.uuid4().hex[:12]
             while Sale.objects.filter(id=self.id).exists():
-                self.id = uuid.uuid4().hex
+                self.id = uuid.uuid4().hex[:12]
         super(Sale, self).save(*args, **kwargs)
 
     class Meta:
