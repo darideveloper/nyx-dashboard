@@ -288,10 +288,12 @@ class Sale(View):
             
         # Ggenerate strip link
         product_name = f"Tracker {set_obj.name} {colors_num_obj.num} colors"
-        description = f"Sale id: {sale.id} | "
-        description += f"Email: {email} | "
+        description = ""
         description += f"Set: {set_obj.name} | "
-     
+        description += f"Colors: {colors_num_obj.num} | "
+        description += f"Client Email: {email} | "
+        description += f"Client Full Name: {full_name} | "
+ 
         products = {}
         products[product_name] = {
             "amount": 1,
@@ -304,6 +306,7 @@ class Sale(View):
             "user": settings.STRIPE_API_USER,
             "url": f"{settings.LANDING_HOST}/?sale={sale.id}",
             "products": products,
+            "email": email,
         }
         
         res = requests.post(settings.STRIPE_API_HOST, json=request_json)
