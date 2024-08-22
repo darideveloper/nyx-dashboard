@@ -214,5 +214,5 @@ class Sale(models.Model):
         super(Sale, self).save(*args, **kwargs)
 
     class Meta:
-        verbose_name = 'Sale'
-        verbose_name_plural = 'Sales'
+        verbose_name = 'Order'
+        verbose_name_plural = 'Orders'
