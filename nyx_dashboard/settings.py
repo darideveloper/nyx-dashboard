@@ -20,6 +20,8 @@ HOST = os.environ.get("HOST")
 STORAGE_AWS = os.environ.get("STORAGE_AWS") == "True"
 LANDING_HOST = os.getenv('LANDING_HOST')
 TEST_HEADLESS = os.getenv('TEST_HEADLESS') == 'True'
+STRIPE_API_HOST = os.getenv('STRIPE_API_HOST')
+STRIPE_API_USER = os.getenv('STRIPE_API_USER')
 
 print(f"DEBUG: {DEBUG}")
 print(f"HOST: {HOST}")

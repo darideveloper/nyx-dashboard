@@ -2,6 +2,7 @@ import re
 import json
 import base64
 
+from django.conf import settings
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views import View
@@ -10,8 +11,9 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 
-
 from store import models
+
+import requests
 
 
 def get_next_future_stock(request, email=""):
@@ -283,9 +285,32 @@ class Sale(View):
 
             # Save the logo file
             sale.logo.save(file_name, ContentFile(logo_data))
-
+            
+        # Ggenerate strip link
+        product_name = f"Tracker {set_obj.name} {colors_num_obj.num} colors"
+        description = f"Sale id: {sale.id} | "
+        description += f"Email: {email} | "
+        description += f"Set: {set_obj.name} | "
+     
+        products = {}
+        products[product_name] = {
+            "amount": 1,
+            "image_url": "https://www.nyxtrackers.com/logo.png",
+            "price": total,
+            "description": description
+        }
+        
+        request_json = {
+            "user": settings.STRIPE_API_USER,
+            "url": f"{settings.LANDING_HOST}/?sale={sale.id}",
+            "products": products,
+        }
+        
+        res = requests.post(settings.STRIPE_API_HOST, json=request_json)
+        res_data = res.json()
+        
         return JsonResponse({
             "status": "success",
             "message": "Sale saved",
-            "data": {}
+            "data": res_data,
         })

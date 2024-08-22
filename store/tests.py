@@ -629,8 +629,13 @@ class SaleTestCase(TestCase):
         )
 
         # Validate response
+        json_res = res.json()
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.json()["message"], "Sale saved")
+        self.assertEqual(json_res["message"], "Sale saved")
+        
+        # Validate stripe link
+        self.assertTrue(json_res["data"]["stripe_url"])
+        self.assertTrue("checkout.stripe.com" in json_res["data"]["stripe_url"])
 
         # Validate colors
         colors = {
