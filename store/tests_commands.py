@@ -1,15 +1,16 @@
 import json
 
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
-from django.core import mail
-from django.conf import settings
 
 from store import models
 
 
-class UpdateStockCommandTestCase(TestCase):
+class FutureStockUpdateTestCase(TestCase):
     def setUp(self):
         # Create initial status
         self.current_stock = models.StoreStatus.objects.create(
@@ -156,3 +157,132 @@ class UpdateStockCommandTestCase(TestCase):
         # Check if the current stock was not updated
         self.current_stock.refresh_from_db()
         self.assertEqual(int(self.current_stock.value), 0)
+
+
+class PaymentReminderTestCase(TestCase):
+    def setUp(self):
+        # Auth user
+        self.auth_user = User.objects.create_user(
+            username="test@gmail.com",
+            password="test_password",
+            email="test@gmail.com"
+        )
+        
+        self.__create_sale__("Pending")
+        
+        self.cron_name = "payment_reminder"
+        
+    def __create_sale__(self, status_str: str):
+        """ Create new sale with spaecified status
+        
+        Args:
+            status_str (str): Sale status value
+        """
+        
+        # Create sale
+        set, _ = models.Set.objects.get_or_create(
+            name="set name",
+            points=5,
+            price=275,
+            recommended=False,
+            logos=5
+        )
+        
+        colors_num, _ = models.ColorsNum.objects.get_or_create(
+            num=4,
+            price=20,
+            details="4 Colors (Trackers and 3 logo colors) +20USD"
+        )
+        
+        color, _ = models.Color.objects.get_or_create(name="blue")
+        status, _ = models.SaleStatus.objects.get_or_create(value=status_str)
+         
+        models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+        )
+    
+    def test_send_remainder(self):
+        """ Send remainder email and validate content """
+        
+        call_command(self.cron_name)
+        
+        # Validte single email sent
+        self.assertEqual(len(mail.outbox), 1)
+        
+        # Check email main data
+        sent_email = mail.outbox[0]
+        subject = "Don't forget to pay for your order!"
+        cta_text = "Pay now"
+        self.assertEqual(sent_email.subject, subject)
+        self.assertIn(cta_text, sent_email.body)
+        
+        # Vdalite email html
+        cta_link = "checkout.stripe.com"
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link, email_html)
+        
+        # Validate sale status updated
+        sale = models.Sale.objects.first()
+        self.assertEqual(sale.status.value, "Reminder Sent")
+    
+    def test_send_multiple_remainders(self):
+        """ Send 2 remainder emails """
+        
+        # Create new sale
+        self.__create_sale__("Pending")
+        
+        call_command(self.cron_name)
+        
+        # Validte 2 emails sent
+        self.assertEqual(len(mail.outbox), 2)
+        
+        # Validate sale status updated
+        sales = models.Sale.objects.all()
+        for sale in sales:
+            self.assertEqual(sale.status.value, "Reminder Sent")
+            
+    def test_no_sales(self):
+        """ No send remainder where there are no sales pending """
+        
+        # Create sale in "Done" status
+        models.Sale.objects.all().delete()
+        self.__create_sale__("Done")
+        
+        call_command(self.cron_name)
+        
+        # Validte no emails sent
+        self.assertEqual(len(mail.outbox), 0)
+        
+        # Validate sale status
+        sale = models.Sale.objects.first()
+        self.assertEqual(sale.status.value, "Done")
+
+    def test_sale_already_sent(self):
+        """ No send remainder where the sale already received a remainder """
+        
+        # Create sale in "Reminder Sent" status
+        models.Sale.objects.all().delete()
+        self.__create_sale__("Reminder Sent")
+        
+        call_command(self.cron_name)
+        
+        # Validte no emails sent
+        self.assertEqual(len(mail.outbox), 0)
+        
+        # Validate sale status
+        sale = models.Sale.objects.first()
+        self.assertEqual(sale.status.value, "Reminder Sent")
+        
+    

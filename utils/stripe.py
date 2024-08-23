@@ -1,5 +1,8 @@
 import requests
+
 from django.conf import settings
+
+from store.models import Sale
 
 
 def get_stripe_link(product_name: str, total: float,
@@ -38,3 +41,33 @@ def get_stripe_link(product_name: str, total: float,
     res_data = res.json()
     
     return res_data["stripe_url"]
+
+
+def get_stripe_link_sale(sale: Sale):
+    """ Send data to stripe api and return stripe url
+        using sale object
+        
+    Args:
+        sale (Sale): sale object
+        
+    Returns:
+        str: stripe checkout link
+    """
+    
+    product_name = f"Tracker {sale.set.name} {sale.colors_num.num} colors"
+    description = ""
+    description += f"Set: {sale.set.name} | "
+    description += f"Colors: {sale.colors_num.num} | "
+    description += f"Client Email: {sale.user.email} | "
+    description += f"Client Full Name: {sale.full_name} | "
+    
+    stripe_link = get_stripe_link(
+        product_name=product_name,
+        total=sale.total,
+        description=description,
+        email=sale.user.email,
+        sale_id=sale.id
+    )
+    
+    return stripe_link
+    

@@ -182,7 +182,7 @@ class Sale(models.Model):
         Color, on_delete=models.SET_NULL,
         related_name='logo_color_3', null=True, blank=True,
     )
-    logo = models.ImageField()
+    logo = models.ImageField(null=True, blank=True)
     addons = models.ManyToManyField(Addon)
     promo_code = models.ForeignKey(
         PromoCode, on_delete=models.SET_NULL,

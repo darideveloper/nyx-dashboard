@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 
 from store import models
-from utils.stripe import get_stripe_link
+from utils.stripe import get_stripe_link_sale
 from utils.emails import send_email
 
 
@@ -293,14 +293,6 @@ class Sale(View):
 
             # Save the logo file
             sale.logo.save(file_name, ContentFile(logo_data))
-            
-        # Ggenerate strip link
-        product_name = f"Tracker {set_obj.name} {colors_num_obj.num} colors"
-        description = ""
-        description += f"Set: {set_obj.name} | "
-        description += f"Colors: {colors_num_obj.num} | "
-        description += f"Client Email: {email} | "
-        description += f"Client Full Name: {full_name} | "
         
         # Validate stok
         current_stock = models.StoreStatus.objects.filter(
@@ -314,13 +306,7 @@ class Sale(View):
                 "data": {}
             }, status=400)
         
-        stripe_link = get_stripe_link(
-            product_name,
-            total,
-            description,
-            email,
-            sale.id
-        )
+        stripe_link = get_stripe_link_sale(sale)
         
         return JsonResponse({
             "status": "success",
