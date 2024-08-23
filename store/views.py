@@ -14,6 +14,7 @@ from django.shortcuts import redirect
 
 from store import models
 from utils.stripe import get_stripe_link
+from utils.emails import send_email
 
 
 class NextFutureStock(View):
@@ -376,7 +377,27 @@ class SaleDone(View):
         current_stock.value = str(current_stock_int - 1)
         current_stock.save()
         
-        # TODO: Confirmation email afrter payment
+        # Get sale data
+        sale_data = sale.get_sale_data_dict()
+        
+        email_texts = [
+            "Your payment has been confirmed!",
+            "Your order is being processed.",
+            "You will receive notifications about the status of your order.",
+            "Here your order details:"
+        ]
+        
+        # Confirmation email afrter payment
+        send_email(
+            subject="Nyx Trackers Payment Confirmation",
+            first_name=sale.user.first_name,
+            last_name=sale.user.last_name,
+            texts=email_texts,
+            cta_link=f"{settings.HOST}/admin/",
+            cta_text="Go to dashboard",
+            to_email=sale.user.email,
+            key_items=sale_data,
+        )
         
         landing_done_page += f"?sale-id={sale_id}&sale-status=success"
         return redirect(landing_done_page)

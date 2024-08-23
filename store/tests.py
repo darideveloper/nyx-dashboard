@@ -3,15 +3,16 @@ import json
 import base64
 from time import sleep
 
-from django.contrib.auth.models import User
-from django.utils import timezone
-from django.test import LiveServerTestCase, TestCase
 from django.conf import settings
 from django.contrib.auth.models import Group
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
 from django.contrib.auth.models import Permission
+from django.contrib.auth.models import User
+from django.core import mail
+from django.utils import timezone
+from django.test import LiveServerTestCase, TestCase
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 from store import models
 from utils.automation import get_selenium_elems
@@ -1063,8 +1064,34 @@ class SaleDoneTestCase(TestCase):
         # Valisate sale status
         self.sale.refresh_from_db()
         self.assertEqual(self.sale.status.value, "Pending")
+    
+    def test_email(self):
+        """ Validate email sent content after sale confirmation """
         
-
+        # Validate redirect
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        self.assertEqual(res.status_code, 302)
+        
+        # validate activation email sent
+        self.assertEqual(len(mail.outbox), 1)
+          
+        # Validate email text content
+        subject = "Nyx Trackers Payment Confirmation"
+        cta_link_base = f"{settings.HOST}/admin/"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        
+        # Validate cta html tags
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
+        
+        # Validate sale details
+        sale_data = self.sale.get_sale_data_dict()
+        for sale_key, sale_value in sale_data.items():
+            self.assertIn(sale_key, email_html)
+            self.assertIn(str(sale_value), email_html)
+        
+        
 class AdminBuyerSaleListTestCase(LiveServerTestCase):
     """ Validate buyers custom functions in sale list view """
     

@@ -5,7 +5,8 @@ from django.conf import settings
 
 
 def render_email(first_name: str, last_name: str,
-                 texts: list[str], cta_link: str, cta_text: str) -> tuple[str, str]:
+                 texts: list[str], cta_link: str, cta_text: str,
+                 key_items: dict = {}) -> tuple[str, str]:
     """ Send an email to the user to activate their account.
 
     Args:
@@ -26,7 +27,8 @@ def render_email(first_name: str, last_name: str,
         "last_name": last_name,
         "texts": texts,
         "cta_link": cta_link,
-        "cta_text": cta_text
+        "cta_text": cta_text,
+        "key_items": key_items
     }
     
     html_message = render_to_string('user/email.html', context)
@@ -37,7 +39,7 @@ def render_email(first_name: str, last_name: str,
     
 def send_email(subject: str, first_name: str, last_name: str,
                texts: list[str], cta_link: str, cta_text: str,
-               to_email: str):
+               to_email: str, key_items: dict = {}):
     """ Send an email to the user to activate their account.
 
     Args:
@@ -48,6 +50,7 @@ def send_email(subject: str, first_name: str, last_name: str,
         cta_link (str): link to the CTA
         cta_text (str): text to display on the CTA
         to_email (str): email to send the email to
+        key_items (dict): list items like key-value pairs to display in the email
     """
     
     html_message, plain_message = render_email(
@@ -55,7 +58,8 @@ def send_email(subject: str, first_name: str, last_name: str,
         last_name,
         texts,
         cta_link,
-        cta_text
+        cta_text,
+        key_items
     )
     
     message = EmailMultiAlternatives(

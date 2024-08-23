@@ -98,7 +98,7 @@ class ColorsNum(models.Model):
     details = models.TextField()
 
     def __str__(self):
-        return f"{self.num} - {self.price}"
+        return f"{self.num} ({self.price})"
 
     class Meta:
         verbose_name = 'Colors Num'
@@ -212,6 +212,39 @@ class Sale(models.Model):
             while Sale.objects.filter(id=self.id).exists():
                 self.id = uuid.uuid4().hex[:12]
         super(Sale, self).save(*args, **kwargs)
+
+    def get_sale_data_dict(self) -> dict:
+        """ Return sale summary data as dictionary
+        
+        Returns:
+            dict: Sale summary data
+        """
+        
+        addons_objs = self.addons.all()
+        addons = ", ".join([addon.name for addon in addons_objs])
+        
+        sale_data = {
+            "Order Number": self.id,
+            "Email": self.user.email,
+            "Set": str(self.set),
+            "Colors Number": self.colors_num.details,
+            "Color Set": self.color_set.name,
+            "Logo color 1": self.logo_color_1.name if self.logo_color_1 else "",
+            "Logo color 2": self.logo_color_2.name if self.logo_color_2 else "",
+            "Logo color 3": self.logo_color_3.name if self.logo_color_3 else "",
+            "Addons/Extras": addons,
+            "Promo Code": self.promo_code.code if self.promo_code else "",
+            "Full Name": self.full_name,
+            "Country": self.country,
+            "State": self.state,
+            "City": self.city,
+            "Postal Code": self.postal_code,
+            "Street Address": self.street_address,
+            "Phone": self.phone,
+            "Total": self.total,
+        }
+        
+        return sale_data
 
     class Meta:
         verbose_name = 'Order'
