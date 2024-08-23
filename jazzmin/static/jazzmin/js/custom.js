@@ -311,8 +311,17 @@ class Countdown {
 class AdminSale {
 
   constructor() {
-    this.hideFilters()
-    this.hideUserColumn()
+
+    const currentUrl = window.location.href
+    if (currentUrl.includes('change')) {
+      // Edit view buyer customization
+      this.removeLinksHref()
+    } else {
+      // List view buyer customization
+      this.hideFilters()
+      this.hideUserColumn()
+    }
+
   }
 
   // Hide some filter to no-admin users
@@ -335,6 +344,7 @@ class AdminSale {
     }
   }
 
+  // Hide user column in list view
   hideUserColumn() {
     if (!isAdmin) {
       const userCellsSelector = "th:nth-child(2), td:nth-child(2)"
@@ -344,6 +354,15 @@ class AdminSale {
         cell.remove()
       })
     }
+  }
+
+  // Remove href from links in change view
+  removeLinksHref() {
+    const linkSelector = '.card-body a'
+    const links = document.querySelectorAll(linkSelector)
+    links.forEach(link => {
+      link.removeAttribute('href')
+    })
   }
 
 }

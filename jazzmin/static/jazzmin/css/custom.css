@@ -64,4 +64,11 @@
   margin: 10px;
 }
 
+#sale_form .card-body a {
+  color: #2C3333 !important;
+}
+#sale_form .card-body a:hover {
+  color: #2C3333 !important;
+}
+
 /*# sourceMappingURL=custom.css.map */

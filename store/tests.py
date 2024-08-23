@@ -1065,8 +1065,8 @@ class SaleDoneTestCase(TestCase):
         self.assertEqual(self.sale.status.value, "Pending")
         
 
-class AdminBuyerListTestCase(LiveServerTestCase):
-    """ Validate buyers custom functions """
+class AdminBuyerSaleListTestCase(LiveServerTestCase):
+    """ Validate buyers custom functions in sale list view """
     
     def setUp(self):
         
@@ -1293,4 +1293,130 @@ class AdminBuyerListTestCase(LiveServerTestCase):
                 
         # Validate user column is hidden
         self.assertEqual(len(rows), 2)
+
+
+class AdminBuyerSaleChangeTestCase(LiveServerTestCase):
+    """ Validate buyers custom functions in sale change view """
+    
+    def setUp(self):
+        
+        # Create a user
+        self.auth_username = "test@gmail.com"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username,
+            password=self.password,
+            is_staff=True,
+            first_name="first",
+            last_name="last",
+            email="test@mail.com",
+        )
+        
+        # Create "buyers" group
+        buyers_group = Group.objects.create(name='buyers')
+        view_sale_perm = Permission.objects.get(codename='view_sale')
+        buyers_group.permissions.add(view_sale_perm)
+        
+        # Add permision to only see sale model
+        self.auth_user.groups.add(buyers_group)
+        self.auth_user.save()
+        
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Create sales
+        set = models.Set.objects.create(
+            name="set name",
+            points=5,
+            price=275,
+            recommended=False,
+            logos=5
+        )
+        colors_num = models.ColorsNum.objects.create(
+            num=4,
+            price=20,
+            details="4 Colors (Trackers and 3 logo colors) +20USD"
+        )
+        color = models.Color.objects.create(name="blue")
+        status = models.SaleStatus.objects.create(value="Pending")
+        promo_code_type = models.PromoCodeType.objects.create(name="amount")
+        promo_code = models.PromoCode.objects.create(
+            code="sample-promo",
+            discount=100,
+            type=promo_code_type,
+        )
+        
+        self.sale = models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+            promo_code=promo_code,
+        )
+        
+    def tearDown(self):
+        """ Close selenium """
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+        
+    def __login__(self):
+        """ Login with valid user and password """
+        
+        # Load home page
+        home_page = self.live_server_url + "/login/"
+        self.driver.get(home_page)
+        
+        # Login
+        selectors = {
+            "username": "input[name='username']",
+            "password": "input[name='password']",
+            "submit": "button[type='submit']",
+        }
+        fields = get_selenium_elems(self.driver, selectors)
+        fields["username"].send_keys(self.auth_username)
+        fields["password"].send_keys(self.password)
+        fields["submit"].click()
+        
+        # go to sales change page
+        link = f"{self.live_server_url}/admin/store/sale/{self.sale.id}/change/"
+        self.driver.get(link)
+        sleep(0.1)
+    
+    def test_no_href(self):
+        """ Validate no href attribute in links of view """
+        
+        self.__login__()
+        
+        # Get all links
+        links = self.driver.find_elements(By.TAG_NAME, "#sale_form a")
+        
+        # Validate all links
+        for link in links:
+            self.assertEqual(link.get_attribute("href"), None)
     
