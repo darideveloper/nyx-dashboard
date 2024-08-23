@@ -349,7 +349,7 @@ class AdminSale {
     if (!isAdmin) {
       const userCellsSelector = "th:nth-child(2), td:nth-child(2)"
       const userCells = document.querySelectorAll(userCellsSelector)
-      console.log({userCells})
+      console.log({ userCells })
       userCells.forEach(cell => {
         cell.remove()
       })
@@ -358,11 +358,15 @@ class AdminSale {
 
   // Remove href from links in change view
   removeLinksHref() {
-    const linkSelector = '.card-body a'
-    const links = document.querySelectorAll(linkSelector)
-    links.forEach(link => {
-      link.removeAttribute('href')
-    })
+
+    if (!isAdmin) {
+      const linkSelector = '.card-body a'
+      const links = document.querySelectorAll(linkSelector)
+      links.forEach(link => {
+        link.removeAttribute('href')
+      })
+    }
+
   }
 
 }

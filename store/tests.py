@@ -1489,9 +1489,17 @@ class AdminBuyerSaleChangeTestCase(LiveServerTestCase):
         link = f"{self.live_server_url}/admin/store/sale/{self.sale.id}/change/"
         self.driver.get(link)
         sleep(0.1)
+        
+    def __login_admin__(self):
+        """ Change the user to admin and login """
+        
+        self.auth_user.is_superuser = True
+        self.auth_user.save()
+        
+        self.__login__()
     
-    def test_no_href(self):
-        """ Validate no href attribute in links of view """
+    def test_no_href_buyer(self):
+        """ Validate no href attribute in links of view for buyer user """
         
         self.__login__()
         
@@ -1501,4 +1509,16 @@ class AdminBuyerSaleChangeTestCase(LiveServerTestCase):
         # Validate all links
         for link in links:
             self.assertEqual(link.get_attribute("href"), None)
+            
+    def test_href_admin(self):
+        """ Validate href attribute in links of view for admin user """
+        
+        self.__login_admin__()
+        
+        # Get all links
+        links = self.driver.find_elements(By.TAG_NAME, "#sale_form a")
+        
+        # Validate all links
+        for link in links:
+            self.assertNotEqual(link.get_attribute("href"), None)
     
