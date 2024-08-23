@@ -196,8 +196,8 @@ class Sale(models.Model):
     street_address = models.CharField(max_length=255)
     phone = models.CharField(max_length=255)
     total = models.FloatField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(editable=True)
+    updated_at = models.DateTimeField(editable=True)
     status = models.ForeignKey(
         SaleStatus, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -207,10 +207,19 @@ class Sale(models.Model):
         return f"{self.id} - ({self.user}) {self.set}"
 
     def save(self, *args, **kwargs):
+        
         if not self.id:
+            # Set created at
+            self.created_at = timezone.now()
+            
+            # Custom id
             self.id = uuid.uuid4().hex[:12]
             while Sale.objects.filter(id=self.id).exists():
                 self.id = uuid.uuid4().hex[:12]
+                
+        # Set updated at
+        self.updated_at = timezone.now()
+        
         super(Sale, self).save(*args, **kwargs)
 
     def get_sale_data_dict(self) -> dict:
