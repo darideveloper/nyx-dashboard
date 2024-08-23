@@ -8,8 +8,10 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import User
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from django.test import LiveServerTestCase, TestCase
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -1011,6 +1013,12 @@ class SaleDoneTestCase(TestCase):
         color = models.Color.objects.create(name="blue")
         status = models.SaleStatus.objects.create(value="Pending")
         
+        # Files paths
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        test_files_folder = os.path.join(current_path, "test_files")
+        
+        logo_path = os.path.join(test_files_folder, "logo.png")
+        
         self.sale = models.Sale.objects.create(
             user=self.auth_user,
             set=set,
@@ -1026,6 +1034,15 @@ class SaleDoneTestCase(TestCase):
             total=100,
             status=status,
         )
+        
+        # Add logo to sale
+        logo = SimpleUploadedFile(
+            name="logo.png",
+            content=open(logo_path, "rb").read(),
+            content_type="image/png"
+        )
+        self.sale.logo = logo
+        self.sale.save()
         
         # Request data
         self.endpoint = "/api/store/sale-done"
@@ -1083,6 +1100,8 @@ class SaleDoneTestCase(TestCase):
         
         # Validate cta html tags
         email_html = sent_email.alternatives[0][0]
+        with open("temp.html", "w") as file:
+            file.write(email_html)
         self.assertIn(cta_link_base, email_html)
         
         # Validate sale details
@@ -1090,6 +1109,42 @@ class SaleDoneTestCase(TestCase):
         for sale_key, sale_value in sale_data.items():
             self.assertIn(sale_key, email_html)
             self.assertIn(str(sale_value), email_html)
+            
+        # Valdate logo in email
+        self.assertIn('id="extra-image"', email_html)
+
+    def test_email_no_logo(self):
+        """ Validate email sent without logo """
+        
+        # Remove logo from sale
+        self.sale.logo = None
+        self.sale.save()
+        
+        # Validate redirect
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        self.assertEqual(res.status_code, 302)
+        
+        # validate activation email sent
+        self.assertEqual(len(mail.outbox), 1)
+          
+        # Validate email text content
+        subject = "Nyx Trackers Payment Confirmation"
+        cta_link_base = f"{settings.HOST}/admin/"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        
+        # Validate cta html tags
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
+        
+        # Validate sale details
+        sale_data = self.sale.get_sale_data_dict()
+        for sale_key, sale_value in sale_data.items():
+            self.assertIn(sale_key, email_html)
+            self.assertIn(str(sale_value), email_html)
+            
+        # Valdate logo in email
+        self.assertNotIn('id="extra-image"', email_html)
         
         
 class AdminBuyerSaleListTestCase(LiveServerTestCase):

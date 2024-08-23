@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+from utils.media import get_media_url
+
 
 class FutureStock(models.Model):
     id = models.AutoField(primary_key=True)
@@ -182,7 +184,7 @@ class Sale(models.Model):
         Color, on_delete=models.SET_NULL,
         related_name='logo_color_3', null=True, blank=True,
     )
-    logo = models.ImageField(null=True, blank=True)
+    logo = models.ImageField(null=True, blank=True, upload_to='logos/')
     addons = models.ManyToManyField(Addon)
     promo_code = models.ForeignKey(
         PromoCode, on_delete=models.SET_NULL,

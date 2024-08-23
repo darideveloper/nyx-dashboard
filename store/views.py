@@ -13,8 +13,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 
 from store import models
-from utils.stripe import get_stripe_link_sale
 from utils.emails import send_email
+from utils.media import get_media_url
+from utils.stripe import get_stripe_link_sale
 
 
 class NextFutureStock(View):
@@ -373,6 +374,8 @@ class SaleDone(View):
             "Here your order details:"
         ]
         
+        logo_url = get_media_url(sale.logo.url) if sale.logo else ""
+        
         # Confirmation email afrter payment
         send_email(
             subject="Nyx Trackers Payment Confirmation",
@@ -383,6 +386,7 @@ class SaleDone(View):
             cta_text="Go to dashboard",
             to_email=sale.user.email,
             key_items=sale_data,
+            image_src=logo_url
         )
         
         landing_done_page += f"?sale-id={sale_id}&sale-status=success"

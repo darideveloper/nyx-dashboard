@@ -335,6 +335,7 @@
       margin-bottom: 40px;
     }
 
+    /* Custom  key - item ul */
     .key-items {
       list-style: none;
       padding: 0;
@@ -356,7 +357,18 @@
       opacity: 0.6;
     }
 
+    .key-items li:last-child {
+      font-size: 20px;
+      font-weight: bold;
+    }
 
+    /* Extra image (like the client's logo) */
+    .extra-image {
+      width: 250px;
+      height: auto;
+      border-radius: 10px;
+      margin: 20px 0
+    }
   </style>
 </head>
 
@@ -385,7 +397,7 @@
                 {% endfor %}
 
                 <!-- List items -->
-                {% if  key_items %}
+                {% if key_items %}
                 <br />
                 <ul class="key-items">
                   {% for key, value in key_items.items %}
@@ -401,6 +413,11 @@
                 </ul>
                 <br />
                 {% endif %}
+
+                {% if extra_image %}
+                <img src="cid:image1" class="extra-image" id="extra-image" />
+                {% endif %}
+
 
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
                   <tbody>
