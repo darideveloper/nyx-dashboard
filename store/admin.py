@@ -70,3 +70,15 @@ class SaleAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at', 'updated_at', "user", "set", "colors_num",
                    "color_set", "logo_color_1", "logo_color_2", "logo_color_3",
                    "addons", "promo_code", "country", "state")
+    
+    def get_queryset(self, request):
+            
+        # Get admin type
+        user_auth = request.user
+        if not user_auth.is_superuser:
+            
+            # Filter instructions by user
+            return models.Sale.objects.filter(user=user_auth)
+            
+        # Render all instructions
+        return models.Sale.objects.all()

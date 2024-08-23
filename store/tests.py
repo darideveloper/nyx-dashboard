@@ -1065,13 +1065,13 @@ class SaleDoneTestCase(TestCase):
         self.assertEqual(self.sale.status.value, "Pending")
         
 
-class AdminBuyerTestCase(LiveServerTestCase):
+class AdminBuyerListTestCase(LiveServerTestCase):
     """ Validate buyers custom functions """
     
     def setUp(self):
         
         # Create a user
-        self.auth_username = "test_user@gmail.com"
+        self.auth_username = "test@gmail.com"
         self.password = "test_password"
         self.auth_user = User.objects.create_user(
             self.auth_username,
@@ -1083,7 +1083,7 @@ class AdminBuyerTestCase(LiveServerTestCase):
         )
         
         # Create second user
-        User.objects.create_user(
+        self.auth_user_2 = User.objects.create_user(
             "user_2",
             password="pass_2",
             is_staff=True,
@@ -1159,7 +1159,7 @@ class AdminBuyerTestCase(LiveServerTestCase):
         )
         
         models.Sale.objects.create(
-            user=self.auth_user,
+            user=self.auth_user_2,
             set=set,
             colors_num=colors_num,
             color_set=color,
@@ -1200,17 +1200,22 @@ class AdminBuyerTestCase(LiveServerTestCase):
         fields["password"].send_keys(self.password)
         fields["submit"].click()
         
-        # go to admin
-        admin_page = self.live_server_url + "/admin/"
-        self.driver.get(admin_page)
+        # go to sales page
+        self.driver.get(self.live_server_url + "/admin/store/sale/")
+        sleep(0.1)
+        
+    def __login_admin__(self):
+        """ Change the user to admin and login """
+        
+        self.auth_user.is_superuser = True
+        self.auth_user.save()
+        
+        self.__login__()
         
     def test_hide_filters_buyer(self):
         """ Check removed filters for buyer user """
         
         self.__login__()
-        
-        self.driver.get(self.live_server_url + "/admin/store/sale/")
-        sleep(0.1)
         
         selectors_filters = {
             "user": 'select[data-name="user"]',
@@ -1225,14 +1230,7 @@ class AdminBuyerTestCase(LiveServerTestCase):
     def test_no_hide_filters_admin(self):
         """ Check no removed filters for admin user """
         
-        # UPdate user
-        self.auth_user.is_superuser = True
-        self.auth_user.save()
-        
-        self.__login__()
-        
-        self.driver.get(self.live_server_url + "/admin/store/sale/")
-        sleep(0.1)
+        self.__login_admin__()
         
         selectors_filters = {
             "user": 'select[data-name="user"]',
@@ -1249,9 +1247,6 @@ class AdminBuyerTestCase(LiveServerTestCase):
         
         self.__login__()
         
-        self.driver.get(self.live_server_url + "/admin/store/sale/")
-        sleep(0.1)
-        
         # Index 2 in buyer view because missing checkboxes
         selectors = {
             "th_user": "th:nth-child(2)",
@@ -1264,14 +1259,7 @@ class AdminBuyerTestCase(LiveServerTestCase):
     def test_no_hide_user_colum_admin(self):
         """ Check no removed user column for admin user"""
         
-        # UPdate user
-        self.auth_user.is_superuser = True
-        self.auth_user.save()
-        
-        self.__login__()
-        
-        self.driver.get(self.live_server_url + "/admin/store/sale/")
-        sleep(0.1)
+        self.__login_admin__()
         
         # Index 3 in buyer view because checkboxes
         selectors = {
@@ -1281,3 +1269,28 @@ class AdminBuyerTestCase(LiveServerTestCase):
         
         # Validate user column is hidden
         self.assertEqual(elems["th_user"].text, "User")
+        
+    def test_hide_sales_buyer(self):
+        """ Check removed other users orders/sales """
+        
+        self.__login__()
+        
+        # Index 2 in buyer view because missing checkboxes
+        selector_row = "#result_list td:nth-child(3)"
+        rows = self.driver.find_elements(By.CSS_SELECTOR, selector_row)
+                
+        # Validate user column is hidden
+        self.assertEqual(len(rows), 1)
+    
+    def test_no_hide_sales_admin(self):
+        """ Check no removed other users orders/sales """
+        
+        self.__login_admin__()
+        
+        # Index 2 in buyer view because missing checkboxes
+        selector_row = "#result_list td:nth-child(3)"
+        rows = self.driver.find_elements(By.CSS_SELECTOR, selector_row)
+                
+        # Validate user column is hidden
+        self.assertEqual(len(rows), 2)
+    
