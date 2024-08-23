@@ -258,7 +258,7 @@ class PaymentReminderTestCase(TestCase):
         
         # Create sale in "Done" status
         models.Sale.objects.all().delete()
-        self.__create_sale__("Done")
+        self.__create_sale__("Paid")
         
         call_command(self.cron_name)
         
@@ -267,7 +267,7 @@ class PaymentReminderTestCase(TestCase):
         
         # Validate sale status
         sale = models.Sale.objects.first()
-        self.assertEqual(sale.status.value, "Done")
+        self.assertEqual(sale.status.value, "Paid")
 
     def test_sale_already_sent(self):
         """ No send remainder where the sale already received a remainder """

@@ -1100,8 +1100,6 @@ class SaleDoneTestCase(TestCase):
         
         # Validate cta html tags
         email_html = sent_email.alternatives[0][0]
-        with open("temp.html", "w") as file:
-            file.write(email_html)
         self.assertIn(cta_link_base, email_html)
         
         # Validate sale details
@@ -1521,4 +1519,84 @@ class AdminBuyerSaleChangeTestCase(LiveServerTestCase):
         # Validate all links
         for link in links:
             self.assertNotEqual(link.get_attribute("href"), None)
+
+
+class ModelSaleTestCase(TestCase):
+    """ Test custom actions of sale model """
     
+    def setUp(self):
+        
+        # Auth user
+        self.auth_user = User.objects.create_user(
+            username="test@gmail.com",
+            password="test_password",
+            email="test@gmail.com"
+        )
+        
+        # Create sale
+        set = models.Set.objects.create(
+            name="set name",
+            points=5,
+            price=275,
+            recommended=False,
+            logos=5
+        )
+        
+        colors_num = models.ColorsNum.objects.create(
+            num=4,
+            price=20,
+            details="4 Colors (Trackers and 3 logo colors) +20USD"
+        )
+        
+        color = models.Color.objects.create(name="blue")
+        status = models.SaleStatus.objects.create(value="Pending")
+                    
+        self.sale = models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+        )
+        
+    def test_change_status_email(self):
+        """ Send email to client when change status """
+        
+        # Update sale status
+        status_done = models.SaleStatus.objects.create(value="Done")
+        self.sale.status = status_done
+        self.sale.save()
+        
+        # Validate email sent
+        self.assertEqual(len(mail.outbox), 1)
+        
+        # Validate email content
+        subject = f"Order {self.sale.id} {status_done.value}"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        
+        # Validate cta html tags
+        email_html = sent_email.alternatives[0][0]
+        cta_link_base = f"{settings.HOST}/admin/"
+        self.assertIn(cta_link_base, email_html)
+        
+    def test_change_status_no_email(self):
+        """ Status change email not sent because of a excluded status """
+        
+        # Update sale status
+        status_done = models.SaleStatus.objects.create(value="Paid")
+        self.sale.status = status_done
+        self.sale.save()
+        
+        # Validate email sent
+        self.assertEqual(len(mail.outbox), 0)
+        
+        

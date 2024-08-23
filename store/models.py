@@ -3,8 +3,9 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.conf import settings
 
-from utils.media import get_media_url
+from utils.emails import send_email
 
 
 class FutureStock(models.Model):
@@ -221,6 +222,22 @@ class Sale(models.Model):
                 
         # Set updated at
         self.updated_at = timezone.now()
+        
+        # Send email to user when status change
+        exclude_status = ["Pending", "Paid", "Reminder Sent"]
+        if self.status and self.status.value not in exclude_status:
+        
+            send_email(
+                subject=f"Order {self.id} {self.status.value}",
+                first_name=self.user.first_name,
+                last_name=self.user.last_name,
+                texts=[
+                    f'Your order status has been changed to "{self.status.value}"'
+                ],
+                cta_link=f"{settings.HOST}/admin/",
+                cta_text="View order in Dashboard",
+                to_email=self.user.email,
+            )
         
         super(Sale, self).save(*args, **kwargs)
 
