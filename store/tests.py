@@ -9,6 +9,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.utils import timezone
 from django.test import LiveServerTestCase, TestCase
 
@@ -536,37 +537,22 @@ class SaleTestCase(TestCase):
 
         self.endpoint = "/api/store/sale/"
         
+        # Create initial data
+        call_command("apps_loaddata")
+        
         # Initial data
         self.data = {
             "email": self.auth_user.email,
-            "set": {
-                "name": "set name",
-                "points": 5,
-                "price": 275,
-                "recommended": False,
-                "logos": 5
-            },
-            "colors_num": {
-                "num": 4,
-                "price": 20,
-                "details": "4 Colors (Trackers and 3 logo colors) +20USD"
-            },
+            "set": "basic",
+            "colors_num": 4,
             "set_color": "blue",
             "logo_color_1": "white",
             "logo_color_2": "red",
             "logo_color_3": "blue",
             "logo": "",
             "included_extras": [
-                {
-                    "name": "extra 1",
-                    "price": 14,
-                    "exclude_sets": []
-                },
-                {
-                    "name": "extra 2",
-                    "price": 25,
-                    "exclude_sets": []
-                }
+                "Straps",
+                "Wifi 2.4ghz USB Dongle",
             ],
             "promo": {
                 "code": "sample-promo",
@@ -589,10 +575,9 @@ class SaleTestCase(TestCase):
         self.test_files_folder = os.path.join(current_path, "test_files")
         
         # Add current stock to store status
-        self.current_stock = models.StoreStatus.objects.create(
-            key="current_stock",
-            value="100",
-        )
+        self.current_stock = models.StoreStatus.objects.get(key="current_stock")
+        self.current_stock.value = 100
+        self.current_stock.save()
 
     def __get_logo_base64__(self, file_name: str) -> str:
         """ Get logo in base64 string
@@ -661,37 +646,6 @@ class SaleTestCase(TestCase):
             self.assertEqual(color_obj.count(), 1)
             colors_objs[color_key] = color_obj[0]
 
-        # Validate sale status
-        status = models.SaleStatus.objects.all()
-        self.assertEqual(status.count(), 1)
-        self.assertEqual(status[0].value, "Pending")
-
-        # Validate set
-        set_data = self.data["set"]
-        set_obj = models.Set.objects.filter(name=set_data["name"])
-        self.assertEqual(set_obj.count(), 1)
-        self.assertEqual(set_obj[0].points, set_data["points"])
-        self.assertEqual(set_obj[0].price, set_data["price"])
-        self.assertEqual(set_obj[0].recommended, set_data["recommended"])
-        self.assertEqual(set_obj[0].logos, set_data["logos"])
-
-        # Validate colors num
-        colors_num_data = self.data["colors_num"]
-        colors_num_obj = models.ColorsNum.objects.filter(
-            num=colors_num_data["num"])
-        self.assertEqual(colors_num_obj.count(), 1)
-        self.assertEqual(colors_num_obj[0].price, colors_num_data["price"])
-        self.assertEqual(colors_num_obj[0].details, colors_num_data["details"])
-
-        # Validate addons
-        addons_data = self.data["included_extras"]
-        addons_objs = []
-        for addon_data in addons_data:
-            addon_obj = models.Addon.objects.filter(name=addon_data["name"])
-            self.assertEqual(addon_obj.count(), 1)
-            self.assertEqual(addon_obj[0].price, addon_data["price"])
-            addons_objs.append(addon_obj[0])
-
         # Validate promo type
         promo_data = self.data["promo"]
         promo_type = promo_data["discount"]["type"]
@@ -709,8 +663,8 @@ class SaleTestCase(TestCase):
         sale_obj = models.Sale.objects.all()
         self.assertEqual(sale_obj.count(), 1)
         self.assertEqual(sale_obj[0].user, self.auth_user)
-        self.assertEqual(sale_obj[0].set, set_obj[0])
-        self.assertEqual(sale_obj[0].colors_num, colors_num_obj[0])
+        self.assertEqual(sale_obj[0].set.name, self.data["set"])
+        self.assertEqual(sale_obj[0].colors_num.num, self.data["colors_num"])
         self.assertEqual(sale_obj[0].color_set, colors_objs["set_color"])
         self.assertEqual(sale_obj[0].logo_color_1, colors_objs["logo_color_1"])
         self.assertEqual(sale_obj[0].logo_color_2, colors_objs["logo_color_2"])
@@ -724,14 +678,19 @@ class SaleTestCase(TestCase):
         self.assertEqual(sale_obj[0].postal_code, self.data["postal_code"])
         self.assertEqual(sale_obj[0].street_address, self.data["street_address"])
         self.assertEqual(sale_obj[0].phone, self.data["phone"])
-        self.assertEqual(sale_obj[0].status, status[0])
+        self.assertEqual(sale_obj[0].status.value, "Pending")
 
         # Validate total
         total = 0
-        total += set_obj[0].price
-        total += colors_num_obj[0].price
-        for addon_obj in addons_objs:
-            total += addon_obj.price
+        set_obj = models.Set.objects.filter(name=self.data["set"]).first()
+        colors_num_obj = models.ColorsNum.objects.filter(
+            num=self.data["colors_num"]
+        ).first()
+        addons = models.Addon.objects.filter(name__in=self.data["included_extras"])
+        total += set_obj.price
+        total += colors_num_obj.price
+        for addon in addons:
+            total += addon.price
         total -= promo_obj[0].discount
         total = round(total, 2)
         self.assertEqual(sale_obj[0].total, total)
@@ -791,7 +750,7 @@ class SaleTestCase(TestCase):
         """ Save sale with single color (set color) """
         
         # Change colors num to 1
-        self.data["colors_num"]["num"] = 1
+        self.data["colors_num"] = 1
         
         json_data = json.dumps(self.data)
         res = self.client.post(
@@ -802,10 +761,6 @@ class SaleTestCase(TestCase):
 
         # Validate response
         self.assertEqual(res.status_code, 200)
-        
-        # Validate colors num created
-        colors_num = models.ColorsNum.objects.all()[0]
-        self.assertEqual(colors_num.num, 1)
                 
         # Validate sale data
         sale = models.Sale.objects.all()[0]
@@ -818,7 +773,7 @@ class SaleTestCase(TestCase):
         """ Save sale with set color and 1 logo color """
         
         # Change colors num to 1
-        self.data["colors_num"]["num"] = 2
+        self.data["colors_num"] = 2
         
         json_data = json.dumps(self.data)
         res = self.client.post(
@@ -830,10 +785,6 @@ class SaleTestCase(TestCase):
         # Validate response
         self.assertEqual(res.status_code, 200)
         
-        # Validate colors num created
-        colors_num = models.ColorsNum.objects.all()[0]
-        self.assertEqual(colors_num.num, 2)
-                
         # Validate sale data
         sale = models.Sale.objects.all()[0]
         self.assertEqual(sale.color_set.name, self.data["set_color"])
@@ -845,7 +796,7 @@ class SaleTestCase(TestCase):
         """ Save sale with set color and 2 logo colors """
         
         # Change colors num to 1
-        self.data["colors_num"]["num"] = 3
+        self.data["colors_num"] = 3
         
         json_data = json.dumps(self.data)
         res = self.client.post(
@@ -856,10 +807,6 @@ class SaleTestCase(TestCase):
 
         # Validate response
         self.assertEqual(res.status_code, 200)
-        
-        # Validate colors num created
-        colors_num = models.ColorsNum.objects.all()[0]
-        self.assertEqual(colors_num.num, 3)
                 
         # Validate sale data
         sale = models.Sale.objects.all()[0]
@@ -872,7 +819,7 @@ class SaleTestCase(TestCase):
         """ Save sale with set color and 3 logo colors """
         
         # Change colors num to 1
-        self.data["colors_num"]["num"] = 4
+        self.data["colors_num"] = 4
         
         json_data = json.dumps(self.data)
         res = self.client.post(
@@ -883,10 +830,6 @@ class SaleTestCase(TestCase):
 
         # Validate response
         self.assertEqual(res.status_code, 200)
-        
-        # Validate colors num created
-        colors_num = models.ColorsNum.objects.all()[0]
-        self.assertEqual(colors_num.num, 4)
                 
         # Validate sale data
         sale = models.Sale.objects.all()[0]
@@ -954,6 +897,9 @@ class CurrentStockTestCase(TestCase):
         
         self.endpoint = "/api/store/current-stock/"
         
+        # Create initial data
+        call_command("apps_loaddata")
+        
     def test_get(self):
         """ Get current stock """
         
@@ -995,23 +941,16 @@ class SaleDoneTestCase(TestCase):
             email="test@gmail.com"
         )
         
+        # Create initial data
+        call_command("apps_loaddata")
+        
         # Create sale
-        set = models.Set.objects.create(
-            name="set name",
-            points=5,
-            price=275,
-            recommended=False,
-            logos=5
-        )
+        set = models.Set.objects.all().first()
         
-        colors_num = models.ColorsNum.objects.create(
-            num=4,
-            price=20,
-            details="4 Colors (Trackers and 3 logo colors) +20USD"
-        )
+        colors_num = models.ColorsNum.objects.all().first()
         
-        color = models.Color.objects.create(name="blue")
-        status = models.SaleStatus.objects.create(value="Pending")
+        color = models.Color.objects.all().first()
+        status = models.SaleStatus.objects.get(value="Pending")
         
         # Files paths
         current_path = os.path.dirname(os.path.abspath(__file__))

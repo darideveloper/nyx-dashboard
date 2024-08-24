@@ -180,7 +180,7 @@ class Sale(View):
         }
         colors_instances = {}
         for color_key, color_name in colors.items():
-            color_obj, _ = models.Color.objects.get(name=color_name)
+            color_obj = models.Color.objects.get(name=color_name)
             colors_instances[color_key] = color_obj
         
         # Get user or create a new one
@@ -193,31 +193,24 @@ class Sale(View):
             # TODO: send invitation email
         
         # Save aditional models
-        set_obj, _ = models.Set.objects.get(
-            name=set['name'],
-            points=set['points'],
-            price=set['price'],
-            recommended=set['recommended'],
-            logos=set['logos']
+        set_obj = models.Set.objects.get(
+            name=set,
         )
         
-        colors_num_obj, _ = models.ColorsNum.objects.get(
-            num=colors_num['num'],
-            price=colors_num['price'],
-            details=colors_num['details']
+        colors_num_obj = models.ColorsNum.objects.get(
+            num=colors_num,
         )
         
         addons_objs = []
         for addon in addons:
-            addon_obj, _ = models.Addon.objects.get(
-                name=addon['name'],
-                price=addon['price']
+            addon_obj = models.Addon.objects.get(
+                name=addon,
             )
             addons_objs.append(addon_obj)
         
         promo_type = promo['discount']['type']
         promo_value = promo['discount']['value']
-        promo_type_obj, _ = models.PromoCodeType.objects.get(
+        promo_type_obj = models.PromoCodeType.objects.get(
             name=promo_type
         )
         
@@ -237,7 +230,7 @@ class Sale(View):
         total = round(total, 2)
         
         # Get status
-        status, _ = models.SaleStatus.objects.get(value="Pending")
+        status = models.SaleStatus.objects.get(value="Pending")
         
         # Save sale
         sale = models.Sale.objects.create(
@@ -258,11 +251,11 @@ class Sale(View):
         )
         
         # Add extra colors
-        if colors_num['num'] >= 2:
+        if colors_num >= 2:
             sale.logo_color_1 = colors_instances['logo_color_1']
-        if colors_num['num'] >= 3:
+        if colors_num >= 3:
             sale.logo_color_2 = colors_instances['logo_color_2']
-        if colors_num['num'] == 4:
+        if colors_num == 4:
             sale.logo_color_3 = colors_instances['logo_color_3']
         sale.save()
         
@@ -354,12 +347,12 @@ class SaleDone(View):
             return redirect(landing_done_page)
         
         # Update status
-        status, _ = models.SaleStatus.objects.get(value="Paid")
+        status = models.SaleStatus.objects.get(value="Paid")
         sale.status = status
         sale.save()
         
         # Update stock
-        current_stock, _ = models.StoreStatus.objects.get(key='current_stock')
+        current_stock = models.StoreStatus.objects.get(key='current_stock')
         current_stock_int = int(current_stock.value)
         current_stock.value = str(current_stock_int - 1)
         current_stock.save()
