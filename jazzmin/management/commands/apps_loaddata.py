@@ -21,6 +21,7 @@ class Command(BaseCommand):
                 "Addon",
                 "SaleStatus",
                 "Set",
+                "PromoCodeType",
             ],
         }
         

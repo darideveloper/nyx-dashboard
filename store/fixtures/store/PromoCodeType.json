@@ -1,0 +1,16 @@
+[
+    {
+        "model": "store.PromoCodeType",
+        "pk": 1,
+        "fields": {
+            "name": "amount"
+        }
+    },
+    {
+        "model": "store.PromoCodeType",
+        "pk": 2,
+        "fields": {
+            "name": "percentage"
+        }
+    }
+]

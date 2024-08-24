@@ -63,6 +63,12 @@ class PromoCodeAdmin(admin.ModelAdmin):
     search_fields = ('code', 'discount')
 
 
+@admin.register(models.PromoCodeType)
+class PromoCodeTypeAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    
+
 @admin.register(models.Sale)
 class SaleAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'set', 'colors_num', 'promo_code', 'status',
