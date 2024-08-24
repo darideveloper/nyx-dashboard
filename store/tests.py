@@ -890,15 +890,16 @@ class CurrentStockTestCase(TestCase):
     def setUp(self):
         """ Create initial data """
         
-        self.current_stock = models.StoreStatus.objects.create(
-            key="current_stock",
-            value="100",
-        )
-        
-        self.endpoint = "/api/store/current-stock/"
-        
         # Create initial data
         call_command("apps_loaddata")
+        
+        self.current_stock = models.StoreStatus.objects.get(
+            key="current_stock",
+        )
+        self.current_stock.value = 100
+        self.current_stock.save()
+        
+        self.endpoint = "/api/store/current-stock/"
         
     def test_get(self):
         """ Get current stock """
@@ -986,11 +987,10 @@ class SaleDoneTestCase(TestCase):
         # Request data
         self.endpoint = "/api/store/sale-done"
         
-        # Setup current stock
-        models.StoreStatus.objects.create(
-            key="current_stock",
-            value="100",
-        )
+        # Set current stock to 100
+        current_stock = models.StoreStatus.objects.get(key="current_stock")
+        current_stock.value = 100
+        current_stock.save()
         
         self.redirect_page = settings.LANDING_HOST
         
