@@ -27,7 +27,8 @@ class FutureStockSubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(models.SaleStatus)
 class SaleStatusAdmin(admin.ModelAdmin):
-    list_display = ('value',)
+    list_display = ('id', 'value',)
+    ordering = ('id',)
 
 
 @admin.register(models.Set)
@@ -39,13 +40,15 @@ class SetAdmin(admin.ModelAdmin):
 
 @admin.register(models.ColorsNum)
 class ColorsNumAdmin(admin.ModelAdmin):
-    list_display = ('id', 'num', 'price', 'details')
+    list_display = ('num', 'price', 'details')
     search_fields = ('num', 'price', 'details')
+    ordering = ('num',)
     
     
 @admin.register(models.Color)
 class ColorAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+    list_display = ('name',)
+    ordering = ('name',)
     
 
 @admin.register(models.Addon)

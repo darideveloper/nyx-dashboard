@@ -1571,7 +1571,7 @@ class ModelSaleTestCase(TestCase):
         """ Send email to client when change status """
         
         # Update sale status
-        status_done = models.SaleStatus.objects.create(value="Done")
+        status_done = models.SaleStatus.objects.create(value="Ready for Shipping")
         self.sale.status = status_done
         self.sale.save()
         

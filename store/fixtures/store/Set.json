@@ -1,0 +1,46 @@
+[
+    {
+        "model": "store.Set",
+        "pk": 1,
+        "fields": {
+            "name": "basic",
+            "price": 275,
+            "recommended": false,
+            "logos": 5,
+            "points": 5
+        }
+    },
+    {
+        "model": "store.Set",
+        "pk": 2,
+        "fields": {
+            "name": "standard",
+            "price": 295,
+            "recommended": false,
+            "logos": 5,
+            "points": 6
+        }
+    },
+    {
+        "model": "store.Set",
+        "pk": 3,
+        "fields": {
+            "name": "enhanced",
+            "price": 335,
+            "recommended": true,
+            "logos": 5,
+            "points": 8
+        }
+    },
+    {
+        "model": "store.Set",
+        "pk": 4,
+        "fields": {
+            "name": "elite",
+            "price": 460,
+            "recommended": false,
+            "logos": 7,
+            "points": 10
+        }
+    }
+]

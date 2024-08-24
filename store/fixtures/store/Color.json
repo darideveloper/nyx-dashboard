@@ -1,0 +1,72 @@
+[
+    {
+        "model": "store.Color",
+        "pk": 1,
+        "fields": {
+            "name": "blue"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 2,
+        "fields": {
+            "name": "white"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 3,
+        "fields": {
+            "name": "grey"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 4,
+        "fields": {
+            "name": "green"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 5,
+        "fields": {
+            "name": "yellow"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 6,
+        "fields": {
+            "name": "orange"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 7,
+        "fields": {
+            "name": "red"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 8,
+        "fields": {
+            "name": "pink"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 9,
+        "fields": {
+            "name": "purple"
+        }
+    },
+    {
+        "model": "store.Color",
+        "pk": 10,
+        "fields": {
+            "name": "black"
+        }
+    }
+]

@@ -101,7 +101,7 @@ class ColorsNum(models.Model):
     details = models.TextField()
 
     def __str__(self):
-        return f"{self.num} ({self.price})"
+        return self.details
 
     class Meta:
         verbose_name = 'Colors Num'

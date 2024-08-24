@@ -1,0 +1,30 @@
+[
+    {
+        "model": "landing.category",
+        "pk": 1,
+        "fields": {
+            "name": "counter"
+        }
+    },
+    {
+        "model": "landing.category",
+        "pk": 2,
+        "fields": {
+            "name": "notification"
+        }
+    },
+    {
+        "model": "landing.category",
+        "pk": 3,
+        "fields": {
+            "name": "hero"
+        }
+    },
+    {
+        "model": "landing.category",
+        "pk": 4,
+        "fields": {
+            "name": "about"
+        }
+    }
+]

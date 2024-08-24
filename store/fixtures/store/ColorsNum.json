@@ -1,0 +1,38 @@
+[
+    {
+        "model": "store.ColorsNum",
+        "pk": 1,
+        "fields": {
+            "num": 1,
+            "price": -0.5,
+            "details": "Single color (-5 USD)"
+        }
+    },
+    {
+        "model": "store.ColorsNum",
+        "pk": 2,
+        "fields": {
+            "num": 2,
+            "price": 0,
+            "details": "2 colors (Trackers and logo) Included"
+        }
+    },
+    {
+        "model": "store.ColorsNum",
+        "pk": 3,
+        "fields": {
+            "num": 3,
+            "price": 10,
+            "details": "3 Colors (Trackers and 2 logo colors) +10USD"
+        }
+    },
+    {
+        "model": "store.ColorsNum",
+        "pk": 4,
+        "fields": {
+            "num": 4,
+            "price": 20,
+            "details": "4 Colors (Trackers and 3 logo colors) +20USD"
+        }
+    }
+]

@@ -256,7 +256,7 @@ class PaymentReminderTestCase(TestCase):
     def test_no_sales(self):
         """ No send remainder where there are no sales pending """
         
-        # Create sale in "Done" status
+        # Create sale in "Paid" status
         models.Sale.objects.all().delete()
         self.__create_sale__("Paid")
         

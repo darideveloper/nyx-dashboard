@@ -1,0 +1,12 @@
+[
+    {
+        "model": "store.StoreStatus",
+        "pk": 1,
+        "fields": {
+            "key": "current_stock",
+            "value": "0",
+            "created_at": "2024-10-31T00:00:00Z",
+            "updated_at": "2024-10-31T00:00:00Z"
+        }
+    }
+]

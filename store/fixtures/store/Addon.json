@@ -1,0 +1,26 @@
+[
+    {
+        "model": "store.Addon",
+        "pk": 1,
+        "fields": {
+            "name": "Wifi 2.4ghz USB Dongle",
+            "price": 14
+        }
+    },
+    {
+        "model": "store.Addon",
+        "pk": 2,
+        "fields": {
+            "name": "Straps",
+            "price": 25
+        }
+    },
+    {
+        "model": "store.Addon",
+        "pk": 3,
+        "fields": {
+            "name": "Convert Hip to main tracker",
+            "price": 25
+        }
+    }
+]

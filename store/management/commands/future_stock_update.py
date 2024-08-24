@@ -1,9 +1,11 @@
 import os
-from store import models
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from utils.emails import send_email
 from django.conf import settings
+
+from store import models
 
 
 BASE_FILE = os.path.basename(__file__)

@@ -1,0 +1,51 @@
+[
+    {
+        "model": "store.SaleStatus",
+        "pk": 1,
+        "fields": {
+            "value": "Pending"
+        }
+    },
+    {
+        "model": "store.SaleStatus",
+        "pk": 2,
+        "fields": {
+            "value": "Paid"
+        }
+    },
+    {
+        "model": "store.SaleStatus",
+        "pk": 3,
+        "fields": {
+            "value": "Reminder Sent"
+        }
+    },
+    {
+        "model": "store.SaleStatus",
+        "pk": 4,
+        "fields": {
+            "value": "Manufacturing"
+        }
+    },
+    {
+        "model": "store.SaleStatus",
+        "pk": 5,
+        "fields": {
+            "value": "Ready for Shipment"
+        }
+    },
+    {
+        "model": "store.SaleStatus",
+        "pk": 6,
+        "fields": {
+            "value": "Shipped"
+        }
+    },
+    {
+        "model": "store.SaleStatus",
+        "pk": 7,
+        "fields": {
+            "value": "Delivered"
+        }
+    }
+]
