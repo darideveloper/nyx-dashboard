@@ -1,4 +1,4 @@
 {
   "schemaVersion": 2,
-  "dockerfilePath": "python-django/4.2.7"
+  "dockerfilePath": "./Dockerfile"
 }
