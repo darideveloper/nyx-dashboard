@@ -302,6 +302,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://nyx-dashboard.app.darideveloper.com",
 ]
 
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+
 # Storage settings
 if STORAGE_AWS:
     # aws settings
