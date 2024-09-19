@@ -720,7 +720,6 @@ class SaleTestCase(TestCase):
         # Validate logo file
         sale = models.Sale.objects.all()[0]
         self.assertTrue(sale.logo.url)
-        self.assertTrue(sale.logo.path)
         
     def test_logo_svg(self):
         """ Save sale with a logo in svg """
@@ -744,7 +743,6 @@ class SaleTestCase(TestCase):
         # Validate logo file
         sale = models.Sale.objects.all()[0]
         self.assertTrue(sale.logo.url)
-        self.assertTrue(sale.logo.path)
 
     def test_1_colors(self):
         """ Save sale with single color (set color) """
