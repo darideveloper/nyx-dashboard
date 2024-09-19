@@ -863,6 +863,19 @@ class SaleTestCase(TestCase):
         self.assertEqual(user.username, self.data["email"])
         self.assertEqual(user.email, self.data["email"])
         
+        # Validate invite email sent
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertEqual(sent_email.subject, "Nyx Trackers Complete your registration")
+        self.assertEqual(sent_email.to, [self.data["email"]])
+        
+        # Validate email text content
+        cta_link_base = f"{settings.HOST}/admin/"
+        sent_email = mail.outbox[0]
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
+        self.assertIn("Complete registration", email_html)
+        
     def test_no_stock(self):
         """ Skip sale when there is no stock """
     

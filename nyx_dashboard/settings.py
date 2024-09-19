@@ -143,18 +143,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-STATIC_ROOT = '/usr/src/static'
-MEDIA_ROOT = '/usr/src/media'
-
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -327,9 +315,18 @@ if STORAGE_AWS:
     # s3 private media settings
     PRIVATE_MEDIA_LOCATION = 'private'
     PRIVATE_FILE_STORAGE = 'nyx_dashboard.storage_backends.PrivateMediaStorage'
+    
+    # Disable Django's own staticfiles handling in favour of WhiteNoise
+    # for greater consistency between gunicorn and
+    STATIC_ROOT = None
+    MEDIA_ROOT = None
 else:
-    # django storage settings
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    # Local development (Windows or local server)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+    # Ensure you have Django handling static files locally
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
     
 # Email settings
 EMAIL_HOST = os.getenv('EMAIL_HOST')

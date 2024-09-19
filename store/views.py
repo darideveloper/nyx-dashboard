@@ -190,8 +190,25 @@ class Sale(View):
             user.username = email
             user.save()
             
-            # TODO: send invitation email
-        
+            # Send invitation email
+            email_texts = [
+                "Welcome to Nyx Trackers!",
+                "We are glad you are here.",
+                "You sale has been saved.",
+                "If you want to check your order status, you can do it in the dashboard."
+                " Just complete your registration, and you will be able to see all your"
+                " orders in one place and in real time."
+            ]
+            send_email(
+                subject="Nyx Trackers Complete your registration",
+                first_name=user.first_name,
+                last_name=user.last_name,
+                texts=email_texts,
+                cta_link=f"{settings.HOST}/admin/",
+                cta_text="Complete registration",
+                to_email=user.email,
+            )
+            
         # Save aditional models
         set_obj = models.Set.objects.get(
             name=set,
