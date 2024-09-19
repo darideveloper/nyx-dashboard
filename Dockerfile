@@ -89,11 +89,12 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Collect static files
+# Collect static files and migrate database
 RUN python manage.py collectstatic --noinput
+RUN python manage.py migrate
 
 # Expose the port that Django/Gunicorn will run on
 EXPOSE 80
 
 # Command to run Gunicorn with the WSGI application for production
-CMD ["/app/entrypoint.sh"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "nyx_dashboard.wsgi:application"]
