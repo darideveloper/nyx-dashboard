@@ -7,6 +7,7 @@ from landing import views as views_landing
 from user import views as views_user
 from django.conf import settings
 from django.conf.urls.static import static
+from landing.views import get_batch
 
 
 urlpatterns = [
@@ -14,6 +15,7 @@ urlpatterns = [
     # redirect home to admin
     path('', views_landing.home, name='home'),
     path('api/landing/', include(landing_urls)),
+    path('api/batch/', get_batch, name='batch-api-temp'),
     path('api/store/', include(store_urls)),
     path('user/', include(user_urls)),
     path('admin/', admin.site.urls),
