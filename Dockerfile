@@ -30,4 +30,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 80
 
 # Command to run Gunicorn with the WSGI application for production
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "nyx_dashboard.wsgi:application"]
+CMD ["/app/entrypoint.sh"]
