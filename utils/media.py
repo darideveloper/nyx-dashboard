@@ -10,6 +10,6 @@ def get_media_url(url: str) -> str:
     Returns:
         str: url of the image
     """
-    if "media" in url:
+    if "s3.amazonaws.com" not in url:
         return f"{settings.HOST}{url}"
     return url
