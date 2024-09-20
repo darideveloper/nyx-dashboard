@@ -1,7 +1,9 @@
 import json
-from landing import models
+
 from django.http import JsonResponse
 from django.shortcuts import redirect
+
+from landing import models
 from utils.media import get_media_url
 
 
@@ -32,7 +34,7 @@ def get_images(request):
     images = models.Image.objects.all()
     images_data = list(map(lambda image: {
         'key': image.key,
-        'image': get_media_url(image.image.url),
+        'image': get_media_url(image.image),
         'category': image.category.name,
         'link': image.link,
     }, images))
@@ -48,7 +50,7 @@ def get_videos(request):
     videos = models.Video.objects.all()
     videos_data = list(map(lambda video: {
         'key': video.key,
-        'video': get_media_url(video.video.url),
+        'video': get_media_url(video.video),
         'category': video.category.name
     }, videos))
     

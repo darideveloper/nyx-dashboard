@@ -324,9 +324,10 @@ else:
     # Local development (Windows or local server)
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-    # Ensure you have Django handling static files locally
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+    
+    # Static files (CSS, JavaScript, Images)
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
     
 # Email settings
 EMAIL_HOST = os.getenv('EMAIL_HOST')

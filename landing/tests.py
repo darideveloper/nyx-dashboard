@@ -1,4 +1,9 @@
+import os
+
 from django.test import TestCase
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from landing import models
 from utils.media import get_media_url
 
@@ -7,6 +12,11 @@ class LandingViewsTestCase(TestCase):
     
     def setUp(self):
         """ Create data for testing """
+        
+        # Paths
+        project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        media_path = os.path.join(project_path, 'media')
+        media_test_path = os.path.join(media_path, 'test')
 
         # Create category
         self.category = models.Category.objects.create(
@@ -14,47 +24,51 @@ class LandingViewsTestCase(TestCase):
         )
 
         # Create texts
-        self.text_1 = models.Text.objects.create(
-            key='test_key_1',
-            value='test_value_1',
-            link='http://test.com',
-            category=self.category
-        )
-
-        self.text_2 = models.Text.objects.create(
-            key='test_key_2',
-            value='test_value_2',
-            link='',
-            category=self.category
-        )
+        self.texts = []
+        for text_index in range(1, 3):
+            text = models.Text.objects.create(
+                key=f'test_key_{text_index}',
+                value=f'test_value_{text_index}',
+                link='http://test.com',
+                category=self.category
+            )
+            self.texts.append(text)
 
         # Create images
-        self.image_1 = models.Image.objects.create(
-            key='test_key_1',
-            image='/media/images/test_image_1.jpg',
-            category=self.category,
-            link='http://test.com'
-        )
-
-        self.image_2 = models.Image.objects.create(
-            key='test_key_2',
-            image='/media/images/test_image_2.jpg',
-            category=self.category
-        )
-
+        self.images = []
+        for image_index in range(1, 3):
+            image = models.Image.objects.create(
+                key=f'test_key_{image_index}',
+                category=self.category,
+                link='http://test.com'
+            )
+            image_path = os.path.join(media_test_path, f'test_image_{image_index}.jpg')
+            image_file = SimpleUploadedFile(
+                name=f'test_image_{image_index}.jpg',
+                content=open(image_path, 'rb').read(),
+                content_type='image/jpeg'
+            )
+            image.image = image_file
+            image.save()
+            self.images.append(image)
+            
         # Create videos
-        self.video_1 = models.Video.objects.create(
-            key='test_key_1',
-            video='/media/videos/test_video_1.mp4',
-            category=self.category
-        )
+        self.videos = []
+        for video_index in range(1, 3):
+            video = models.Video.objects.create(
+                key=f'test_key_{video_index}',
+                category=self.category
+            )
+            video_path = os.path.join(media_test_path, f'test_video_{video_index}.mp4')
+            video_file = SimpleUploadedFile(
+                name=f'test_video_{video_index}.mp4',
+                content=open(video_path, 'rb').read(),
+                content_type='video/mp4'
+            )
+            video.video = video_file
+            video.save()
+            self.videos.append(video)
 
-        self.video_2 = models.Video.objects.create(
-            key='test_key_2',
-            video='/media/videos/test_video_2.mp4',
-            category=self.category
-        )
-        
         self.api_base = "/api/landing"
 
     def test_get_texts(self):
@@ -67,20 +81,15 @@ class LandingViewsTestCase(TestCase):
 
         # Validate json content
         json_data_response = response.json()["texts"]
-        json_data_expected = [
-            {
-                'key': self.text_1.key,
-                'value': self.text_1.value,
-                'link': self.text_1.link,
+        json_data_expected = []
+        for text in self.texts:
+            json_data_expected.append({
+                'key': text.key,
+                'value': text.value,
+                'link': text.link,
                 'category': self.category.name
-            },
-            {
-                'key': self.text_2.key,
-                'value': self.text_2.value,
-                'link': self.text_2.link,
-                'category': self.category.name
-            }
-        ]
+            })
+        
         self.assertEqual(json_data_response, json_data_expected)
 
     def test_get_texts_no_data(self):
@@ -109,20 +118,15 @@ class LandingViewsTestCase(TestCase):
 
         # Validate json content
         json_data_response = response.json()["images"]
-        json_data_expected = [
-            {
-                'key': self.image_1.key,
-                'image': get_media_url(self.image_1.image.url),
+        json_data_expected = []
+        for image in self.images:
+            json_data_expected.append({
+                'key': image.key,
+                'image': get_media_url(image.image.url),
                 'category': self.category.name,
-                'link': self.image_1.link
-            },
-            {
-                'key': self.image_2.key,
-                'image': get_media_url(self.image_2.image.url),
-                'category': self.category.name,
-                'link': None
-            }
-        ]
+                'link': image.link
+            })
+        
         self.assertEqual(json_data_response, json_data_expected)
 
     def test_get_images_no_data(self):
@@ -151,18 +155,14 @@ class LandingViewsTestCase(TestCase):
 
         # Validate json content
         json_data_response = response.json()["videos"]
-        json_data_expected = [
-            {
-                'key': self.video_1.key,
-                'video': get_media_url(self.video_1.video.url),
+        json_data_expected = []
+        for video in self.videos:
+            json_data_expected.append({
+                'key': video.key,
+                'video': get_media_url(video.video.url),
                 'category': self.category.name
-            },
-            {
-                'key': self.video_2.key,
-                'video': get_media_url(self.video_2.video.url),
-                'category': self.category.name
-            }
-        ]
+            })
+        
         self.assertEqual(json_data_response, json_data_expected)
 
     def test_get_videos_no_data(self):
@@ -192,48 +192,38 @@ class LandingViewsTestCase(TestCase):
 
         # Validate json content
         json_data_response = response.json()
-        json_data_expected = {
-            "texts": [
-                {
-                    'key': self.text_1.key,
-                    'value': self.text_1.value,
-                    'link': self.text_1.link,
-                    'category': self.category.name
-                },
-                {
-                    'key': self.text_2.key,
-                    'value': self.text_2.value,
-                    'link': self.text_2.link,
-                    'category': self.category.name
-                }
-            ],
-            "images": [
-                {
-                    'key': self.image_1.key,
-                    'image': get_media_url(self.image_1.image.url),
-                    'category': self.category.name,
-                    'link': self.image_1.link
-                },
-                {
-                    'key': self.image_2.key,
-                    'image': get_media_url(self.image_2.image.url),
-                    'category': self.category.name,
-                    'link': None
-                }
-            ],
-            "videos": [
-                {
-                    'key': self.video_1.key,
-                    'video': get_media_url(self.video_1.video.url),
-                    'category': self.category.name
-                },
-                {
-                    'key': self.video_2.key,
-                    'video': get_media_url(self.video_2.video.url),
-                    'category': self.category.name
-                }
-            ]
-        }
+        json_data_expected = {}
+        
+        expected_texts = []
+        for text in self.texts:
+            expected_texts.append({
+                'key': text.key,
+                'value': text.value,
+                'link': text.link,
+                'category': self.category.name
+            })
+        
+        expected_images = []
+        for image in self.images:
+            expected_images.append({
+                'key': image.key,
+                'image': get_media_url(image.image.url),
+                'category': self.category.name,
+                'link': image.link
+            })
+            
+        expected_videos = []
+        for video in self.videos:
+            expected_videos.append({
+                'key': video.key,
+                'video': get_media_url(video.video.url),
+                'category': self.category.name
+            })
+            
+        json_data_expected["texts"] = expected_texts
+        json_data_expected["images"] = expected_images
+        json_data_expected["videos"] = expected_videos
+        
         self.assertEqual(json_data_response["texts"], json_data_expected["texts"])
         self.assertEqual(json_data_response["images"], json_data_expected["images"])
         self.assertEqual(json_data_response["videos"], json_data_expected["videos"])
