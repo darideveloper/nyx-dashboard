@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class category(models.Model):
+class Category(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True)
     
@@ -16,7 +16,7 @@ class category(models.Model):
 class Text(models.Model):
     id = models.AutoField(primary_key=True)
     key = models.CharField(max_length=255, unique=True)
-    category = models.ForeignKey(category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     value = models.TextField()
     link = models.URLField(max_length=255, blank=True, null=True)
     
@@ -31,7 +31,7 @@ class Text(models.Model):
 class Image(models.Model):
     id = models.AutoField(primary_key=True)
     key = models.CharField(max_length=255, unique=True)
-    category = models.ForeignKey(category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='images/')
     link = models.URLField(max_length=255, blank=True, null=True)
     
@@ -46,7 +46,7 @@ class Image(models.Model):
 class Video(models.Model):
     id = models.AutoField(primary_key=True)
     key = models.CharField(max_length=255, unique=True)
-    category = models.ForeignKey(category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     video = models.FileField(upload_to='videos/')
     
     class Meta:

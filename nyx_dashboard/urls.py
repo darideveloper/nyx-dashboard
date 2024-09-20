@@ -15,7 +15,7 @@ urlpatterns = [
     # redirect home to admin
     path('', views_landing.home, name='home'),
     path('api/landing/', include(landing_urls)),
-    path('api/batch/', get_batch, name='batch-api-temp'),
+    # path('api/batch/', get_batch, name='batch-api-temp'),
     path('api/store/', include(store_urls)),
     path('user/', include(user_urls)),
     path('admin/', admin.site.urls),

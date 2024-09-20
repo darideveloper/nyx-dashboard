@@ -2,7 +2,7 @@ from django.contrib import admin
 from landing import models
 
 
-@admin.register(models.category)
+@admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name']
 

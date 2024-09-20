@@ -9,7 +9,7 @@ class LandingViewsTestCase(TestCase):
         """ Create data for testing """
 
         # Create category
-        self.category = models.category.objects.create(
+        self.category = models.Category.objects.create(
             name='test_category'
         )
 
@@ -186,6 +186,7 @@ class LandingViewsTestCase(TestCase):
 
         # Request api and validate response
         response = self.client.get(f"{self.api_base}/batch/")
+                
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
 
