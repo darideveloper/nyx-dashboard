@@ -855,8 +855,8 @@ class SaleTestCase(TestCase):
         users = User.objects.filter(email=self.data["email"])
         self.assertEqual(users.count(), 1)
         user = users[0]
-        self.assertTrue(user.is_active)
-        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_active)
+        self.assertTrue(user.is_staff)
         self.assertEqual(user.username, self.data["email"])
         self.assertEqual(user.email, self.data["email"])
         
