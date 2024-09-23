@@ -7,8 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from django.core import mail
 from utils.automation import get_selenium_elems
-from utils.tokens import get_id_token
-        
+from utils.tokens import get_id_token, validate_user_token
+
         
 class LogInTest(LiveServerTestCase):
     """ Validate user login with selenium """
@@ -133,7 +133,7 @@ class LogInTest(LiveServerTestCase):
         self.assertEqual(error_message, self.error_message)
 
 
-class SignUpTest(LiveServerTestCase):
+class SignUpTestCase(LiveServerTestCase):
     """ Validate register user with selenium """
     
     def setUp(self):
@@ -142,8 +142,11 @@ class SignUpTest(LiveServerTestCase):
         self.old_auth_username = "old_test_user@gmail.com"
         self.old_password = "old_test_password"
         self.auth_user = User.objects.create_user(
-            self.old_auth_username,
+            username=self.old_auth_username,
+            email=self.old_auth_username,
             password=self.old_password,
+            first_name="first",
+            last_name="last",
             is_staff=True,
             is_active=True,
         )
@@ -250,8 +253,7 @@ class SignUpTest(LiveServerTestCase):
         token_elems = sent_email.body.split(cta_link_base)[1].split("/")[0]
         _, token_1, token_2 = token_elems.split("-")
         token = f"{token_1}-{token_2}"
-        token_manager = PasswordResetTokenGenerator()
-        token_valid = token_manager.check_token(user, token)
+        token_valid = validate_user_token(user.id, token)
         self.assertTrue(token_valid)
         
     def test_already_logged(self):
@@ -293,6 +295,64 @@ class SignUpTest(LiveServerTestCase):
             elem = self.driver.find_element(By.CSS_SELECTOR, selector)
             self.assertEqual(elem.text, text)
             
+    def test_valid_guest(self):
+        """ Try to register with already used email (but is guest user) """
+        
+        # Delete first name and last name and deactivate user
+        self.auth_user.first_name = ""
+        self.auth_user.last_name = ""
+        self.auth_user.is_active = False
+        self.auth_user.save()
+        
+        # Submit form
+        self.fields["email"].send_keys(self.old_auth_username)
+        self.fields["password1"].send_keys(self.data["password_valid"])
+        self.fields["password2"].send_keys(self.data["password_valid"])
+        self.fields["first_name"].send_keys(self.data["first_name"])
+        self.fields["last_name"].send_keys(self.data["last_name"])
+        self.fields["submit"].click()
+        
+        # Regular sign up validation
+        
+        # Vlidate redirect user group
+        user_in_group = self.buyers_group.user_set.filter(
+            username=self.auth_user
+        ).exists()
+        self.assertTrue(user_in_group)
+        
+        # Validate sweet alert confirmation
+        sweet_alert_data = {
+            ".swal2-title": "Done",
+            ".swal2-title + div": "User created successfully. "
+                                  "Check your email to confirm your account."
+        }
+        
+        for selector, text in sweet_alert_data.items():
+            elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+            self.assertEqual(elem.text, text)
+         
+        # validate activation email sent
+        self.assertEqual(len(mail.outbox), 1)
+          
+        # Validate email text content
+        subject = "Activate your Nyx Trackers account"
+        cta_link_base = f"{settings.HOST}/user/activate/"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        self.assertIn(self.auth_user.first_name, sent_email.body)
+        self.assertIn(self.auth_user.last_name, sent_email.body)
+        
+        # Validate email html tags
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
+        
+        # Validate token
+        token_elems = sent_email.body.split(cta_link_base)[1].split("/")[0]
+        _, token_1, token_2 = token_elems.split("-")
+        token = f"{token_1}-{token_2}"
+        is_valid = validate_user_token(self.auth_user.id, token)
+        self.assertTrue(is_valid)
+        
     def test_already_used_email_no_active(self):
         """ Try to register with already used email (but not active) """
         

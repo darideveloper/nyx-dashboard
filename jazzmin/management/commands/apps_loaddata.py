@@ -27,7 +27,9 @@ class Command(BaseCommand):
         
         for command_category, commands in commands_data.items():
             for command in commands:
-                full_command = f"{command_category}/{command}"
-                print(f"\n{BASE_FILE}: Loading data for {full_command}")
-                call_command("loaddata", full_command)
-                print(f"{BASE_FILE}: Data loaded for {full_command}")
+                try:
+                    full_command = f"{command_category}/{command}"
+                    call_command("loaddata", full_command)
+                except Exception as e:
+                    print(f"Error in {BASE_FILE}: {e}")
+                    continue

@@ -37,24 +37,33 @@ class SignUpView(View):
         # Validate if the email is already used
         user = User.objects.filter(username=email)
         if user.exists():
-            
             user = user[0]
-            
-            # Error if user its already active
-            if user.is_active:
-                message_title = "Error"
-                message_text = "Email already used. " \
-                    "Try to login instead. " \
-                    "If you just created an account, " \
-                    "check your email to activate it."
-                message_type = "error"
-                send_email = False
+        
+            if user.first_name:
+
+                if user.is_active:
+                    # Error if user its already active
+                    message_title = "Error"
+                    message_text = "Email already used. " \
+                        "Try to login instead. " \
+                        "If you just created an account, " \
+                        "check your email to activate it."
+                    message_type = "error"
+                    send_email = False
+                else:
+                    # Send activation email
+                    message_text = "Account already created. " \
+                        "Check your email to confirm your account."
+                        
             else:
-                # Send activation email
-                message_text = "Account already created. " \
-                    "Check your email to confirm your account."
+                # Update guest user
+                user.first_name = first_name
+                user.last_name = last_name
+                user.set_password(password1)
+                user.save()
+            
         else:
-            # Create user
+            # Create new user
             user = User.objects.create_user(
                 email,
                 email=email,
@@ -65,7 +74,8 @@ class SignUpView(View):
                 is_active=False,
             )
 
-            # Add user to group "buyers"
+        # Add user to group "buyers"
+        if user:
             buyers_group = Group.objects.get(name='buyers')
             buyers_group.user_set.add(user)
 

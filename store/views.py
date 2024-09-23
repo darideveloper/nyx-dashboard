@@ -188,6 +188,10 @@ class Sale(View):
         if created:
             # Save email as username
             user.username = email
+            user.is_active = False
+            user.is_staff = True
+            self.password = User.objects.make_random_password()
+            user.set_password(self.password)
             user.save()
             
             # Send invitation email

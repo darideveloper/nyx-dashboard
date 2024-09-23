@@ -426,7 +426,6 @@ class FutureStockSubscriptionTestCase(TestCase):
         # Validate user created
         users = User.objects.filter(email=user_email)
         user = users[0]
-        print(user_email)
         self.assertEqual(users.count(), 1)
         self.assertTrue(user.is_active)
         self.assertFalse(user.is_staff)
