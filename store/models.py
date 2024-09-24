@@ -168,6 +168,7 @@ class Sale(models.Model):
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     set = models.ForeignKey(Set, on_delete=models.CASCADE)
+    tracking_number = models.CharField(max_length=255, null=True, blank=True)
     colors_num = models.ForeignKey(ColorsNum, on_delete=models.CASCADE)
     color_set = models.ForeignKey(
         Color, on_delete=models.SET_NULL,
