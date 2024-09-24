@@ -1508,6 +1508,12 @@ class ModelSaleTest(TestCase):
             status=status,
         )
         
+    def test_create_custom_id(self):
+        """ Create custom id for sale """
+        
+        # Validate custom id
+        self.assertEqual(len(self.sale.id), 12)
+        
     def test_change_status_email(self):
         """ Send email to client when change status """
         
