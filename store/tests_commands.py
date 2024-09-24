@@ -182,23 +182,14 @@ class PaymentReminderTest(TestCase):
             status_str (str): Sale status value
         """
         
+        # Load data with command
+        call_command("apps_loaddata")
+        
         # Create sale
-        set, _ = models.Set.objects.get_or_create(
-            name="set name",
-            points=5,
-            price=275,
-            recommended=False,
-            logos=5
-        )
-        
-        colors_num, _ = models.ColorsNum.objects.get_or_create(
-            num=4,
-            price=20,
-            details="4 Colors (Trackers and 3 logo colors) +20USD"
-        )
-        
-        color, _ = models.Color.objects.get_or_create(name="blue")
-        status, _ = models.SaleStatus.objects.get_or_create(value=status_str)
+        set = models.Set.objects.first()
+        colors_num = models.ColorsNum.objects.first()
+        color = models.Color.objects.first()
+        status = models.SaleStatus.objects.get(value=status_str)
          
         models.Sale.objects.create(
             user=self.auth_user,
@@ -215,6 +206,39 @@ class PaymentReminderTest(TestCase):
             total=100,
             status=status,
         )
+        
+        # Default email data
+        self.email_data = {
+            "subject": "Don't forget to pay for your order!",
+            "cta_text": "Pay now",
+            "cta_link": "checkout.stripe.com",
+            "texts": [
+                "You have an order pending payment.",
+                "Please pay as soon as possible."
+            ]
+        }
+        
+    def __validate_email__(self, email_index: int = 0, is_promo: bool = False):
+        """ Validate email content
+        
+        Args:
+            email_index (int): Index of the email in the outbox
+            is_promo (bool): Check if the email is a promo email
+        """
+        
+        if is_promo:
+            self.email_data["subject"] += " - 15% discount"
+            self.email_data["cta_text"] += " with 15% discount"
+            self.email_data["texts"].append("Just for you, we are offering a 15%"
+                                            " discount on your order.")
+        
+        # Validate email main data
+        sent_email = mail.outbox[email_index]
+        self.assertEqual(sent_email.subject, self.email_data["subject"])
+        self.assertIn(self.email_data["cta_text"], sent_email.body)
+        self.assertIn(self.email_data["cta_link"], sent_email.body)
+        for text in self.email_data["texts"]:
+            self.assertIn(text, sent_email.body)
     
     def test_send_remainder(self):
         """ Send remainder email and validate content """
@@ -224,22 +248,13 @@ class PaymentReminderTest(TestCase):
         # Validte single email sent
         self.assertEqual(len(mail.outbox), 1)
         
-        # Check email main data
-        sent_email = mail.outbox[0]
-        subject = "Don't forget to pay for your order!"
-        cta_text = "Pay now"
-        self.assertEqual(sent_email.subject, subject)
-        self.assertIn(cta_text, sent_email.body)
-        
-        # Vdalite email html
-        cta_link = "checkout.stripe.com"
-        email_html = sent_email.alternatives[0][0]
-        self.assertIn(cta_link, email_html)
-        
         # Validate sale info
         sale = models.Sale.objects.first()
         self.assertEqual(sale.status.value, "Reminder Sent")
         self.assertEqual(sale.reminders_sent, 1)
+        
+        # Validate email content
+        self.__validate_email__()
     
     def test_send_multiple_remainders(self):
         """ Send 2 remainder emails """
@@ -294,5 +309,27 @@ class PaymentReminderTest(TestCase):
         sale.refresh_from_db()
         self.assertEqual(sale.status.value, "Reminder Sent")
         self.assertEqual(sale.reminders_sent, 3)
+    
+    def test_send_discount(self):
+        """ Send discount on 3rd remainder """
         
+        # Create sale in "Reminder Sent" status
+        models.Sale.objects.all().delete()
+        self.__create_sale__("Reminder Sent")
+        sale = models.Sale.objects.first()
+        sale.reminders_sent = 2
+        sale.save()
+        
+        call_command(self.cron_name)
+        
+        # Validte email sent
+        self.assertEqual(len(mail.outbox), 1)
+        
+        # Validate sale status
+        sale.refresh_from_db()
+        self.assertEqual(sale.status.value, "Reminder Sent")
+        self.assertEqual(sale.reminders_sent, 3)
+        
+        # Validate email content
+        self.__validate_email__(is_promo=True)
     

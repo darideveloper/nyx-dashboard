@@ -25,20 +25,36 @@ class Command(BaseCommand):
         
         for sale in sales:
             
+            # 15% of discount to sale if its 3rd reminder
+            is_discount = False
+            if sale.reminders_sent == 2:
+                is_discount = True
+                sale.total = sale.total * 0.85
+                print(f"{BASE_FILE}: promo price applied to sale '{sale.id}'")
+            
             # Generate new stripe link
             stripe_link = get_stripe_link_sale(sale)
+            
+            subject = "Don't forget to pay for your order!"
+            texts = [
+                "You have an order pending payment.",
+                "Please pay as soon as possible."
+            ]
+            cta_text = "Pay now"
+            if is_discount:
+                subject += " - 15% discount"
+                texts.append("Just for you, we are offering a 15%"
+                             " discount on your order.")
+                cta_text += " with 15% discount"
                         
             # Send email
             send_email(
-                subject="Don't forget to pay for your order!",
+                subject=subject,
                 first_name=sale.user.first_name,
                 last_name=sale.user.last_name,
-                texts=[
-                    "You have an order pending payment.",
-                    "Please pay as soon as possible."
-                ],
+                texts=texts,
                 cta_link=stripe_link,
-                cta_text="Pay now",
+                cta_text=cta_text,
                 to_email=sale.user.email
             )
             
