@@ -224,6 +224,10 @@ class Sale(models.Model):
         # Set updated at
         self.updated_at = timezone.now()
         
+        # Update status if tracking_number is set
+        if self.tracking_number and self.status not in ["Shipped", "Delivered"]:
+            self.status = SaleStatus.objects.get(value="Shipped")
+        
         # Send email to user when status change
         exclude_status = ["Pending", "Paid", "Reminder Sent"]
         if self.status and self.status.value not in exclude_status:

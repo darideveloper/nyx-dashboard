@@ -1483,23 +1483,14 @@ class ModelSaleTest(TestCase):
             email="test@gmail.com"
         )
         
-        # Create sale
-        set = models.Set.objects.create(
-            name="set name",
-            points=5,
-            price=275,
-            recommended=False,
-            logos=5
-        )
+        # Create status with a command
+        call_command("apps_loaddata")
         
-        colors_num = models.ColorsNum.objects.create(
-            num=4,
-            price=20,
-            details="4 Colors (Trackers and 3 logo colors) +20USD"
-        )
-        
-        color = models.Color.objects.create(name="blue")
-        status = models.SaleStatus.objects.create(value="Pending")
+        # Get sale data
+        set = models.Set.objects.all().first()
+        colors_num = models.ColorsNum.objects.all().first()
+        color = models.Color.objects.all().first()
+        status = models.SaleStatus.objects.get(value="Pending")
                     
         self.sale = models.Sale.objects.create(
             user=self.auth_user,
@@ -1521,15 +1512,15 @@ class ModelSaleTest(TestCase):
         """ Send email to client when change status """
         
         # Update sale status
-        status_done = models.SaleStatus.objects.create(value="Ready for Shipping")
-        self.sale.status = status_done
+        status_delivered = models.SaleStatus.objects.get(value="Delivered")
+        self.sale.status = status_delivered
         self.sale.save()
         
         # Validate email sent
         self.assertEqual(len(mail.outbox), 1)
         
         # Validate email content
-        subject = f"Order {self.sale.id} {status_done.value}"
+        subject = f"Order {self.sale.id} {status_delivered.value}"
         sent_email = mail.outbox[0]
         self.assertEqual(subject, sent_email.subject)
         
@@ -1542,11 +1533,27 @@ class ModelSaleTest(TestCase):
         """ Status change email not sent because of a excluded status """
         
         # Update sale status
-        status_done = models.SaleStatus.objects.create(value="Paid")
-        self.sale.status = status_done
+        status_excluded = models.SaleStatus.objects.get(value="Reminder Sent")
+        self.sale.status = status_excluded
         self.sale.save()
         
         # Validate email sent
         self.assertEqual(len(mail.outbox), 0)
+        
+    def test_change_status_tracking_number(self):
+        """ Set status to shipped when tracking number is added """
+        
+        # Update sale status
+        status_paid = models.SaleStatus.objects.get(value="Paid")
+        self.sale.status = status_paid
+        self.sale.save()
+        
+        # Add tracking number
+        tracking_number = "123456"
+        self.sale.tracking_number = tracking_number
+        self.sale.save()
+        
+        # Validate status
+        self.assertEqual(self.sale.status.value, "Shipped")
         
         
