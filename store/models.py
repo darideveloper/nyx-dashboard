@@ -212,67 +212,73 @@ class Sale(models.Model):
         return f"{self.id} - ({self.user}) {self.set}"
 
     def save(self, *args, **kwargs):
-        
+
         if not self.id:
             # Set created at
             self.created_at = timezone.now()
-            
+
             # Custom id
             self.id = uuid.uuid4().hex[:12]
             while Sale.objects.filter(id=self.id).exists():
                 self.id = uuid.uuid4().hex[:12]
-                
+
         # Set updated at
         self.updated_at = timezone.now()
-        
+
         # Update status if tracking_number is set
         if self.tracking_number and self.status not in ["Shipped", "Delivered"]:
             self.status = SaleStatus.objects.get(value="Shipped")
-            
-        # Send email if tracking number has been changed
-        current_sale = Sale.objects.filter(id=self.id)
-        if current_sale and current_sale[0].tracking_number != self.tracking_number:
-            send_email(
-                subject=f"Tracking number added to your order {self.id}",
-                first_name=self.user.first_name,
-                last_name=self.user.last_name,
-                texts=[
-                    f'Your tracking number has been added to your order {self.id}',
-                    f'Tracking number: {self.tracking_number}',
-                ],
-                cta_link=f"{settings.HOST}/admin/",
-                cta_text="View order in Dashboard",
-                to_email=self.user.email,
-            )
-        
-        # Send email to user when status change
-        exclude_status = ["Pending", "Paid", "Reminder Sent"]
-        if self.status and self.status.value not in exclude_status:
-        
-            send_email(
-                subject=f"Order {self.id} {self.status.value}",
-                first_name=self.user.first_name,
-                last_name=self.user.last_name,
-                texts=[
-                    f'Your order status has been changed to "{self.status.value}"'
-                ],
-                cta_link=f"{settings.HOST}/admin/",
-                cta_text="View order in Dashboard",
-                to_email=self.user.email,
-            )
-        
+
+        sale_old = Sale.objects.filter(id=self.id)
+        if sale_old:
+            sale_old = sale_old.first()
+
+            # Send email if tracking number has been changed
+            if sale_old.tracking_number != self.tracking_number:
+                send_email(
+                    subject=f"Tracking number added to your order {self.id}",
+                    first_name=self.user.first_name,
+                    last_name=self.user.last_name,
+                    texts=[
+                        f'Your tracking number has been added to your order {
+                            self.id}',
+                        f'Tracking number: {self.tracking_number}',
+                    ],
+                    cta_link=f"{settings.HOST}/admin/",
+                    cta_text="View order in Dashboard",
+                    to_email=self.user.email,
+                )
+
+            # Send email to user when status change
+            exclude_status = ["Pending", "Paid", "Reminder Sent"]
+            if self.status and sale_old.status != self.status \
+                    and self.status.value not in exclude_status:
+
+                send_email(
+                    subject=f"Order {self.id} {self.status.value}",
+                    first_name=self.user.first_name,
+                    last_name=self.user.last_name,
+                    texts=[
+                        f'Your order status has been changed to "{
+                            self.status.value}"'
+                    ],
+                    cta_link=f"{settings.HOST}/admin/",
+                    cta_text="View order in Dashboard",
+                    to_email=self.user.email,
+                )
+
         super(Sale, self).save(*args, **kwargs)
 
     def get_sale_data_dict(self) -> dict:
         """ Return sale summary data as dictionary
-        
+
         Returns:
             dict: Sale summary data
         """
-        
+
         addons_objs = self.addons.all()
         addons = ", ".join([addon.name for addon in addons_objs])
-        
+
         sale_data = {
             "Order Number": self.id,
             "Email": self.user.email,
@@ -293,7 +299,7 @@ class Sale(models.Model):
             "Phone": self.phone,
             "Total": self.total,
         }
-        
+
         return sale_data
 
     class Meta:

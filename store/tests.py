@@ -1471,7 +1471,7 @@ class AdminBuyerSaleChangeTest(LiveServerTestCase):
             self.assertNotEqual(link.get_attribute("href"), None)
 
 
-class ModelSaleTest(TestCase):
+class SaleModelTest(TestCase):
     """ Test custom actions of sale model """
     
     def setUp(self):
@@ -1578,3 +1578,13 @@ class ModelSaleTest(TestCase):
         cta_link_base = f"{settings.HOST}/admin/"
         self.assertIn(cta_link_base, email_html)
         self.assertIn(tracking_number, email_html)
+        
+    def keep_status_no_email(self):
+        """ No send email when save sale without status change """
+        
+        self.sale.save()
+        
+        # Validate email sent
+        self.assertEqual(len(mail.outbox), 0)
+        
+        
