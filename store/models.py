@@ -227,6 +227,22 @@ class Sale(models.Model):
         # Update status if tracking_number is set
         if self.tracking_number and self.status not in ["Shipped", "Delivered"]:
             self.status = SaleStatus.objects.get(value="Shipped")
+            
+        # Send email if tracking number has been changed
+        current_sale = Sale.objects.filter(id=self.id)
+        if current_sale and current_sale[0].tracking_number != self.tracking_number:
+            send_email(
+                subject=f"Tracking number added to your order {self.id}",
+                first_name=self.user.first_name,
+                last_name=self.user.last_name,
+                texts=[
+                    f'Your tracking number has been added to your order {self.id}',
+                    f'Tracking number: {self.tracking_number}',
+                ],
+                cta_link=f"{settings.HOST}/admin/",
+                cta_text="View order in Dashboard",
+                to_email=self.user.email,
+            )
         
         # Send email to user when status change
         exclude_status = ["Pending", "Paid", "Reminder Sent"]

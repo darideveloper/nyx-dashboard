@@ -1549,10 +1549,16 @@ class ModelSaleTest(TestCase):
     def test_change_status_tracking_number(self):
         """ Set status to shipped when tracking number is added """
         
-        # Update sale status
-        status_paid = models.SaleStatus.objects.get(value="Paid")
-        self.sale.status = status_paid
+        # Add tracking number
+        tracking_number = "123456"
+        self.sale.tracking_number = tracking_number
         self.sale.save()
+        
+        # Validate status
+        self.assertEqual(self.sale.status.value, "Shipped")
+        
+    def test_send_email_tracking_number(self):
+        """ Send email when tracking number changes """
         
         # Add tracking number
         tracking_number = "123456"
@@ -1562,4 +1568,13 @@ class ModelSaleTest(TestCase):
         # Validate status
         self.assertEqual(self.sale.status.value, "Shipped")
         
+        # Validate email content
+        subject = f"Tracking number added to your order {self.sale.id}"
+        sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
         
+        # Validate cta html tags
+        email_html = sent_email.alternatives[0][0]
+        cta_link_base = f"{settings.HOST}/admin/"
+        self.assertIn(cta_link_base, email_html)
+        self.assertIn(tracking_number, email_html)
