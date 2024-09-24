@@ -13,10 +13,12 @@ class Command(BaseCommand):
     help = 'Send payment reminder to users after 1 days'
     
     def handle(self, *args, **kwargs):
-        # Get payments from yesterday
-        pending_status, _ = models.SaleStatus.objects.get_or_create(value='Pending')
+        # Get payments in "Pending" or "Reminder Sent" status
+        pending_status = models.SaleStatus.objects.get(value='Pending')
+        reminder_sent_status = models.SaleStatus.objects.get(value='Reminder Sent')
         sales = models.Sale.objects.filter(
-            status=pending_status,
+            status__in=[pending_status, reminder_sent_status],
+            reminders_sent__lt=3
         )
         
         print(f"{BASE_FILE}: {sales.count()} sales to remind")
@@ -40,12 +42,14 @@ class Command(BaseCommand):
                 to_email=sale.user.email
             )
             
-            print(f"{BASE_FILE}: Reminder sent to {sale.user.email} in sale {sale.id}")
+            print(f"{BASE_FILE}: Reminder sent to '{sale.user.email}'",
+                  f" in sale '{sale.id}'")
             
             # Update status
             remainder_sent_status, _ = models.SaleStatus.objects.get_or_create(
                 value='Reminder Sent'
             )
             sale.status = remainder_sent_status
+            sale.reminders_sent += 1
             sale.save()
-            print(f"{BASE_FILE}: Status updated to {sale.status} in sale {sale.id}")
+            print(f"{BASE_FILE}: Sale '{sale.id}' updated")

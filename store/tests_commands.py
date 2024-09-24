@@ -172,6 +172,9 @@ class PaymentReminderTest(TestCase):
         
         self.cron_name = "payment_reminder"
         
+        # Create data with command
+        call_command("apps_loaddata")
+        
     def __create_sale__(self, status_str: str):
         """ Create new sale with spaecified status
         
@@ -233,9 +236,10 @@ class PaymentReminderTest(TestCase):
         email_html = sent_email.alternatives[0][0]
         self.assertIn(cta_link, email_html)
         
-        # Validate sale status updated
+        # Validate sale info
         sale = models.Sale.objects.first()
         self.assertEqual(sale.status.value, "Reminder Sent")
+        self.assertEqual(sale.reminders_sent, 1)
     
     def test_send_multiple_remainders(self):
         """ Send 2 remainder emails """
@@ -252,6 +256,7 @@ class PaymentReminderTest(TestCase):
         sales = models.Sale.objects.all()
         for sale in sales:
             self.assertEqual(sale.status.value, "Reminder Sent")
+            self.assertEqual(sale.reminders_sent, 1)
             
     def test_no_sales(self):
         """ No send remainder where there are no sales pending """
@@ -268,13 +273,17 @@ class PaymentReminderTest(TestCase):
         # Validate sale status
         sale = models.Sale.objects.first()
         self.assertEqual(sale.status.value, "Paid")
+        self.assertEqual(sale.reminders_sent, 0)
 
     def test_sale_already_sent(self):
-        """ No send remainder where the sale already received a remainder """
+        """ No send remainder when 3 reminders have been sent """
         
         # Create sale in "Reminder Sent" status
         models.Sale.objects.all().delete()
         self.__create_sale__("Reminder Sent")
+        sale = models.Sale.objects.first()
+        sale.reminders_sent = 3
+        sale.save()
         
         call_command(self.cron_name)
         
@@ -282,7 +291,8 @@ class PaymentReminderTest(TestCase):
         self.assertEqual(len(mail.outbox), 0)
         
         # Validate sale status
-        sale = models.Sale.objects.first()
+        sale.refresh_from_db()
         self.assertEqual(sale.status.value, "Reminder Sent")
+        self.assertEqual(sale.reminders_sent, 3)
         
     

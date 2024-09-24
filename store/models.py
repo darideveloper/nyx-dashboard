@@ -206,6 +206,7 @@ class Sale(models.Model):
         SaleStatus, on_delete=models.SET_NULL,
         null=True, blank=True,
     )
+    reminders_sent = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.id} - ({self.user}) {self.set}"
