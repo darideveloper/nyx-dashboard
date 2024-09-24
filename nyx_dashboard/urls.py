@@ -7,7 +7,6 @@ from landing import views as views_landing
 from user import views as views_user
 from django.conf import settings
 from django.conf.urls.static import static
-from landing.views import get_batch
 
 
 urlpatterns = [

@@ -1,14 +1,18 @@
-from django.test import LiveServerTestCase
+from time import sleep
+
+from django.core import mail
+from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.conf import settings
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from django.core import mail
+from django.test import LiveServerTestCase
+
 from utils.automation import get_selenium_elems
 from utils.tokens import get_id_token, validate_user_token
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+        
         
 class LogInTest(LiveServerTestCase):
     """ Validate user login with selenium """
@@ -133,7 +137,7 @@ class LogInTest(LiveServerTestCase):
         self.assertEqual(error_message, self.error_message)
 
 
-class SignUpTestCase(LiveServerTestCase):
+class SignUpTest(LiveServerTestCase):
     """ Validate register user with selenium """
     
     def setUp(self):
@@ -644,7 +648,15 @@ class ActivationTest(LiveServerTestCase):
         for selector, text in sweet_alert_data.items():
             elem = self.driver.find_element(By.CSS_SELECTOR, selector)
             self.assertEqual(elem.text, text)
+    
+    def __click_sweet_alert__(self):
+        """ Click on sweet alert confirmation """
         
+        # Click on login button
+        login_button = self.driver.find_element(By.CSS_SELECTOR, ".swal2-confirm")
+        login_button.click()
+        sleep(1)
+    
     def test_valid_token(self):
         """ Try to activate user account with email token """
                 
@@ -662,6 +674,37 @@ class ActivationTest(LiveServerTestCase):
             ".swal2-title + div": "Your account has been activated successfully. "
                                   "Now you can login."
         })
+        
+        # Click on login button
+        self.__click_sweet_alert__()
+        
+        # Validate redirect to landing
+        self.assertEqual(self.driver.current_url, settings.LANDING_HOST + "/")
+    
+    def test_valid_token_guest(self):
+        """ Try to activate user account with email token
+        for a guest user """
+                
+        # Load activation link
+        activation_link = self.__get_activation_link__(self.user_id, self.token)
+        self.driver.get(activation_link)
+                
+        # Check if user is active
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+        
+        # Validate alert
+        self.__validate_sweet_alert__({
+            ".swal2-title": "Account Activated",
+            ".swal2-title + div": "Your account has been activated successfully. "
+                                  "Now you can login."
+        })
+        
+        # Click on login button
+        self.__click_sweet_alert__()
+        
+        # Validate redirect to landing
+        self.assertEqual(self.driver.current_url, settings.LANDING_HOST + "/")
     
     def test_already_logged(self):
         """ Test activation with valid email and password."""
@@ -701,7 +744,7 @@ class ActivationTest(LiveServerTestCase):
         
         # Validate error message
         self.__validate_sweet_alert__(self.sweet_alert_data_error)
-                
+        
         
 class ForgottenPassTest(LiveServerTestCase):
     """ Test forgotten password view """

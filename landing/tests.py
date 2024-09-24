@@ -8,7 +8,7 @@ from landing import models
 from utils.media import get_media_url
 
 
-class LandingViewsTestCase(TestCase):
+class LandingViewsTest(TestCase):
     
     def setUp(self):
         """ Create data for testing """

@@ -21,7 +21,7 @@ from store import models
 from utils.automation import get_selenium_elems
 
 
-class FutureStockTestCase(TestCase):
+class FutureStockTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -113,7 +113,7 @@ class FutureStockTestCase(TestCase):
         self.assertTrue(json_data["already_subscribed"])
 
 
-class CountDownAdminTestCase(LiveServerTestCase):
+class CountDownAdminTest(LiveServerTestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -320,7 +320,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         )
 
 
-class FutureStockSubscriptionTestCase(TestCase):
+class FutureStockSubscriptionTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -522,7 +522,7 @@ class FutureStockSubscriptionTestCase(TestCase):
         self.assertEqual(res.json()["message"], "Subscription not found")
 
 
-class SaleTestCase(TestCase):
+class SaleTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -895,7 +895,7 @@ class SaleTestCase(TestCase):
         self.assertEqual(json_data["data"], {})
         
         
-class CurrentStockTestCase(TestCase):
+class CurrentStockTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -940,7 +940,7 @@ class CurrentStockTestCase(TestCase):
         self.assertEqual(json_data["data"]["current_stock"], 0)
         
         
-class SaleDoneTestCase(TestCase):
+class SaleDoneTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -1094,7 +1094,7 @@ class SaleDoneTestCase(TestCase):
         self.assertNotIn('id="extra-image"', email_html)
         
         
-class AdminBuyerSaleListTestCase(LiveServerTestCase):
+class AdminBuyerSaleListTest(LiveServerTestCase):
     """ Validate buyers custom functions in sale list view """
     
     def setUp(self):
@@ -1324,7 +1324,7 @@ class AdminBuyerSaleListTestCase(LiveServerTestCase):
         self.assertEqual(len(rows), 2)
 
 
-class AdminBuyerSaleChangeTestCase(LiveServerTestCase):
+class AdminBuyerSaleChangeTest(LiveServerTestCase):
     """ Validate buyers custom functions in sale change view """
     
     def setUp(self):
@@ -1470,7 +1470,7 @@ class AdminBuyerSaleChangeTestCase(LiveServerTestCase):
             self.assertNotEqual(link.get_attribute("href"), None)
 
 
-class ModelSaleTestCase(TestCase):
+class ModelSaleTest(TestCase):
     """ Test custom actions of sale model """
     
     def setUp(self):

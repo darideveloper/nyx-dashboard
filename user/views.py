@@ -142,7 +142,7 @@ class ActivateView(View):
             "message_text": "Your account has been activated successfully. "
                             "Now you can login.",
             "message_type": "success",
-            "redirect": "/admin/login/",
+            "redirect": "/landing",
             "skip_no_auth_message": True,
         })
     

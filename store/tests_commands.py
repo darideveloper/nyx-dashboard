@@ -10,7 +10,7 @@ from django.utils import timezone
 from store import models
 
 
-class FutureStockUpdateTestCase(TestCase):
+class FutureStockUpdateTest(TestCase):
     def setUp(self):
         # Create initial status
         self.current_stock = models.StoreStatus.objects.create(
@@ -159,7 +159,7 @@ class FutureStockUpdateTestCase(TestCase):
         self.assertEqual(int(self.current_stock.value), 0)
 
 
-class PaymentReminderTestCase(TestCase):
+class PaymentReminderTest(TestCase):
     def setUp(self):
         # Auth user
         self.auth_user = User.objects.create_user(
