@@ -165,6 +165,7 @@ class CountDownAdminTest(LiveServerTestCase):
 
         # Load page and get inputs
         self.driver.get(f"{self.live_server_url}/admin")
+        sleep(1)
         selectors_login = {
             "username": "input[name='username']",
             "password": "input[name='password']",
