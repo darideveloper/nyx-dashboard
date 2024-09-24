@@ -208,7 +208,7 @@ class Sale(View):
                 first_name=user.first_name,
                 last_name=user.last_name,
                 texts=email_texts,
-                cta_link=f"{settings.HOST}/admin/",
+                cta_link=f"{settings.HOST}/sign-up/",
                 cta_text="Complete registration",
                 to_email=user.email,
             )

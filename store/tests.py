@@ -867,7 +867,7 @@ class SaleTestCase(TestCase):
         self.assertEqual(sent_email.to, [self.data["email"]])
         
         # Validate email text content
-        cta_link_base = f"{settings.HOST}/admin/"
+        cta_link_base = f"{settings.HOST}/sign-up/"
         sent_email = mail.outbox[0]
         email_html = sent_email.alternatives[0][0]
         self.assertIn(cta_link_base, email_html)
