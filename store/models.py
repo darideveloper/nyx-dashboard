@@ -240,12 +240,11 @@ class Sale(models.Model):
                     first_name=self.user.first_name,
                     last_name=self.user.last_name,
                     texts=[
-                        f'Your tracking number has been added to your order {
-                            self.id}',
-                        f'Tracking number: {self.tracking_number}',
+                        f'Your tracking number has been added to your order {self.id}',
+                        f'Your tracking: {self.tracking_number}',
                     ],
-                    cta_link=f"{settings.HOST}/admin/",
-                    cta_text="View order in Dashboard",
+                    cta_link=self.tracking_number,
+                    cta_text="Track your order",
                     to_email=self.user.email,
                 )
 
