@@ -31,19 +31,12 @@
         "model": "store.SaleStatus",
         "pk": 5,
         "fields": {
-            "value": "Ready for Shipment"
-        }
-    },
-    {
-        "model": "store.SaleStatus",
-        "pk": 6,
-        "fields": {
             "value": "Shipped"
         }
     },
     {
         "model": "store.SaleStatus",
-        "pk": 7,
+        "pk": 6,
         "fields": {
             "value": "Delivered"
         }
