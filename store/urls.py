@@ -12,4 +12,5 @@ urlpatterns = [
     path('sale/', views.Sale.as_view(), name='sale'),
     path('current-stock/', views.CurrentStock.as_view(), name='current-stock'),
     path('sale-done/<sale_id>/', views.SaleDone.as_view(), name='sale-done'),
+    path('promo-code/', views.PromoCode.as_view(), name='promo-code'),
 ]

@@ -403,5 +403,51 @@ class SaleDone(View):
             image_src=logo_url
         )
         
+        # Send email to admin
+        send_email(
+            subject="Nyx Trackers New Sale",
+            first_name="Admin",
+            last_name="",
+            texts=["A new sale has been made."],
+            cta_link=f"{settings.HOST}/admin/sale/{sale_id}/change/",
+            cta_text="View sale in dashboard",
+            to_email=sale.user.email,
+            key_items=sale_data,
+            image_src=logo_url
+        )
+        
         landing_done_page += f"?sale-id={sale_id}&sale-status=success"
         return redirect(landing_done_page)
+    
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class PromoCode(View):
+
+    def post(self, request):
+        """ Validate promo code """
+        
+        # Get promo code value form json data
+        json_data = json.loads(request.body)
+        promo_code = json_data.get('promo_code')
+        
+        # Check if promo code exists
+        promo = models.PromoCode.objects.filter(code=promo_code)
+        if not promo:
+            return JsonResponse({
+                "status": "error",
+                "message": "Invalid promo code",
+                "data": {}
+            }, status=404)
+            
+        promo = promo[0]
+        
+        # Return promo count discount and type
+        return JsonResponse({
+            "status": "success",
+            "message": "Valid promo code",
+            "data": {
+                "value": promo.discount,
+                "type": promo.type.name,
+            }
+        })
+        

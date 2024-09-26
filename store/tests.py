@@ -1586,5 +1586,75 @@ class SaleModelTest(TestCase):
         
         # Validate email sent
         self.assertEqual(len(mail.outbox), 0)
+
+
+class PromoCodeTest(TestCase):
+    
+    def setUp(self):
         
+        # Create promo code types with a command
+        call_command("apps_loaddata")
         
+        # Create promo codes
+        self.promo_code_amount = models.PromoCode.objects.create(
+            code="sample-promo-amount",
+            discount=100,
+            type=models.PromoCodeType.objects.get(name="amount"),
+        )
+        self.promo_code_percentage = models.PromoCode.objects.create(
+            code="sample-promo-percentage",
+            discount=10,
+            type=models.PromoCodeType.objects.get(name="percentage"),
+        )
+        
+        self.endpoint = "/api/store/promo-code/"
+        
+    def test_invalid(self):
+        """ Send invalid promo code and validate response """
+    
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({"promo_code": "invalid-code"}),
+            content_type="application/json"
+        )
+        
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.json()["message"], "Invalid promo code")
+        self.assertEqual(res.json()["status"], "error")
+        self.assertEqual(res.json()["data"], {})
+    
+    def test_amount(self):
+        """ Validate amount discount """
+        
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({"promo_code": self.promo_code_amount.code}),
+            content_type="application/json"
+        )
+        
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["message"], "Valid promo code")
+        self.assertEqual(res.json()["status"], "success")
+        self.assertEqual(res.json()["data"]["value"], self.promo_code_amount.discount)
+        self.assertEqual(res.json()["data"]["type"], self.promo_code_amount.type.name)
+           
+    def test_percentage(self):
+        """ Validate percentage discount """
+        
+        res = self.client.post(
+            self.endpoint,
+            data=json.dumps({"promo_code": self.promo_code_percentage.code}),
+            content_type="application/json"
+        )
+        
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["message"], "Valid promo code")
+        self.assertEqual(res.json()["status"], "success")
+        self.assertEqual(
+            res.json()["data"]["value"],
+            self.promo_code_percentage.discount
+        )
+        self.assertEqual(
+            res.json()["data"]["type"],
+            self.promo_code_percentage.type.name
+        )
