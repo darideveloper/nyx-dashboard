@@ -1040,12 +1040,24 @@ class SaleDoneTest(TestCase):
         self.assertEqual(res.status_code, 302)
         
         # validate activation email sent
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 2)
           
         # Validate email text content
         subject = "Nyx Trackers Payment Confirmation"
         cta_link_base = f"{settings.HOST}/admin/"
         sent_email = mail.outbox[0]
+        self.assertEqual(subject, sent_email.subject)
+        
+        # Validate cta html tags
+        email_html = sent_email.alternatives[0][0]
+        self.assertIn(cta_link_base, email_html)
+        
+        # Validate admin email
+        
+        # Validate email text content
+        subject = "Nyx Trackers New Sale"
+        cta_link_base = f"{settings.HOST}/admin/sale/{self.sale.id}/change/"
+        sent_email = mail.outbox[1]
         self.assertEqual(subject, sent_email.subject)
         
         # Validate cta html tags
@@ -1073,7 +1085,9 @@ class SaleDoneTest(TestCase):
         self.assertEqual(res.status_code, 302)
         
         # validate activation email sent
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 2)
+          
+        # Validate client email
           
         # Validate email text content
         subject = "Nyx Trackers Payment Confirmation"
