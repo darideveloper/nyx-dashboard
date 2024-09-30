@@ -1589,7 +1589,7 @@ class SaleModelTest(TestCase):
         
         # Validate cta html tags
         email_html = sent_email.alternatives[0][0]
-        cta_link_base = f"{settings.HOST}/admin/"
+        cta_link_base = self.sale.tracking_number
         self.assertIn(cta_link_base, email_html)
         self.assertIn(tracking_number, email_html)
         
