@@ -1,5 +1,50 @@
+import openpyxl
+
 from django.contrib import admin
+from django.http import HttpResponse
+
 from store import models
+
+
+def export_sale_to_excel(modelSale, request, queryset):
+    """ Export sales to Excel """
+    
+    # Create a new workbook
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Sales'
+    
+    # Save sales header
+    header = [
+        "id",
+        "estado",
+        "fecha",
+        "precio",
+        "email",
+        "set",
+        "país",
+        "persona",
+        "comentarios",
+        "link",
+    ]
+    
+    worksheet.append(header)
+    
+    # Get sales data
+    for sale in queryset:
+        
+        data = sale.get_sale_data_list()
+        worksheet.append(data)
+        
+    content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    response = HttpResponse(content_type=content_type)
+    response['Content-Disposition'] = 'attachment; filename=export.xlsx'
+    workbook.save(response)
+
+    return response
+
+
+export_sale_to_excel.short_description = 'Export selected to Excel'
 
 
 @admin.register(models.StoreStatus)
@@ -71,6 +116,7 @@ class PromoCodeTypeAdmin(admin.ModelAdmin):
 
 @admin.register(models.Sale)
 class SaleAdmin(admin.ModelAdmin):
+    actions = [export_sale_to_excel]
     list_display = ('id', 'user', 'set', 'colors_num', 'promo_code', 'status',
                     'created_at', 'updated_at')
     search_fields = ('id', 'user__email', 'tracking_number', 'set__name',

@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
 
+import pytz
+
 from utils.emails import send_email
 
 
@@ -300,6 +302,57 @@ class Sale(models.Model):
         }
 
         return sale_data
+
+    def get_sale_data_list(self) -> list:
+        """ Return sale summary data as list
+
+        Returns:
+            list: Sale summary data
+                id
+                status__value
+                created_at
+                total
+                user__email
+                set__name
+                country
+                personal_info (client name, country, state, city,
+                postal code, street address, phone)
+                comments
+                admin link
+                
+        """
+        
+        # Format personal info
+        personal_info = f"\nNombre: {self.full_name}"
+        personal_info += f"\nPaís: {self.country}"
+        personal_info += f"\nEstado: {self.state}"
+        personal_info += f"\nCiudad: {self.city}"
+        personal_info += f"\nCódigo Postal: {self.postal_code}"
+        personal_info += f"\nDirección: {self.street_address}"
+        personal_info += f"\nTeléfono: {self.phone}"
+        
+        # Parse created at to spian timezone
+        time_zone_str = settings.TIME_ZONE
+        time_zone = pytz.timezone(time_zone_str)
+        created_at = self.created_at.astimezone(time_zone)
+        created_at_str = created_at.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Merge all data
+        data = [
+            self.id,
+            self.status.value,
+            created_at_str,
+            self.total,
+            self.user.email,
+            self.set.name,
+            self.country,
+            personal_info,
+            # todo: add comments
+            "",
+            f"{settings.HOST}/admin/store/sale/{self.id}/change/",
+        ]
+        
+        return data
 
     class Meta:
         verbose_name = 'Order'

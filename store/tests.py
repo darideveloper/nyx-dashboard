@@ -17,6 +17,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
+import openpyxl
+
 from store import models
 from utils.automation import get_selenium_elems
 
@@ -1672,3 +1674,305 @@ class PromoCodeTest(TestCase):
             res.json()["data"]["type"],
             self.promo_code_percentage.type.name
         )
+        
+        
+class AdminSaleExportExcel(LiveServerTestCase):
+    
+    def setUp(self):
+        """ Create initial data """
+        
+        # Create a user
+        self.username = "test_user"
+        self.password = "test_password_123**"
+        self.auth_user = User.objects.create_user(
+            username=self.username,
+            password=self.password,
+            email="test@gmail.com",
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
+        )
+        
+        # Paths
+        self.download_path = os.path.join(settings.BASE_DIR, "store", "test_files")
+        os.makedirs(self.download_path, exist_ok=True)        
+        self.initial_files = os.listdir(self.download_path)
+        
+        # Create status with a command
+        call_command("apps_loaddata")
+        
+        # Start selenium
+        self.__setup_chrome__()
+        
+        # Create 2 sales
+        self.sales = []
+        for _ in range(2):
+            sale = self.__create_sale__()
+            self.sales.append(sale)
+        
+        # Login
+        self.__login__()
+        
+        # Global selectors
+        self.selectors = {
+            "row": '#result_list [role="row"]',
+            "checkbox_select": 'input[type="checkbox"]',
+            "checkbox_select_all": '#action-toggle',
+            "actions_select": 'select[name="action"]',
+            "submit": 'button[type="submit"][name="index"]',
+            "error": '.alert-warning',
+        }
+    
+    def __create_sale__(self) -> models.Sale:
+        """ Create a sale with specific data to a specific user
+        
+        Returns:
+            models.Sale: Sale nbj
+        """
+        
+        # Sale foreign keys
+        set = models.Set.objects.all().first()
+        colors_num = models.ColorsNum.objects.all().first()
+        color = models.Color.objects.all().first()
+        status = models.SaleStatus.objects.get(value="Pending")
+        
+        # Create sale
+        sale = models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+        )
+        
+        # Add logo to sale
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        test_files_folder = os.path.join(current_path, "test_files")
+        logo_path = os.path.join(test_files_folder, "logo.png")
+        logo = SimpleUploadedFile(
+            name="logo.png",
+            content=open(logo_path, "rb").read(),
+            content_type="image/png"
+        )
+        sale.logo = logo
+        sale.save()
+        
+        return sale
+    
+    def __setup_chrome__(self):
+        """ Start selenium """
+            
+        # Setup options
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+            
+        # Setup download path
+        chrome_options.add_experimental_option("prefs", {
+            "download.default_directory": self.download_path,
+            "download.prompt_for_download": False,
+            "download.directory_upgrade": True,
+            "safebrowsing.enabled": True
+        })
+        
+        # Setup driver
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+    
+    def __login__(self):
+        """ Login with valid user and password """
+        
+        # Load home page
+        home_page = self.live_server_url + "/login/"
+        self.driver.get(home_page)
+        
+        # Login
+        selectors = {
+            "username": "input[name='username']",
+            "password": "input[name='password']",
+            "submit": "button[type='submit']",
+        }
+        fields = get_selenium_elems(self.driver, selectors)
+        fields["username"].send_keys(self.username)
+        fields["password"].send_keys(self.password)
+        fields["submit"].click()
+        
+        # go to sales page
+        self.driver.get(self.live_server_url + "/admin/store/sale/")
+        sleep(0.1)
+    
+    def __download_excel__(self) -> str:
+        """ Download excel file for selected sales
+        
+        Returns:
+            str: Downloaded file path
+        """
+                
+        # Select export action with js
+        script = """
+            document.querySelector('[name="action"]').value = "export_sale_to_excel";
+            console.log(document.querySelector('[name="action"]').value);
+        """
+        self.driver.execute_script(script)
+        sleep(2)
+        
+        # Click submit
+        self.driver.find_element(By.CSS_SELECTOR, self.selectors["submit"]).click()
+        sleep(2)
+        
+        # Detect new file in download folder
+        current_files = os.listdir(self.download_path)
+        downloaded_files = list(filter(
+            lambda file: file not in self.initial_files,
+            current_files
+        ))
+        if not downloaded_files:
+            return None
+        downloaded_file = downloaded_files[0]
+        downloaded_file_path = os.path.join(self.download_path, downloaded_file)
+        return downloaded_file_path
+
+    def __get_excel_data__(self, file_path: str) -> list[dict]:
+        """ Get excel data and validate header
+        
+        Args:
+            file_path (str): Excel file path
+            
+        Returns:
+            list[dict]: Excel data
+        """
+        
+        # Get excel data
+        workbook = openpyxl.load_workbook(file_path)
+        sheet = workbook.active
+        data = []
+        for row in sheet.iter_rows(values_only=True):
+          
+            # Convert None cells to empty strings
+            row = list(map(lambda cell: "" if cell is None else cell, row))
+            data.append(row)
+            
+        # Validate header
+        header = data[0]
+        self.assertEqual(header, [
+            "id", "estado", "fecha", "precio", "email", "set",
+            "país", "persona", "comentarios", "link"
+        ])
+            
+        return data[1:]
+
+    def tearDown(self):
+        """ Close selenium """
+        
+        # Delete all excel files in temp folder
+        for file in os.listdir(self.download_path):
+            if not file.endswith(".xlsx"):
+                continue
+            file_path = os.path.join(self.download_path, file)
+            os.remove(file_path)
+        
+        # End selenium
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+    
+    def test_export_1_sale(self):
+        """ Export 1 sale to excel """
+        
+        # Export to excel
+        selector_row_1 = f"{self.selectors['row']}:nth-child(1)"
+        selector_row_1_checkbox = f"{selector_row_1} {self.selectors['checkbox_select']}"
+        self.driver.find_element(By.CSS_SELECTOR, selector_row_1_checkbox).click()
+        sleep(1)
+        excel_file_path = self.__download_excel__()
+        data = self.__get_excel_data__(excel_file_path)
+        
+        # Validate excel rows number
+        self.assertEqual(len(data), 1)
+        
+        # Validate excel file content
+        for sale_excel in data:
+            sale_excel = list(sale_excel)
+            sale = list(filter(lambda sale: sale.id == sale_excel[0], self.sales))[0]
+            sale_data = sale.get_sale_data_list()
+            print(sale_excel)
+            print(sale_data)
+            self.assertEqual(sale_excel, sale_data)
+        
+    def test_export_2_sales(self):
+        """ Export 2 sales to excel """
+        
+        # Export to excel
+        self.driver.find_element(
+            By.CSS_SELECTOR,
+            self.selectors["checkbox_select_all"]
+        ).click()
+        sleep(1)
+        excel_file_path = self.__download_excel__()
+        data = self.__get_excel_data__(excel_file_path)
+        
+        # Validate excel rows number
+        self.assertEqual(len(data), 1)
+        
+        # Validate excel file content
+        for sale_excel in data:
+            sale_excel = list(sale_excel)
+            sale = list(filter(lambda sale: sale.id == sale_excel[0], self.sales))[0]
+            sale_data = sale.get_sale_data_list()
+            print(sale_excel)
+            print(sale_data)
+            self.assertEqual(sale_excel, sale_data)
+    
+    def test_no_sales_selected(self):
+        """ No export data if there are no sales selected """
+        
+        excel_file_path = self.__download_excel__()
+        
+        # Validate no file downloaded
+        self.assertIsNone(excel_file_path)
+        
+        # Validate error message in page
+        error_elem = self.driver.find_element(By.CSS_SELECTOR, self.selectors["error"])
+        error_text = error_elem.text.replace("x", "").strip()
+        
+        expected_text = "Items must be selected in order to perform actions on them. "
+        expected_text += "No items have been changed."
+        self.assertIn(expected_text, error_text)
+    
+    def test_no_export_regular_users(self):
+        """ Valdiate regular users without the permission to export """
+        
+        # Set user as regular
+        self.auth_user.is_superuser = False
+        self.auth_user.save()
+        
+        # Create "buyers" group
+        buyers_group = Group.objects.create(name='buyers')
+        view_sale_perm = Permission.objects.get(codename='view_sale')
+        buyers_group.permissions.add(view_sale_perm)
+        
+        # Add permision to only see sale model
+        self.auth_user.groups.add(buyers_group)
+        self.auth_user.save()
+        sleep(2)
+        
+        # Refresh page
+        self.driver.refresh()
+        
+        # Try to export with a regular user
+        # Expected error because there are no actions available
+        try:
+            self.__download_excel__()
+        except Exception:
+            pass
+        else:
+            self.fail("Regular user should not be able to export")
