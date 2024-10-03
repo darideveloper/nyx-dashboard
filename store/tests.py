@@ -1921,7 +1921,7 @@ class AdminSaleExportExcel(LiveServerTestCase):
         data = self.__get_excel_data__(excel_file_path)
         
         # Validate excel rows number
-        self.assertEqual(len(data), 1)
+        self.assertEqual(len(data), 2)
         
         # Validate excel file content
         for sale_excel in data:
