@@ -122,7 +122,7 @@ class SaleAdmin(admin.ModelAdmin):
     search_fields = ('id', 'user__email', 'tracking_number', 'set__name',
                      'colors_num__num', 'addons__name', 'promo_code__code',
                      'full_name', 'country', 'state', 'city', 'postal_code',
-                     'street_address', 'phone')
+                     'street_address', 'phone', 'comments')
     list_filter = ('status', 'created_at', 'updated_at', "user", "set", "colors_num",
                    "color_set", "logo_color_1", "logo_color_2", "logo_color_3",
                    "addons", "promo_code", "country", "state", 'reminders_sent')

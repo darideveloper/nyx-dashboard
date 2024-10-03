@@ -170,6 +170,7 @@ class Sale(View):
         postal_code = json_data['postal_code']
         street_address = json_data['street_address']
         phone = json_data['phone']
+        comments = json_data.get('comments', "")
         
         # Generate colors instances
         colors = {
@@ -269,6 +270,7 @@ class Sale(View):
             phone=phone,
             total=total,
             status=status,
+            comments=comments,
         )
         
         # Add extra colors

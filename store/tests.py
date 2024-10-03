@@ -569,7 +569,8 @@ class SaleTest(TestCase):
             "city": "ags",
             "postal_code": "20010",
             "street_address": "street 1",
-            "phone": "12323123"
+            "phone": "12323123",
+            "comments": "test comments",
         }
         
         # Files paths
@@ -897,7 +898,27 @@ class SaleTest(TestCase):
         self.assertEqual(json_data["status"], "error")
         self.assertEqual(json_data["data"], {})
         
+    def test_no_comments(self):
+        """ Save sale without comments """
         
+        # Remove comments
+        self.data.pop("comments")
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        
+        # Valdiate sale created
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(sale.comments, "")
+        
+    
 class CurrentStockTest(TestCase):
 
     def setUp(self):

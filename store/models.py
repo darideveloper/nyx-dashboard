@@ -202,6 +202,7 @@ class Sale(models.Model):
     street_address = models.CharField(max_length=255)
     phone = models.CharField(max_length=255)
     total = models.FloatField()
+    comments = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(editable=True)
     updated_at = models.DateTimeField(editable=True)
     status = models.ForeignKey(
@@ -299,6 +300,7 @@ class Sale(models.Model):
             "Street Address": self.street_address,
             "Phone": self.phone,
             "Total": self.total,
+            "Comments": self.comments,
         }
 
         return sale_data
@@ -347,8 +349,7 @@ class Sale(models.Model):
             self.set.name,
             self.country,
             personal_info,
-            # todo: add comments
-            "",
+            self.comments,
             f"{settings.HOST}/admin/store/sale/{self.id}/change/",
         ]
         
