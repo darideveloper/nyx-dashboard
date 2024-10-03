@@ -1,3 +1,4 @@
+
 // Main components
 const formSignUp = document.querySelector('#form-sign-up')
 const formResetPass = document.querySelector('#form-reset-pass')
@@ -327,29 +328,19 @@ class AdminSale {
   // Hide some filter to no-admin users
   hideFilters() {
     if (!isAdmin) {
-
-      const filtersSelectors = [
-        'select[data-name="user"]',
-        'select[data-name="country"]',
-        'select[data-name="state"]',
-        'select[data-name="promo_code"]',
-      ]
-
-      const filtersSelector = filtersSelectors.join(', ')
-      const filters = document.querySelectorAll(filtersSelector)
-      filters.forEach(filter => {
-        const parentFilter = filter.parentNode
-        parentFilter.remove()
-      })
+      const filtersSelector = '#changelist-search, .actions'
+      const filtersElems = document.querySelectorAll(filtersSelector)
+      for (const filtersElem of filtersElems) {
+        filtersElem.remove()
+      }
     }
   }
 
   // Hide user column in list view
   hideUserColumn() {
     if (!isAdmin) {
-      const userCellsSelector = "th:nth-child(2), td:nth-child(2)"
+      const userCellsSelector = "th:nth-child(3), td:nth-child(3), th:nth-child(1), td:nth-child(1)"
       const userCells = document.querySelectorAll(userCellsSelector)
-      console.log({ userCells })
       userCells.forEach(cell => {
         cell.remove()
       })
