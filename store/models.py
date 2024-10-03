@@ -349,7 +349,7 @@ class Sale(models.Model):
             self.set.name,
             self.country,
             personal_info,
-            self.comments,
+            self.comments if self.comments else "",
             f"{settings.HOST}/admin/store/sale/{self.id}/change/",
         ]
         

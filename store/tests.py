@@ -1716,7 +1716,7 @@ class AdminSaleExportExcel(LiveServerTestCase):
         
         # Paths
         self.download_path = os.path.join(settings.BASE_DIR, "store", "test_files")
-        os.makedirs(self.download_path, exist_ok=True)        
+        os.makedirs(self.download_path, exist_ok=True)
         self.initial_files = os.listdir(self.download_path)
         
         # Create status with a command
