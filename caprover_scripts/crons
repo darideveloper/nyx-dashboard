@@ -1,0 +1,3 @@
+# backup of project crons
+*/10 * * * * docker exec $(docker ps -q --filter "name=srv-captain--nyx-dashboard") python manage.py future_stock_update
+0 12 * * * docker exec $(docker ps -q --filter "name=srv-captain--nyx-dashboard") python manage.py payment_reminder
