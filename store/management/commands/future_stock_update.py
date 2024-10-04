@@ -1,4 +1,4 @@
-import os
+import logging
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -7,8 +7,7 @@ from django.conf import settings
 
 from store import models
 
-
-BASE_FILE = os.path.basename(__file__)
+logger = logging.getLogger()
 
 
 class Command(BaseCommand):
@@ -21,7 +20,7 @@ class Command(BaseCommand):
             added=False,
             datetime__lte=now
         )
-        print(f"{BASE_FILE}: {future_stoks.count()} future stocks to add")
+        logging.info(f"{future_stoks.count()} future stocks to add")
         
         for future_stock in future_stoks:
             
@@ -34,7 +33,7 @@ class Command(BaseCommand):
             current_stock_value = int(current_stock.value) + future_stock.amount
             current_stock.value = str(current_stock_value)
             current_stock.save()
-            print(f"{BASE_FILE}: Stock updated to {current_stock_value}")
+            logging.info(f"Stock updated to {current_stock_value}")
             
             # Send email to subscribers
             subscriptions = models.FutureStockSubscription.objects.filter(
@@ -62,4 +61,4 @@ class Command(BaseCommand):
                 subscription.notified = True
                 subscription.save()
                 
-                print(f"{BASE_FILE}: Email sent to {subscription.user.email}")
+                logging.info(f"Email sent to {subscription.user.email}")

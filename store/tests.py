@@ -1925,8 +1925,6 @@ class AdminSaleExportExcel(LiveServerTestCase):
             sale_excel = list(sale_excel)
             sale = list(filter(lambda sale: sale.id == sale_excel[0], self.sales))[0]
             sale_data = sale.get_sale_data_list()
-            print(sale_excel)
-            print(sale_data)
             self.assertEqual(sale_excel, sale_data)
         
     def test_export_2_sales(self):
@@ -1949,8 +1947,6 @@ class AdminSaleExportExcel(LiveServerTestCase):
             sale_excel = list(sale_excel)
             sale = list(filter(lambda sale: sale.id == sale_excel[0], self.sales))[0]
             sale_data = sale.get_sale_data_list()
-            print(sale_excel)
-            print(sale_data)
             self.assertEqual(sale_excel, sale_data)
     
     def test_no_sales_selected(self):

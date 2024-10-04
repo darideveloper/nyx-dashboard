@@ -1,4 +1,4 @@
-import os
+import logging
 
 from django.core.management.base import BaseCommand
 
@@ -6,7 +6,7 @@ from store import models
 from utils.emails import send_email
 from utils.stripe import get_stripe_link_sale
 
-BASE_FILE = os.path.basename(__file__)
+logger = logging.getLogger()
 
 
 class Command(BaseCommand):
@@ -21,7 +21,7 @@ class Command(BaseCommand):
             reminders_sent__lt=3
         )
         
-        print(f"{BASE_FILE}: {sales.count()} sales to remind")
+        logger.info(f"{sales.count()} sales to remind")
         
         for sale in sales:
             
@@ -30,7 +30,7 @@ class Command(BaseCommand):
             if sale.reminders_sent == 2:
                 is_discount = True
                 sale.total = sale.total * 0.85
-                print(f"{BASE_FILE}: promo price applied to sale '{sale.id}'")
+                logger.info(f"promo price applied to sale '{sale.id}'")
             
             # Generate new stripe link
             stripe_link = get_stripe_link_sale(sale)
@@ -58,8 +58,8 @@ class Command(BaseCommand):
                 to_email=sale.user.email
             )
             
-            print(f"{BASE_FILE}: Reminder sent to '{sale.user.email}'",
-                  f" in sale '{sale.id}'")
+            logger.info(f"Reminder sent to '{sale.user.email}'",
+                        f" in sale '{sale.id}'")
             
             # Update status
             remainder_sent_status, _ = models.SaleStatus.objects.get_or_create(
@@ -68,4 +68,4 @@ class Command(BaseCommand):
             sale.status = remainder_sent_status
             sale.reminders_sent += 1
             sale.save()
-            print(f"{BASE_FILE}: Sale '{sale.id}' updated")
+            logger.info(f"Sale '{sale.id}' updated")
