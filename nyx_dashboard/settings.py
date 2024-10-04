@@ -22,6 +22,7 @@ LANDING_HOST = os.getenv('LANDING_HOST')
 TEST_HEADLESS = os.getenv('TEST_HEADLESS') == 'True'
 STRIPE_API_HOST = os.getenv('STRIPE_API_HOST')
 STRIPE_API_USER = os.getenv('STRIPE_API_USER')
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 
 print(f"DEBUG: {DEBUG}")
 print(f"HOST: {HOST}")

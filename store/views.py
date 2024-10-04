@@ -411,9 +411,9 @@ class SaleDone(View):
             first_name="Admin",
             last_name="",
             texts=["A new sale has been made."],
-            cta_link=f"{settings.HOST}/admin/sale/{sale_id}/change/",
+            cta_link=f"{settings.HOST}/admin/store/sale/{sale_id}/change/",
             cta_text="View sale in dashboard",
-            to_email=sale.user.email,
+            to_email=settings.ADMIN_EMAIL,
             key_items=sale_data,
             image_src=logo_url
         )

@@ -1079,7 +1079,7 @@ class SaleDoneTest(TestCase):
         
         # Validate email text content
         subject = "Nyx Trackers New Sale"
-        cta_link_base = f"{settings.HOST}/admin/sale/{self.sale.id}/change/"
+        cta_link_base = f"{settings.HOST}/admin/store/sale/{self.sale.id}/change/"
         sent_email = mail.outbox[1]
         self.assertEqual(subject, sent_email.subject)
         
