@@ -1,0 +1,2 @@
+*/1 * * * * python manage.py future_stock_update cron.log 2>&1
+0 12 * * * python manage.py payment_reminder cron.log 2>&1
