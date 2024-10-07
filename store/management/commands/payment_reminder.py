@@ -58,8 +58,8 @@ class Command(BaseCommand):
                 to_email=sale.user.email
             )
             
-            logger.info(f"Reminder sent to '{sale.user.email}'",
-                        f" in sale '{sale.id}'")
+            message = f"Reminder sent to '{sale.user.email}' in sale '{sale.id}'"
+            logger.info(message)
             
             # Update status
             remainder_sent_status, _ = models.SaleStatus.objects.get_or_create(
