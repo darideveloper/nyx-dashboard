@@ -104,8 +104,8 @@ class AddonAdmin(admin.ModelAdmin):
 
 @admin.register(models.PromoCode)
 class PromoCodeAdmin(admin.ModelAdmin):
-    list_display = ('code', 'discount')
-    search_fields = ('code', 'discount')
+    list_display = ('code', 'discount', 'type')
+    search_fields = ('code', 'discount', 'type')
 
 
 @admin.register(models.PromoCodeType)
