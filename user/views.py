@@ -59,6 +59,7 @@ class SignUpView(View):
                 # Update guest user
                 user.first_name = first_name
                 user.last_name = last_name
+                user.email = email
                 user.set_password(password1)
                 user.save()
             
