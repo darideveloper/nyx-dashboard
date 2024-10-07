@@ -131,7 +131,16 @@ class SaleAdmin(admin.ModelAdmin):
             
         # Get admin type
         user_auth = request.user
-        if not user_auth.is_superuser:
+        
+        # Validte if user is in "admins" group
+        user_grups = user_auth.groups.all()
+        user_in_admin_group = False
+        for group in user_grups:
+            if group.name == "admins":
+                user_in_admin_group = True
+                break
+                    
+        if not user_auth.is_superuser and not user_in_admin_group:
             
             # Filter instructions by user
             return models.Sale.objects.filter(user=user_auth)

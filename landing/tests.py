@@ -1,7 +1,6 @@
 import os
 
 from django.test import TestCase
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from landing import models
