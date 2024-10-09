@@ -38,7 +38,8 @@ class Command(BaseCommand):
             subject = "Don't forget to pay for your order!"
             texts = [
                 "You have an order pending payment.",
-                "Please pay as soon as possible."
+                "You are one step away from getting your dream Fbt!"
+                " Click here to finish the process."
             ]
             cta_text = "Pay now"
             if is_discount:
