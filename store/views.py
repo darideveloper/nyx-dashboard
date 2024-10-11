@@ -453,3 +453,34 @@ class PromoCode(View):
             }
         })
         
+        
+@method_decorator(csrf_exempt, name='dispatch')
+class PendingOder(View):
+    
+    def post(self, request):
+        """ Check if user has pending orders """
+        
+        # Get user's email from json
+        json_data = json.loads(request.body)
+        email = json_data.get('email')
+        
+        # Get user
+        user = models.User.objects.filter(email=email)
+        
+        # Validate user and Check if user has pending orders
+        has_pending_order = None
+        if user:
+            user = user[0]
+            has_pending_order = models.Sale.objects.filter(
+                user=user,
+                status__value="Pending"
+            )
+        
+        return JsonResponse({
+            "status": "success",
+            "message": "Pending orders status",
+            "data": {
+                "has_pending_order": bool(has_pending_order)
+            }
+        })
+        

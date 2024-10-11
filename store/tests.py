@@ -1993,3 +1993,113 @@ class AdminSaleExportExcel(LiveServerTestCase):
             pass
         else:
             self.fail("Regular user should not be able to export")
+            
+            
+class PendingOderViewTest(TestCase):
+    
+    def setUp(self):
+        
+        # Auth user
+        self.auth_user = User.objects.create_user(
+            username="test@gmail.com",
+            password="test_password",
+            email="test@gmail.com"
+        )
+        
+        # Create status with a command
+        call_command("apps_loaddata")
+        
+        # Get sale data
+        set = models.Set.objects.all().first()
+        colors_num = models.ColorsNum.objects.all().first()
+        color = models.Color.objects.all().first()
+        status = models.SaleStatus.objects.get(value="Pending")
+                    
+        self.sale = models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+        )
+        
+        self.endpoint = "/api/store/pending-order/"
+        
+    def test_(self):
+        """ Validate True response when user has pending orders """
+        
+        # Submit request
+        response = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": self.auth_user.email
+            }),
+            content_type="application/json"
+        )
+        
+        # Validte response status
+        self.assertEqual(response.status_code, 200)
+        
+        # Validate response content
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["message"], "Pending orders status")
+        self.assertEqual(data["data"]["has_pending_order"], True)
+        
+    def test_no_pending_ode(self):
+        """ Validate False response when user has no pending orders """
+        
+        # Dalete order
+        self.sale.delete()
+        
+        # Submit request
+        response = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": self.auth_user.email
+            }),
+            content_type="application/json"
+        )
+        
+        # Validte response status
+        self.assertEqual(response.status_code, 200)
+        
+        # Validate response content
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["message"], "Pending orders status")
+        self.assertEqual(data["data"]["has_pending_order"], False)
+        
+    def test_user_not_found(self):
+        """ Validate False response when user is not found """
+        
+        # Dalete user
+        self.auth_user.delete()
+        email = self.auth_user.email
+        
+        # Submit request
+        response = self.client.post(
+            self.endpoint,
+            data=json.dumps({
+                "email": email
+            }),
+            content_type="application/json"
+        )
+        
+        # Validte response status
+        self.assertEqual(response.status_code, 200)
+        
+        # Validate response content
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["message"], "Pending orders status")
+        self.assertEqual(data["data"]["has_pending_order"], False)
+        
