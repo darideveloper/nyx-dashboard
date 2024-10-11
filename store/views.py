@@ -254,7 +254,13 @@ class Sale(View):
         # Get status
         status = models.SaleStatus.objects.get(value="Pending")
         
-        # Save sale
+        # Validate if user has a pending order
+        pending_sales = models.Sale.objects.filter(
+            user=user,
+            status__value="Pending"
+        )
+        
+        # Create new sale
         sale = models.Sale.objects.create(
             user=user,
             set=set_obj,
@@ -273,6 +279,39 @@ class Sale(View):
             comments=comments,
         )
         
+        # Delete old pending sales
+        if pending_sales:
+            pending_sales.delete()
+            
+            # Submit email to user
+            send_email(
+                subject="Nyx Trackers Sale Updated",
+                first_name=user.first_name,
+                last_name=user.last_name,
+                texts=[
+                    "Your sale has been updated.",
+                    "You will get an email confirmation after payment.",
+                    "Sign up to check your order status in the dashboard.",
+                ],
+                cta_link=f"{settings.HOST}/sign-up",
+                cta_text="Sign up",
+                to_email=user.email,
+            )
+            
+            # Submit email to admin
+            send_email(
+                subject="Nyx Trackers Sale Updated by User",
+                first_name="Admin",
+                last_name="",
+                texts=[
+                    f"The sale {sale.id} has been updated by the user {user.email}.",
+                    "Check the sale in the dashboard.",
+                ],
+                cta_link=f"{settings.HOST}/store/sale/{sale.id}/change/",
+                cta_text="View sale in dashboard",
+                to_email=settings.ADMIN_EMAIL,
+            )
+        
         # Add extra colors
         if colors_num >= 2:
             sale.logo_color_1 = colors_instances['logo_color_1']
@@ -283,6 +322,7 @@ class Sale(View):
         sale.save()
         
         # Set addons
+        sale.addons.clear()
         sale.addons.set(addons_objs)
 
         # get image file in base64 and save

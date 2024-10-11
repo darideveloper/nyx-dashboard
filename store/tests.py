@@ -917,6 +917,112 @@ class SaleTest(TestCase):
         # Valdiate sale created
         sale = models.Sale.objects.all()[0]
         self.assertEqual(sale.comments, "")
+    
+    def test_pending_sale(self):
+        """ Try to create new sale when user has a pending sale
+        Expect to delete old sale, create new one and send emails
+        """
+        
+        # Create pending sale
+        status = models.SaleStatus.objects.get(value="Pending")
+        pending_sale = models.Sale.objects.create(
+            user=self.auth_user,
+            set=models.Set.objects.all().first(),
+            colors_num=models.ColorsNum.objects.all().first(),
+            color_set=models.Color.objects.all().first(),
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+        )
+        pending_sale_id = pending_sale.id
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        
+        # Validate unique sale for the user
+        sales = models.Sale.objects.all()
+        self.assertEqual(sales.count(), 1)
+        
+        # Validate sale created
+        sale = sales[0]
+        self.assertEqual(sale.status.value, "Pending")
+        
+        # Validate 2 emails sent
+        self.assertEqual(len(mail.outbox), 2)
+        
+        # Validate user email text content
+        subject = "Nyx Trackers Sale Updated"
+        cta_link = f"{settings.HOST}/sign-up"
+        cta_text = "Sign up"
+        sent_email = mail.outbox[0]
+        send_email_html = sent_email.alternatives[0][0]
+        self.assertEqual(sent_email.subject, subject)
+        self.assertIn(cta_link, send_email_html)
+        self.assertIn(cta_text, send_email_html)
+        
+        # Validate admin email
+        subject = "Nyx Trackers Sale Updated by User"
+        cta_link = f"{settings.HOST}/store/sale/{sale.id}/change/"
+        cta_text = "View sale in dashboard"
+        sent_email = mail.outbox[1]
+        send_email_html = sent_email.alternatives[0][0]
+        self.assertEqual(sent_email.subject, subject)
+        self.assertIn(cta_link, send_email_html)
+        self.assertIn(cta_text, send_email_html)
+        
+        # Validate new sale id
+        self.assertNotEqual(sale.id, pending_sale_id)
+        
+    def test_many_pending_sale(self):
+        """ Try to create new sale when user has a many pending sales
+        Expect to delete old sales, create a new one
+        """
+        
+        # Create pending sale
+        status = models.SaleStatus.objects.get(value="Pending")
+        for _ in range(3):
+            models.Sale.objects.create(
+                user=self.auth_user,
+                set=models.Set.objects.all().first(),
+                colors_num=models.ColorsNum.objects.all().first(),
+                color_set=models.Color.objects.all().first(),
+                full_name="test full name",
+                country="test country",
+                state="test state",
+                city="test city",
+                postal_code="tets pc",
+                street_address="test street",
+                phone="test phone",
+                total=100,
+                status=status,
+            )
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        
+        # Validate unique sale for the user
+        sales = models.Sale.objects.all()
+        self.assertEqual(sales.count(), 1)
         
     
 class CurrentStockTest(TestCase):
