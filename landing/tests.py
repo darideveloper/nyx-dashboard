@@ -4,7 +4,6 @@ from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from landing import models
-from store import models as store_models
 from utils.media import get_media_url
 
 
@@ -68,12 +67,6 @@ class LandingViewsTest(TestCase):
             video.video = video_file
             video.save()
             self.videos.append(video)
-
-        # Setup current stock
-        store_models.StoreStatus.objects.create(
-            key='current_stock',
-            value=10
-        )
 
         self.api_base = "/api/landing"
 
@@ -233,9 +226,6 @@ class LandingViewsTest(TestCase):
         self.assertEqual(json_data_response["texts"], json_data_expected["texts"])
         self.assertEqual(json_data_response["images"], json_data_expected["images"])
         self.assertEqual(json_data_response["videos"], json_data_expected["videos"])
-        
-        # Validate current stock
-        self.assertEqual(json_data_response["current_stock"], 10)
 
     def test_get_batch_no_data(self):
         
@@ -255,6 +245,5 @@ class LandingViewsTest(TestCase):
             "texts": [],
             "images": [],
             "videos": [],
-            "current_stock": 10
         }
         self.assertEqual(json_data_response, json_data_expected)
