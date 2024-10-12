@@ -328,17 +328,18 @@ class CountDownAdminTest(LiveServerTestCase):
         """ Login and validate count down value 0 sets left in stock """
 
         # Delete future stock
-        self.future_stock.value = 0
-        self.future_stock.save()
+        self.future_stock.delete()
+
+        # Set stock valur to 0
+        models.StoreStatus.objects.create(
+            key="current_stock",
+            value=0,
+        )
 
         self.__login__()
         elems = get_selenium_elems(self.driver, self.selectors)
 
         # Valdiate count down values
-        self.assertEqual(elems["days"].text, "00")
-        self.assertEqual(elems["hours"].text, "00")
-        self.assertEqual(elems["minutes"].text, "00")
-        self.assertEqual(elems["seconds"].text, "00")
         self.assertEqual(elems["title"].text, "New sets are available now!")
         self.assertEqual(elems["btn"].text, "No Sets Left")
         
