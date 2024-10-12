@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 
 from landing import models
+from store.views import CurrentStock
 from utils.media import get_media_url
 
 
@@ -65,13 +66,16 @@ def get_batch(requests):
     texts = get_texts(requests).content
     images = get_images(requests).content
     videos = get_videos(requests).content
+    current_stock = CurrentStock.as_view()(requests).content
     
     texts_json = json.loads(texts)["texts"]
     images_json = json.loads(images)["images"]
     videos_json = json.loads(videos)["videos"]
+    current_stock_json = json.loads(current_stock)["data"]["current_stock"]
     
     return JsonResponse({
         "texts": texts_json,
         "images": images_json,
-        "videos": videos_json
+        "videos": videos_json,
+        "current_stock": current_stock_json
     })

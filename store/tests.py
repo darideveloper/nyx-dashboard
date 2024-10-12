@@ -1045,7 +1045,7 @@ class SaleTest(TestCase):
         self.assertEqual(sales.count(), 1)
         
     
-class CurrentStockTest(TestCase):
+class CurrentStockViewTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -1088,6 +1088,27 @@ class CurrentStockTest(TestCase):
         self.assertEqual(json_data["status"], "success")
         self.assertEqual(json_data["message"], "Current stock")
         self.assertEqual(json_data["data"]["current_stock"], 0)
+    
+    def test_missing_current_stock_key(self):
+        """ Try to get current stock without the key
+        Expected to create the key with default value
+        """
+        
+        # Delete current stock
+        self.current_stock.delete()
+        
+        res = self.client.get(self.endpoint)
+        
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        json_data = res.json()
+        self.assertEqual(json_data["status"], "success")
+        self.assertEqual(json_data["message"], "Current stock")
+        self.assertEqual(json_data["data"]["current_stock"], 0)
+        
+        # Validate stock created
+        current_stock = models.StoreStatus.objects.get(key="current_stock")
+        self.assertEqual(int(current_stock.value), 0)
         
         
 class SaleDoneTest(TestCase):

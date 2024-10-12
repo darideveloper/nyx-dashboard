@@ -19,10 +19,10 @@ from utils.stripe import get_stripe_link_sale
 
 
 class NextFutureStock(View):
-    
+
     def get(self, request, email=""):
         """ Return next future stock datetime
-        
+
         Args:
             request (HttpRequest): Django request object
             email (str): User email to check if already subscribed
@@ -34,7 +34,8 @@ class NextFutureStock(View):
         now = timezone.now()
         extra_minutes = 10
         next_future_stock = future_stock.datetime if future_stock else now
-        next_future_stock_seconds = int((next_future_stock - now).total_seconds())
+        next_future_stock_seconds = int(
+            (next_future_stock - now).total_seconds())
         if next_future_stock_seconds:
             next_future_stock_seconds += extra_minutes * 60
 
@@ -138,10 +139,10 @@ class Sale(View):
 
     def post(self, request):
         """ Sale sale from landing """
-        
+
         # Get json data
         json_data = json.loads(request.body)
-        
+
         # Validate required fields
         required_fields = [
             "email", "set", "colors_num", "logo", "included_extras",
@@ -171,7 +172,7 @@ class Sale(View):
         street_address = json_data['street_address']
         phone = json_data['phone']
         comments = json_data.get('comments', "")
-        
+
         # Generate colors instances
         colors = {
             "color_set": json_data['set_color'],
@@ -183,7 +184,7 @@ class Sale(View):
         for color_key, color_name in colors.items():
             color_obj = models.Color.objects.get(name=color_name)
             colors_instances[color_key] = color_obj
-        
+
         # Get user or create a new one
         user, created = User.objects.get_or_create(email=email)
         if created:
@@ -194,7 +195,7 @@ class Sale(View):
             self.password = User.objects.make_random_password()
             user.set_password(self.password)
             user.save()
-            
+
             # Send invitation email
             email_texts = [
                 "Welcome to Nyx Trackers!",
@@ -213,35 +214,35 @@ class Sale(View):
                 cta_text="Complete registration",
                 to_email=user.email,
             )
-            
+
         # Save aditional models
         set_obj = models.Set.objects.get(
             name=set,
         )
-        
+
         colors_num_obj = models.ColorsNum.objects.get(
             num=colors_num,
         )
-        
+
         addons_objs = []
         for addon in addons:
             addon_obj = models.Addon.objects.get(
                 name=addon,
             )
             addons_objs.append(addon_obj)
-        
+
         promo_type = promo['discount']['type']
         promo_value = promo['discount']['value']
         promo_type_obj = models.PromoCodeType.objects.get(
             name=promo_type
         )
-        
+
         promo_obj, _ = models.PromoCode.objects.get_or_create(
             code=promo['code'],
             discount=promo_value,
             type=promo_type_obj,
         )
-        
+
         # Calculate total
         total = 0
         total += set_obj.price
@@ -250,16 +251,16 @@ class Sale(View):
             total += addon.price
         total -= promo_obj.discount
         total = round(total, 2)
-        
+
         # Get status
         status = models.SaleStatus.objects.get(value="Pending")
-        
+
         # Validate if user has a pending order
         pending_sales = models.Sale.objects.filter(
             user=user,
             status__value="Pending"
         )
-        
+
         # Create new sale
         sale = models.Sale.objects.create(
             user=user,
@@ -278,11 +279,11 @@ class Sale(View):
             status=status,
             comments=comments,
         )
-        
+
         # Delete old pending sales
         if pending_sales:
             pending_sales.delete()
-            
+
             # Submit email to user
             send_email(
                 subject="Nyx Trackers Sale Updated",
@@ -297,21 +298,22 @@ class Sale(View):
                 cta_text="Sign up",
                 to_email=user.email,
             )
-            
+
             # Submit email to admin
             send_email(
                 subject="Nyx Trackers Sale Updated by User",
                 first_name="Admin",
                 last_name="",
                 texts=[
-                    f"The sale {sale.id} has been updated by the user {user.email}.",
+                    f"The sale {sale.id} has been updated by the user {
+                        user.email}.",
                     "Check the sale in the dashboard.",
                 ],
                 cta_link=f"{settings.HOST}/store/sale/{sale.id}/change/",
                 cta_text="View sale in dashboard",
                 to_email=settings.ADMIN_EMAIL,
             )
-        
+
         # Add extra colors
         if colors_num >= 2:
             sale.logo_color_1 = colors_instances['logo_color_1']
@@ -320,7 +322,7 @@ class Sale(View):
         if colors_num == 4:
             sale.logo_color_3 = colors_instances['logo_color_3']
         sale.save()
-        
+
         # Set addons
         sale.addons.clear()
         sale.addons.set(addons_objs)
@@ -344,13 +346,13 @@ class Sale(View):
             if logo_file_type == "svg+xml":
                 logo_file_type = "svg"
             logo_data = base64.b64decode(logo_base64_string)
-            
+
             # Create a file name
             file_name = f'sale_{sale.id}_logo.{logo_file_type}'
 
             # Save the logo file
             sale.logo.save(file_name, ContentFile(logo_data))
-        
+
         # Validate stok
         current_stock = models.StoreStatus.objects.filter(
             key='current_stock'
@@ -362,9 +364,9 @@ class Sale(View):
                 "message": "No stock available",
                 "data": {}
             }, status=400)
-        
+
         stripe_link = get_stripe_link_sale(sale)
-        
+
         return JsonResponse({
             "status": "success",
             "message": "Sale saved",
@@ -374,64 +376,47 @@ class Sale(View):
         })
         
 
-class CurrentStock(View):
-    
-    def get(self, request):
-        """ Get current stock """
-        
-        current_stock = models.StoreStatus.objects.get(key='current_stock')
-        current_stock_int = int(current_stock.value)
-        
-        return JsonResponse({
-            "status": "success",
-            "message": "Current stock",
-            "data": {
-                "current_stock": current_stock_int
-            }
-        })
-
-
 class SaleDone(View):
-    
+
     def get(self, request, sale_id: str):
         """ Update sale status and redirect to landing
-        
+
         Args:
             request (HttpRequest): Django request object
             sale_id (str): sale id from url
         """
-        
+
         landing_done_page = settings.LANDING_HOST
-        
+
         # Get sale
         sale = models.Sale.objects.filter(id=sale_id).first()
         if not sale:
             landing_done_page += f"?sale-id={sale_id}&sale-status=error"
             return redirect(landing_done_page)
-        
+
         # Update status
         status = models.SaleStatus.objects.get(value="Paid")
         sale.status = status
         sale.save()
-        
+
         # Update stock
         current_stock = models.StoreStatus.objects.get(key='current_stock')
         current_stock_int = int(current_stock.value)
         current_stock.value = str(current_stock_int - 1)
         current_stock.save()
-        
+
         # Get sale data
         sale_data = sale.get_sale_data_dict()
-        
+
         email_texts = [
             "Your payment has been confirmed!",
             "Your order is being processed.",
             "You will receive notifications about the status of your order.",
             "Here your order details:"
         ]
-        
+
         logo_url = get_media_url(sale.logo.url) if sale.logo else ""
-        
+
         # Confirmation email afrter payment
         send_email(
             subject="Nyx Trackers Payment Confirmation",
@@ -444,7 +429,7 @@ class SaleDone(View):
             key_items=sale_data,
             image_src=logo_url
         )
-        
+
         # Send email to admin
         send_email(
             subject="Nyx Trackers New Sale",
@@ -457,21 +442,21 @@ class SaleDone(View):
             key_items=sale_data,
             image_src=logo_url
         )
-        
+
         landing_done_page += f"?sale-id={sale_id}&sale-status=success"
         return redirect(landing_done_page)
-    
-    
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class PromoCode(View):
 
     def post(self, request):
         """ Validate promo code """
-        
+
         # Get promo code value form json data
         json_data = json.loads(request.body)
         promo_code = json_data.get('promo_code')
-        
+
         # Check if promo code exists
         promo = models.PromoCode.objects.filter(code=promo_code)
         if not promo:
@@ -480,9 +465,9 @@ class PromoCode(View):
                 "message": "Invalid promo code",
                 "data": {}
             }, status=404)
-            
+
         promo = promo[0]
-        
+
         # Return promo count discount and type
         return JsonResponse({
             "status": "success",
@@ -492,21 +477,21 @@ class PromoCode(View):
                 "type": promo.type.name,
             }
         })
-        
-        
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class PendingOder(View):
-    
+
     def post(self, request):
         """ Check if user has pending orders """
-        
+
         # Get user's email from json
         json_data = json.loads(request.body)
         email = json_data.get('email')
-        
+
         # Get user
         user = models.User.objects.filter(email=email)
-        
+
         # Validate user and Check if user has pending orders
         has_pending_order = None
         if user:
@@ -515,7 +500,7 @@ class PendingOder(View):
                 user=user,
                 status__value="Pending"
             )
-        
+
         return JsonResponse({
             "status": "success",
             "message": "Pending orders status",
@@ -523,4 +508,25 @@ class PendingOder(View):
                 "has_pending_order": bool(has_pending_order)
             }
         })
-        
+
+
+class CurrentStock(View):
+
+    def get(self, request):
+        """ Get current stock """
+
+        current_stock, created = models.StoreStatus.objects.get_or_create(
+            key='current_stock'
+        )
+        if created:
+            current_stock.value = "0"
+            current_stock.save()
+        current_stock_int = int(current_stock.value)
+
+        return JsonResponse({
+            "status": "success",
+            "message": "Current stock",
+            "data": {
+                "current_stock": current_stock_int
+            }
+        })
