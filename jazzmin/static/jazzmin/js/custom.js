@@ -1,4 +1,3 @@
-
 // Main components
 const formSignUp = document.querySelector('#form-sign-up')
 const formResetPass = document.querySelector('#form-reset-pass')
@@ -192,6 +191,11 @@ class Countdown {
         this.toggleButtons()
       }
     })
+
+    // Change button text if thee are not sets available
+    if (!setsAvailable) {
+      this.buttonBuy.textContent = 'No Sets Left'
+    }
   }
 
   toggleButtons() {
@@ -227,6 +231,7 @@ class Countdown {
     // Disable notify me button and enabe buy button
     this.buttonNotify.classList.add("hidden")
     this.buttonBuy.classList.remove("hidden")
+
   }
 
   setupCounter() {

@@ -376,8 +376,9 @@
 <!-- >Global variables to js -->
 <script>
     const userEmail = "{{ user.email }}";
-    const landingHost = "{{ LANDING_HOST }}"
-    const isAdmin = "{{IS_ADMIN}}" == "True"
+    const landingHost = "{{ LANDING_HOST }}";
+    const isAdmin = "{{IS_ADMIN}}" == "True";
+    const setsAvailable = "{{SETS_AVAILABLE}}" == "True";
 </script>
 
 {% if jazzmin_settings.custom_js %}

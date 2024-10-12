@@ -153,6 +153,7 @@ class CountDownAdminTest(LiveServerTestCase):
             "hours": '.counter-item:nth-child(2) span:nth-child(1)',
             "minutes": '.counter-item:nth-child(3) span:nth-child(1)',
             "seconds": '.counter-item:nth-child(4) span:nth-child(1)',
+            "btn": '#actionButtonBuy',
         }
 
     def tearDown(self):
@@ -223,6 +224,7 @@ class CountDownAdminTest(LiveServerTestCase):
         self.assertEqual(elems["minutes"].text, "00")
         self.assertEqual(elems["seconds"].text, "00")
         self.assertEqual(elems["title"].text, "New sets are available now!")
+        self.assertEqual(elems["btn"].text, "No Sets Left")
 
     def test_notify_me_button(self):
         """ Click in notify button and validation subscription in db """
@@ -322,6 +324,24 @@ class CountDownAdminTest(LiveServerTestCase):
             "You will no longer receive notifications by email",
         )
 
+    def test_countdown_no_stock(self):
+        """ Login and validate count down value 0 sets left in stock """
+
+        # Delete future stock
+        self.future_stock.value = 0
+        self.future_stock.save()
+
+        self.__login__()
+        elems = get_selenium_elems(self.driver, self.selectors)
+
+        # Valdiate count down values
+        self.assertEqual(elems["days"].text, "00")
+        self.assertEqual(elems["hours"].text, "00")
+        self.assertEqual(elems["minutes"].text, "00")
+        self.assertEqual(elems["seconds"].text, "00")
+        self.assertEqual(elems["title"].text, "New sets are available now!")
+        self.assertEqual(elems["btn"].text, "No Sets Left")
+        
 
 class FutureStockSubscriptionTest(TestCase):
 
