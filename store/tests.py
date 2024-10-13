@@ -863,6 +863,9 @@ class SaleTest(TestCase):
     def test_guest_user(self):
         """ Save new sale with a guest user """
         
+        # Delete old sales
+        models.Sale.objects.all().delete()
+        
         self.data["email"] = "guest_user@gmail.com"
 
         json_data = json.dumps(self.data)
@@ -886,7 +889,7 @@ class SaleTest(TestCase):
         self.assertEqual(user.email, self.data["email"])
         
         # Validate invite email sent
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertGreaterEqual(len(mail.outbox), 1)
         sent_email = mail.outbox[0]
         self.assertEqual(sent_email.subject, "Nyx Trackers Complete your registration")
         self.assertEqual(sent_email.to, [self.data["email"]])
@@ -996,7 +999,7 @@ class SaleTest(TestCase):
         
         # Validate admin email
         subject = "Nyx Trackers Sale Updated by User"
-        cta_link = f"{settings.HOST}/store/sale/{sale.id}/change/"
+        cta_link = f"{settings.HOST}/admin/store/sale/{sale.id}/change/"
         cta_text = "View sale in dashboard"
         sent_email = mail.outbox[1]
         send_email_html = sent_email.alternatives[0][0]

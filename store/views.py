@@ -282,6 +282,7 @@ class Sale(View):
 
         # Delete old pending sales
         if pending_sales:
+            
             pending_sales.delete()
 
             # Submit email to user
@@ -309,7 +310,7 @@ class Sale(View):
                         user.email}.",
                     "Check the sale in the dashboard.",
                 ],
-                cta_link=f"{settings.HOST}/store/sale/{sale.id}/change/",
+                cta_link=f"{settings.HOST}/admin/store/sale/{sale.id}/change/",
                 cta_text="View sale in dashboard",
                 to_email=settings.ADMIN_EMAIL,
             )
