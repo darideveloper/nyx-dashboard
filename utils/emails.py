@@ -85,7 +85,7 @@ def send_email(subject: str, first_name: str, last_name: str,
     if image_src:
         # Download image in a temp folder
         image_base = image_src.split("/")[-1]
-        image_temp_folder = f"{settings.BASE_DIR}/media/temp"
+        image_temp_folder = os.path.join(settings.BASE_DIR, "media", "temp")
         image_temp_path = f"{image_temp_folder}/{image_base}"
         os.makedirs(image_temp_folder, exist_ok=True)
         
@@ -100,7 +100,8 @@ def send_email(subject: str, first_name: str, last_name: str,
             # Attach an image if provided
             with open(image_temp_path, 'rb') as img:
                 img_data = img.read()
-            image = MIMEImage(img_data, name={image_base})
+            print(image_temp_path, image_src, image_base)
+            image = MIMEImage(img_data, name=image_base)
             image.add_header('Content-ID', '<image1>')
             message.attach(image)
     
