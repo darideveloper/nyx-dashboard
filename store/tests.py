@@ -591,7 +591,7 @@ class SaleTest(TestCase):
             "postal_code": "20010",
             "street_address": "street 1",
             "phone": "12323123",
-            "comments": "test comments",
+            "comments": "test comments"
         }
         
         # Files paths
@@ -941,6 +941,26 @@ class SaleTest(TestCase):
         # Valdiate sale created
         sale = models.Sale.objects.all()[0]
         self.assertEqual(sale.comments, "")
+        
+    def test_long_comments(self):
+        """ Save sale without comments """
+        
+        # Remove comments
+        self.data["comments"] = "a" * 5000
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        
+        # Valdiate sale created
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(sale.comments, self.data["comments"])
     
     def test_pending_sale(self):
         """ Try to create new sale when user has a pending sale
