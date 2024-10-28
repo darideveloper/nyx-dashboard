@@ -15,7 +15,7 @@ from django.shortcuts import redirect
 from store import models
 from utils.emails import send_email
 from utils.media import get_media_url
-from utils.stripe import get_stripe_link_sale
+from utils.stripe import get_stripe_link_sale, get_stripe_transaction_link
 
 
 class NextFutureStock(View):
@@ -394,6 +394,12 @@ class SaleDone(View):
         if not sale:
             landing_done_page += f"?sale-id={sale_id}&sale-status=error"
             return redirect(landing_done_page)
+
+        # Get link from stripe
+        stripe_link = get_stripe_transaction_link(sale.total)
+        if not stripe_link:
+            stripe_link = "Error getting stripe link"
+        sale.stripe_link = stripe_link
 
         # Update status
         status = models.SaleStatus.objects.get(value="Paid")

@@ -13,14 +13,17 @@ from django.core.management import call_command
 from django.utils import timezone
 from django.test import LiveServerTestCase, TestCase
 
+import openpyxl
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-import openpyxl
-
 from store import models
 from utils.automation import get_selenium_elems
+
+load_dotenv()
+TEST_STRIPE_ID = os.getenv("TEST_STRIPE_ID")
 
 
 class FutureStockTest(TestCase):
@@ -1301,6 +1304,33 @@ class SaleDoneTest(TestCase):
             
         # Valdate logo in email
         self.assertNotIn('id="extra-image"', email_html)
+        
+    def test_invalid_stripe_link(self):
+        """ validate invalid stripe link updated after sale confirmation,"""
+        
+        self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        
+        # Valisate stripe link
+        self.sale.refresh_from_db()
+        self.assertEqual(self.sale.stripe_link, "Error getting stripe link")
+        
+    def test_real_stripe_link(self):
+        """ validate stripe link updated after sale confirmation
+        note: required real sale in stripe with total: 250.0
+        """
+        
+        # Update sale total
+        self.sale.total = 250.0
+        self.sale.save()
+        
+        self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        
+        # Valisate stripe link
+        self.sale.refresh_from_db()
+        self.assertEqual(
+            self.sale.stripe_link,
+            f"https://dashboard.stripe.com/payments/{TEST_STRIPE_ID}"
+        )
         
         
 class AdminBuyerSaleListTest(LiveServerTestCase):

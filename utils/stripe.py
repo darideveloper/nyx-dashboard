@@ -1,8 +1,13 @@
+import os
+import stripe
 import requests
 
-from django.conf import settings
-
 from store.models import Sale
+from django.conf import settings
+from dotenv import load_dotenv
+
+load_dotenv()
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
 
 
 def get_stripe_link(product_name: str, total: float,
@@ -70,4 +75,31 @@ def get_stripe_link_sale(sale: Sale):
     )
     
     return stripe_link
+
+
+def get_stripe_transaction_link(amount: float) -> str:
+    """ Get last sale of a client
+    
+    Args:
+        client_email (str): client email
+        
+    Returns:
+        str: stripe checkout link
+    """
+    
+    # Set stripe api key
+    stripe.api_key = STRIPE_API_KEY
+    
+    # Filter sucess payment with specific amount
+    query = f'status:"succeeded" amount:{int(amount * 100)}'
+    payments = stripe.PaymentIntent.search(query=query)
+    if not payments:
+        return None
+    
+    # Get last payment link
+    last_payment = payments.data[0]
+    stripe_id = last_payment.id
+    stripe_link = f"https://dashboard.stripe.com/payments/{stripe_id}"
+    return stripe_link
+    
     
