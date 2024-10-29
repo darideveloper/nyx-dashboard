@@ -91,7 +91,7 @@ def get_stripe_transaction_link(amount: float) -> str:
     stripe.api_key = STRIPE_API_KEY
     
     # Filter sucess payment with specific amount
-    query = f'status:"succeeded" amount:{int(amount * 100)}'
+    query = f'status:"succeeded" amount:{int(amount * 10 * 10)}'
     payments = stripe.PaymentIntent.search(query=query)
     if not payments:
         return None
