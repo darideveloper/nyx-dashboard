@@ -290,6 +290,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "https://nyx-dashboard.app.darideveloper.com",
     "https://nyxdashboard.coolify.darideveloper.com",
+    "https://nyx-dashboard.apps.darideveloper.com"
 ]
 
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
