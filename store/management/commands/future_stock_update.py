@@ -20,7 +20,7 @@ class Command(BaseCommand):
             added=False,
             datetime__lte=now
         )
-        logging.info(f"{future_stoks.count()} future stocks to add")
+        logger.info(f"{future_stoks.count()} future stocks to add")
         
         for future_stock in future_stoks:
             
@@ -33,7 +33,7 @@ class Command(BaseCommand):
             current_stock_value = int(current_stock.value) + future_stock.amount
             current_stock.value = str(current_stock_value)
             current_stock.save()
-            logging.info(f"Stock updated to {current_stock_value}")
+            logger.info(f"Stock updated to {current_stock_value}")
             
             # Send email to subscribers
             subscriptions = models.FutureStockSubscription.objects.filter(
@@ -61,4 +61,4 @@ class Command(BaseCommand):
                 subscription.notified = True
                 subscription.save()
                 
-                logging.info(f"Email sent to {subscription.user.email}")
+                logger.info(f"Email sent to {subscription.user.email}")
