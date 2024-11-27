@@ -279,6 +279,18 @@ class Sale(View):
             status=status,
             comments=comments,
         )
+        
+        # Validate stock
+        current_stock = models.StoreStatus.objects.filter(
+            key='current_stock'
+        ).first()
+        current_stock_value = int(current_stock.value) if current_stock else 0
+        if current_stock_value <= 0:
+            return JsonResponse({
+                "status": "error",
+                "message": "No stock available",
+                "data": {}
+            }, status=400)
 
         # Delete old pending sales
         if pending_sales:
@@ -353,18 +365,6 @@ class Sale(View):
 
             # Save the logo file
             sale.logo.save(file_name, ContentFile(logo_data))
-
-        # Validate stok
-        current_stock = models.StoreStatus.objects.filter(
-            key='current_stock'
-        ).first()
-        current_stock_value = int(current_stock.value) if current_stock else 0
-        if current_stock_value <= 0:
-            return JsonResponse({
-                "status": "error",
-                "message": "No stock available",
-                "data": {}
-            }, status=400)
 
         stripe_link = get_stripe_link_sale(sale)
 
