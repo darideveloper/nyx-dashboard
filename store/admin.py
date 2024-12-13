@@ -117,7 +117,7 @@ class PromoCodeTypeAdmin(admin.ModelAdmin):
 @admin.register(models.Sale)
 class SaleAdmin(admin.ModelAdmin):
     actions = [export_sale_to_excel]
-    list_display = ('id', 'user', 'set', 'colors_num', 'promo_code', 'status',
+    list_display = ('id', 'user', 'set', 'colors_num', 'total', 'promo_code', 'status',
                     'created_at', 'updated_at')
     search_fields = ('id', 'user__email', 'tracking_number', 'set__name',
                      'colors_num__num', 'addons__name', 'promo_code__code',

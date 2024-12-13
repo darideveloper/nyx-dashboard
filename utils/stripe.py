@@ -1,13 +1,9 @@
-import os
 import stripe
 import requests
 
-from store.models import Sale
 from django.conf import settings
-from dotenv import load_dotenv
 
-load_dotenv()
-STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
+from store.models import Sale, SaleStatus
 
 
 def get_stripe_link(product_name: str, total: float,
@@ -77,29 +73,50 @@ def get_stripe_link_sale(sale: Sale):
     return stripe_link
 
 
-def get_stripe_transaction_link(amount: float) -> str:
-    """ Get last sale of a client
+def update_transaction_link(sale: Sale) -> bool:
+    """ Get last sale of specific amount and client
     
     Args:
-        client_email (str): client email
+        sale (Sale): sale object
         
     Returns:
-        str: stripe checkout link
+        bool: True if payment found, False otherwise
     """
     
+    payment_found = False
+    
     # Set stripe api key
-    stripe.api_key = STRIPE_API_KEY
+    stripe.api_key = settings.STRIPE_SECRET_KEY
     
-    # Filter sucess payment with specific amount
-    query = f'status:"succeeded" amount:{int(amount * 10 * 10)}'
-    payments = stripe.PaymentIntent.search(query=query)
-    if not payments:
-        return None
+    # Get last payments
+    charges = stripe.Charge.list(status="succeeded", limit=100)
+    if not charges['data']:
+        sale.stripe_link = "No payments found in this stripe account"
     
-    # Get last payment link
-    last_payment = payments.data[0]
-    stripe_id = last_payment.id
-    stripe_link = f"https://dashboard.stripe.com/payments/{stripe_id}"
-    return stripe_link
+    # Get client payments
+    client_charges = []
+    for charge in charges['data']:
+        if charge['billing_details']['email'] == sale.user.email:
+            print(charge['billing_details']['email'], sale.user.email)
+            client_charges.append(charge)
+        
+    # Filter payments by amount
+    for charge in client_charges:
+        if charge['amount'] == sale.total * 100:
+            payment_id = charge['id']
+            sale.stripe_link = f"https://dashboard.stripe.com/payments/{payment_id}"
+            payment_found = True
+            
+    # Return error
+    if not payment_found:
+        sale.stripe_link = "No payment found with this amount for this client"
+   
+    # Add staus and save sale
+    if payment_found:
+        status = SaleStatus.objects.get(value="Paid")
+    else:
+        status = SaleStatus.objects.get(value="Payment Error")
+    sale.status = status
+    sale.save()
     
-    
+    return payment_found

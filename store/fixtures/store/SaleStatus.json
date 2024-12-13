@@ -40,5 +40,12 @@
         "fields": {
             "value": "Delivered"
         }
+    },
+    {
+        "model": "store.SaleStatus",
+        "pk": 7,
+        "fields": {
+            "value": "Payment Error"
+        }
     }
 ]

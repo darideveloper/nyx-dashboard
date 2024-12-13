@@ -13,6 +13,7 @@ from django.core.management import call_command
 from django.utils import timezone
 from django.test import LiveServerTestCase, TestCase
 
+import stripe
 import openpyxl
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -23,7 +24,6 @@ from store import models
 from utils.automation import get_selenium_elems
 
 load_dotenv()
-TEST_STRIPE_ID = os.getenv("TEST_STRIPE_ID")
 
 
 class FutureStockTest(TestCase):
@@ -1147,7 +1147,7 @@ class SaleDoneTest(TestCase):
         self.auth_user = User.objects.create_user(
             username="test@gmail.com",
             password="test_password",
-            email="test@gmail.com"
+            email="test@gmail.com",
         )
         
         # Create initial data
@@ -1179,7 +1179,7 @@ class SaleDoneTest(TestCase):
             postal_code="tets pc",
             street_address="test street",
             phone="test phone",
-            total=100,
+            total=510,
             status=status,
         )
         
@@ -1202,6 +1202,10 @@ class SaleDoneTest(TestCase):
         
         self.redirect_page = settings.LANDING_HOST
         
+        # Connect stripe
+        self.stripe = stripe
+        self.stripe.api_key = settings.STRIPE_SECRET_KEY
+
     def test_get(self):
         
         res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
@@ -1304,33 +1308,70 @@ class SaleDoneTest(TestCase):
             
         # Valdate logo in email
         self.assertNotIn('id="extra-image"', email_html)
+    
+    def test_stripe_no_payments_client(self):
+        """ validate sale with no payment from current client's email """
         
-    def test_invalid_stripe_link(self):
-        """ validate invalid stripe link updated after sale confirmation,"""
+        # Change user email
+        self.sale.user.email = "fake-email-123@gmail.com"
+        self.sale.user.save()
         
-        self.client.get(f"{self.endpoint}/{self.sale.id}/")
-        
-        # Valisate stripe link
-        self.sale.refresh_from_db()
-        self.assertEqual(self.sale.stripe_link, "Error getting stripe link")
-        
-    def test_real_stripe_link(self):
-        """ validate stripe link updated after sale confirmation
-        note: required real sale in stripe with total: 250.0
-        """
-        
-        # Update sale total
-        self.sale.total = 250.0
-        self.sale.save()
-        
-        self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
         
         # Valisate stripe link
         self.sale.refresh_from_db()
         self.assertEqual(
             self.sale.stripe_link,
-            f"https://dashboard.stripe.com/payments/{TEST_STRIPE_ID}"
+            "No payment found with this amount for this client"
         )
+        
+        # Validate redirect to landing with error
+        self.assertEqual(res.status_code, 302)
+        self.redirect_page += f"?sale-id={self.sale.id}&sale-status=error"
+        self.assertEqual(res.url, self.redirect_page)
+        
+    def test_stripe_no_amount_match(self):
+        """ validate sale with payment from current client's email
+            but the amount does not match the sale total
+        """
+        
+        # Update sale total to no match with stripe sample data
+        self.sale.total = 500
+        self.sale.save()
+        
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        
+        # Valisate stripe link
+        self.sale.refresh_from_db()
+        self.assertEqual(
+            self.sale.stripe_link,
+            "No payment found with this amount for this client"
+        )
+        
+        # Validate redirect to landing with error
+        self.assertEqual(res.status_code, 302)
+        self.redirect_page += f"?sale-id={self.sale.id}&sale-status=error"
+        self.assertEqual(res.url, self.redirect_page)
+        
+    def test_stripe_found(self):
+        """ validate sale with payment from current client's email
+            and the amount match the sale total
+        """
+        
+        # Keep sale total to match stripe sample data
+        
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        
+        # Valisate stripe link
+        self.sale.refresh_from_db()
+        self.assertTrue(self.sale.stripe_link.startswith(
+            "https://dashboard.stripe.com/payments/",
+        ))
+        
+        # Validate redirect to landing without error
+        self.assertEqual(res.status_code, 302)
+        self.redirect_page += f"?sale-id={self.sale.id}&sale-status=success"
+        self.assertEqual(res.url, self.redirect_page)
         
         
 class AdminBuyerSaleListTest(LiveServerTestCase):

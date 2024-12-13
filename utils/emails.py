@@ -100,7 +100,6 @@ def send_email(subject: str, first_name: str, last_name: str,
             # Attach an image if provided
             with open(image_temp_path, 'rb') as img:
                 img_data = img.read()
-            print(image_temp_path, image_src, image_base)
             image = MIMEImage(img_data, name=image_base)
             image.add_header('Content-ID', '<image1>')
             message.attach(image)
