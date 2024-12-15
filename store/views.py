@@ -341,31 +341,38 @@ class Sale(View):
         sale.addons.set(addons_objs)
 
         # get image file in base64 and save
-        if logo_base64:
+        try:
+            if logo_base64:
 
-            # Validate logo format
-            match = re.match(
-                r'data:image/(png|svg\+xml);base64,(.*)', logo_base64)
-            if not match:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid logo format',
-                    'data': {}
-                }, status=400)
+                # Validate logo format
+                match = re.match(
+                    r'data:image/(png|svg\+xml);base64,(.*)', logo_base64)
+                if not match:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Invalid logo format',
+                        'data': {}
+                    }, status=400)
 
-            # Get logo parts
-            logo_file_type = match.group(1)
-            logo_base64_string = match.group(2)
-            if logo_file_type == "svg+xml":
-                logo_file_type = "svg"
-            logo_data = base64.b64decode(logo_base64_string)
+                # Get logo parts
+                logo_file_type = match.group(1)
+                logo_base64_string = match.group(2)
+                if logo_file_type == "svg+xml":
+                    logo_file_type = "svg"
+                logo_data = base64.b64decode(logo_base64_string)
 
-            # Create a file name
-            file_name = f'sale_{sale.id}_logo.{logo_file_type}'
+                # Create a file name
+                file_name = f'sale_{sale.id}_logo.{logo_file_type}'
 
-            # Save the logo file
-            sale.logo.save(file_name, ContentFile(logo_data))
-
+                # Save the logo file
+                sale.logo.save(file_name, ContentFile(logo_data))
+        except Exception:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Error saving logo',
+                'data': {}
+            }, status=400)
+        
         stripe_link = get_stripe_link_sale(sale)
 
         return JsonResponse({
