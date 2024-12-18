@@ -406,6 +406,25 @@ class SaleDone(View):
         sale.save()
         paymend_found = update_transaction_link(sale)
         if not paymend_found:
+            
+            # Send error email to client
+            email_texts = [
+                "There was an error with your payment.",
+                "Your order has not been processed.",
+                "Please try again or contact us for support."
+            ]
+                
+            send_email(
+                subject="Nyx Trackers Payment Error",
+                first_name=sale.user.first_name,
+                last_name=sale.user.last_name,
+                texts=email_texts,
+                cta_link=f"{settings.HOST}/admin/",
+                cta_text="Visit dashboard",
+                to_email=sale.user.email,
+            )
+            
+            # Redirect to landing with error
             return redirect(landing_error_page)
 
         # Update stock
