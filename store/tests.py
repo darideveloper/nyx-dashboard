@@ -771,6 +771,66 @@ class SaleTest(TestCase):
         sale = models.Sale.objects.all()[0]
         self.assertTrue(sale.logo.url)
 
+    def test_logo_jpg(self):
+        """ Save sale with a logo in jpg
+        Expect to fail because jpg is not allowed
+        """
+    
+        image_base64 = "data:image/jpg;base64,"
+        image_base64 += self.__get_logo_base64__("logo.jpg")
+            
+        # Add logo to data
+        self.data["logo"] = image_base64
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        self.assertEqual(res.status_code, 400)
+        
+        # Validate No logo file
+        sale = models.Sale.objects.all()[0]
+        self.assertFalse(sale.logo)
+        
+        # Validate error response
+        self.assertEqual(res.json()["status"], "error")
+        self.assertEqual(res.json()["message"], "Invalid logo format")
+        self.assertEqual(res.json()["data"], {})
+    
+    def test_logo_svg_broken(self):
+        """ Save sale with a logo in svg broken
+        Expect to fail because svg base64 is broken
+        """
+    
+        image_base64 = "data:image/svg+xml;base64,"
+        image_base64 += "invalid string"
+            
+        # Add logo to data
+        self.data["logo"] = image_base64
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        self.assertEqual(res.status_code, 400)
+        
+        # Validate logo file
+        sale = models.Sale.objects.all()[0]
+        self.assertFalse(sale.logo)
+        
+        # Validate error response
+        self.assertEqual(res.json()["status"], "error")
+        self.assertEqual(res.json()["message"], "Error saving logo")
+        self.assertEqual(res.json()["data"], {})
+
     def test_1_colors(self):
         """ Save sale with single color (set color) """
         
