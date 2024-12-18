@@ -1413,6 +1413,33 @@ class SaleDoneTest(TestCase):
         self.redirect_page += f"?sale-id={self.sale.id}&sale-status=error"
         self.assertEqual(res.url, self.redirect_page)
         
+    def test_invalid_payment_email(self):
+        """ Validate email sent to client when payment is invalid """
+        
+        # Update sale total to no match with stripe sample data
+        self.sale.total = 500
+        self.sale.save()
+        
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        self.assertEqual(res.status_code, 302)
+        
+        # Validate email sent
+        email = mail.outbox[0]
+        self.assertEqual(email.subject, "Nyx Trackers Payment Error")
+        self.assertEqual(email.to, [self.sale.user.email])
+        self.assertIn("There was an error with your payment.", email.body)
+        self.assertIn("Your order has not been processed.", email.body)
+        self.assertIn("Please try again or contact us for support.", email.body)
+    
+    def test_invalid_payment_no_email_status(self):
+        """ No send status change email when order its invalid """
+        
+        payment_error_status = models.SaleStatus.objects.get(value="Payment Error")
+        self.sale.status = payment_error_status
+        self.sale.save()
+        
+        self.assertEqual(len(mail.outbox), 0)
+    
     def test_stripe_found(self):
         """ validate sale with payment from current client's email
             and the amount match the sale total

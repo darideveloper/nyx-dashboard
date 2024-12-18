@@ -253,9 +253,13 @@ class Sale(models.Model):
                 )
 
             # Send email to user when status change
-            exclude_status = ["Pending", "Paid", "Reminder Sent"]
+            valid_status = [
+                "Manufacturing",
+                "Shipped",
+                "Delivered",
+            ]
             if self.status and sale_old.status != self.status \
-                    and self.status.value not in exclude_status:
+                    and self.status.value in valid_status:
 
                 send_email(
                     subject=f"Order {self.id} {self.status.value}",
