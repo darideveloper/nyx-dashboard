@@ -260,6 +260,41 @@ class Sale(View):
             user=user,
             status__value="Pending"
         )
+        
+        # Delete old pending sales
+        if bool(pending_sales):
+            
+            pending_sales.delete()
+
+            # Submit email to user
+            send_email(
+                subject="Nyx Trackers Sale Updated",
+                first_name=user.first_name,
+                last_name=user.last_name,
+                texts=[
+                    "Your sale has been updated.",
+                    "You will get an email confirmation after payment.",
+                    "Sign up to check your order status in the dashboard.",
+                ],
+                cta_link=f"{settings.HOST}/sign-up",
+                cta_text="Sign up",
+                to_email=user.email,
+            )
+
+            # Submit email to admin
+            send_email(
+                subject="Nyx Trackers Sale Updated by User",
+                first_name="Admin",
+                last_name="",
+                texts=[
+                    f"The sale has been updated by the user {user.email}.",
+                    "Check the sale in the dashboard.",
+                ],
+                cta_link=f"{settings.HOST}/admin/store/sale/"
+                         f"?user__id__exact={user.id}",
+                cta_text="View sale in dashboard",
+                to_email=settings.ADMIN_EMAIL,
+            )
 
         # Create new sale
         sale = models.Sale.objects.create(
@@ -291,41 +326,6 @@ class Sale(View):
                 "message": "No stock available",
                 "data": {}
             }, status=400)
-
-        # Delete old pending sales
-        if pending_sales:
-            
-            pending_sales.delete()
-
-            # Submit email to user
-            send_email(
-                subject="Nyx Trackers Sale Updated",
-                first_name=user.first_name,
-                last_name=user.last_name,
-                texts=[
-                    "Your sale has been updated.",
-                    "You will get an email confirmation after payment.",
-                    "Sign up to check your order status in the dashboard.",
-                ],
-                cta_link=f"{settings.HOST}/sign-up",
-                cta_text="Sign up",
-                to_email=user.email,
-            )
-
-            # Submit email to admin
-            send_email(
-                subject="Nyx Trackers Sale Updated by User",
-                first_name="Admin",
-                last_name="",
-                texts=[
-                    f"The sale {sale.id} has been updated by the user {
-                        user.email}.",
-                    "Check the sale in the dashboard.",
-                ],
-                cta_link=f"{settings.HOST}/admin/store/sale/{sale.id}/change/",
-                cta_text="View sale in dashboard",
-                to_email=settings.ADMIN_EMAIL,
-            )
 
         # Add extra colors
         if colors_num >= 2:
