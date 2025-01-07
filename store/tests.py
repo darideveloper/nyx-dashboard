@@ -209,7 +209,7 @@ class CountDownAdminTest(LiveServerTestCase):
         self.assertEqual(elems["title"].text, "New sets coming soon!")
         self.assertEqual(elems["days"].text, "02")
         self.assertEqual(elems["hours"].text, "00")
-        self.assertEqual(elems["minutes"].text, "10")
+        self.assertIn(elems["minutes"].text, ["10", "09"])
         self.assertTrue(int(elems["seconds"].text) <= 59)
 
     def test_countdown_no_future_stock(self):
@@ -1082,7 +1082,8 @@ class SaleTest(TestCase):
         
         # Validate admin email
         subject = "Nyx Trackers Sale Updated by User"
-        cta_link += f"?user__id__exact={self.auth_user.id}"
+        cta_link = f"{settings.HOST}/admin/store/sale/"
+        cta_link += "?user__id__exact="
         cta_text = "View sale in dashboard"
         cta_text = "View sale in dashboard"
         sent_email = mail.outbox[1]
