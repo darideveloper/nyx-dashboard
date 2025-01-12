@@ -8,7 +8,7 @@ def load_env_variables(request):
     user_grups = request.user.groups.all()
     user_in_admin_group = False
     for group in user_grups:
-        if group.name == "admins":
+        if group.name in ["admins", "supports"]:
             user_in_admin_group = True
             break
         

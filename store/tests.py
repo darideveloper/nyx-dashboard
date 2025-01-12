@@ -26,7 +26,7 @@ from utils.automation import get_selenium_elems
 load_dotenv()
 
 
-class FutureStockTest(TestCase):
+class FutureStockViewTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -347,7 +347,7 @@ class CountDownAdminTest(LiveServerTestCase):
         self.assertEqual(elems["btn"].text, "No Sets Left")
         
 
-class FutureStockSubscriptionTest(TestCase):
+class FutureStockSubscriptionViewTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -549,7 +549,7 @@ class FutureStockSubscriptionTest(TestCase):
         self.assertEqual(res.json()["message"], "Subscription not found")
 
 
-class SaleTest(TestCase):
+class SaleViewTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -1251,7 +1251,7 @@ class CurrentStockViewTest(TestCase):
         self.assertEqual(int(current_stock.value), 0)
         
         
-class SaleDoneTest(TestCase):
+class SaleDoneViewTest(TestCase):
 
     def setUp(self):
         """ Create initial data """
@@ -1514,7 +1514,7 @@ class SaleDoneTest(TestCase):
         self.assertEqual(res.url, self.redirect_page)
         
         
-class AdminBuyerSaleListTest(LiveServerTestCase):
+class SaleAdminListTest(LiveServerTestCase):
     """ Validate buyers custom functions in sale list view """
     
     def setUp(self):
@@ -1744,7 +1744,7 @@ class AdminBuyerSaleListTest(LiveServerTestCase):
         self.assertEqual(len(rows), 2)
 
 
-class AdminBuyerSaleChangeTest(LiveServerTestCase):
+class SaleAdminChangeTest(LiveServerTestCase):
     """ Validate buyers custom functions in sale change view """
     
     def setUp(self):
@@ -2007,7 +2007,7 @@ class SaleModelTest(TestCase):
         self.assertEqual(len(mail.outbox), 0)
 
 
-class PromoCodeTest(TestCase):
+class PromoCodeViewTest(TestCase):
     
     def setUp(self):
         
@@ -2079,7 +2079,7 @@ class PromoCodeTest(TestCase):
         )
         
         
-class AdminSaleExportExcel(LiveServerTestCase):
+class SaleAdminExportExcel(LiveServerTestCase):
     
     def setUp(self):
         """ Create initial data """
@@ -2375,7 +2375,7 @@ class AdminSaleExportExcel(LiveServerTestCase):
             pass
         else:
             self.fail("Regular user should not be able to export")
-            
+           
             
 class PendingOderViewTest(TestCase):
     
@@ -2484,4 +2484,224 @@ class PendingOderViewTest(TestCase):
         self.assertEqual(data["status"], "success")
         self.assertEqual(data["message"], "Pending orders status")
         self.assertEqual(data["data"]["has_pending_order"], False)
+
+
+class SaleAdminQuerySetTest(LiveServerTestCase):
+    """ Validate queryset (visible rows) in admin sale view
+    for each user group
+    """
+    
+    def setUp(self):
+        
+        # Create a user
+        self.auth_username_1 = "test1@gmail.com"
+        self.auth_username_2 = "test2@gmail.com"
+        self.auth_username_3 = "test3@gmail.com"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username_1,
+            password=self.password,
+            is_staff=True,
+            first_name="first",
+            last_name="last",
+            email="test@mail.com",
+        )
+        
+        # Create second user
+        self.auth_user_2 = User.objects.create_user(
+            self.auth_username_2,
+            password=self.password,
+            is_staff=True,
+            first_name="first",
+            last_name="last",
+            email="test2@mail.com",
+        )
+        
+        # Create third user
+        self.auth_user_3 = User.objects.create_user(
+            self.auth_username_3,
+            password=self.password,
+            is_staff=True,
+            first_name="first",
+            last_name="last",
+            email="test3@mail.com",
+        )
+        
+        # Create groups
+        admins_group = Group.objects.create(name='admins')
+        buyers_group = Group.objects.create(name='buyers')
+        support_group = Group.objects.create(name='supports')
+        view_sale_perm = Permission.objects.get(codename='view_sale')
+        admins_group.permissions.add(view_sale_perm)
+        buyers_group.permissions.add(view_sale_perm)
+        support_group.permissions.add(view_sale_perm)
+        
+        # Add permision to users
+        self.auth_user.groups.add(buyers_group)
+        self.auth_user.save()
+        
+        self.auth_user_2.groups.add(admins_group)
+        self.auth_user_2.save()
+        
+        self.auth_user_3.groups.add(support_group)
+        self.auth_user_3.save()
+        
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Create sales
+        set = models.Set.objects.create(
+            name="set name",
+            points=5,
+            price=275,
+            recommended=False,
+            logos=5
+        )
+        colors_num = models.ColorsNum.objects.create(
+            num=4,
+            price=20,
+            details="4 Colors (Trackers and 3 logo colors) +20USD"
+        )
+        color = models.Color.objects.create(name="blue")
+        status = models.SaleStatus.objects.create(value="Pending")
+        promo_code_type = models.PromoCodeType.objects.create(name="amount")
+        promo_code = models.PromoCode.objects.create(
+            code="sample-promo",
+            discount=100,
+            type=promo_code_type,
+        )
+        
+        models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+            promo_code=promo_code,
+        )
+        
+        models.Sale.objects.create(
+            user=self.auth_user_2,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country 2",
+            state="test state 2",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+            promo_code=promo_code,
+        )
+        
+        models.Sale.objects.create(
+            user=self.auth_user_3,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country 3",
+            state="test state 3",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=100,
+            status=status,
+            promo_code=promo_code,
+        )
+        
+    def tearDown(self):
+        """ Close selenium """
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+        
+    def __login__(self, username: str, password: str):
+        """ Login with valid user and password
+        
+        Args:
+            username (str): Username to login
+            password (str): Password to login
+        """
+        
+        # Load home page
+        home_page = self.live_server_url + "/login/"
+        self.driver.get(home_page)
+        
+        # Login
+        selectors = {
+            "username": "input[name='username']",
+            "password": "input[name='password']",
+            "submit": "button[type='submit']",
+        }
+        fields = get_selenium_elems(self.driver, selectors)
+        fields["username"].send_keys(username)
+        fields["password"].send_keys(password)
+        fields["submit"].click()
+        
+        # go to sales page
+        self.driver.get(self.live_server_url + "/admin/store/sale/")
+        sleep(0.1)
+    
+        self.selectors = {
+            "row": '[role="row"]'
+        }
+        
+    def test_buyer_own_sales(self):
+        """ Validate buyer be able to see only own sales """
+        
+        self.__login__(self.auth_username_1, self.password)
+        
+        # Valite number of rows
+        rows = self.driver.find_elements(By.CSS_SELECTOR, self.selectors["row"])
+        self.assertEqual(len(rows), 1)
+    
+    def test_admin_all_sales(self):
+        """ Validate admin be able to see all sales """
+        
+        self.__login__(self.auth_username_2, self.password)
+        
+        # Valite number of rows
+        rows = self.driver.find_elements(By.CSS_SELECTOR, self.selectors["row"])
+        self.assertEqual(len(rows), 3)
+    
+    def test_support_all_sales(self):
+        """ Validate support member be able to see all sales """
+        
+        self.__login__(self.auth_username_3, self.password)
+        
+        # Valite number of rows
+        rows = self.driver.find_elements(By.CSS_SELECTOR, self.selectors["row"])
+        self.assertEqual(len(rows), 3)
+        
+        
+        
         
