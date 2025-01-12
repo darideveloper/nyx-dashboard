@@ -1,16 +1,12 @@
 from django.conf import settings
 from store import models
+from utils.admin import is_user_admin
 
 
 def load_env_variables(request):
     
     # Validate if the user is an admin
-    user_grups = request.user.groups.all()
-    user_in_admin_group = False
-    for group in user_grups:
-        if group.name in ["admins", "supports"]:
-            user_in_admin_group = True
-            break
+    user_admin = is_user_admin(request.user)
         
     # Get current number of sets available
     sets_available = False
@@ -22,6 +18,6 @@ def load_env_variables(request):
         
     return {
         'LANDING_HOST': settings.LANDING_HOST,
-        'IS_ADMIN': request.user.is_superuser or user_in_admin_group,
+        'IS_ADMIN': user_admin,
         'SETS_AVAILABLE': sets_available,
     }

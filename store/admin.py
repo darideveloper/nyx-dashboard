@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 
 from store import models
+from utils.admin import is_user_admin
 
 
 def export_sale_to_excel(modelSale, request, queryset):
@@ -133,14 +134,9 @@ class SaleAdmin(admin.ModelAdmin):
         user_auth = request.user
         
         # Validte if user is in "admins" group
-        user_grups = user_auth.groups.all()
-        user_in_admin_group = False
-        for group in user_grups:
-            if group.name in ["admins", "supports"]:
-                user_in_admin_group = True
-                break
+        user_admin = is_user_admin(request.user)
                     
-        if not user_auth.is_superuser and not user_in_admin_group:
+        if not user_admin:
             
             # Filter instructions by user
             return models.Sale.objects.filter(user=user_auth)
