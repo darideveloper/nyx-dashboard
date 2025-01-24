@@ -801,7 +801,7 @@ class SaleViewTest(TestCase):
         self.assertEqual(res.json()["message"], "Invalid logo format")
         self.assertEqual(res.json()["data"], {})
     
-    def test_logo_svg_broken(self):
+    def test_invalid_logo(self):
         """ Save sale with a logo in svg broken
         Expect to fail because svg base64 is broken
         """
@@ -822,9 +822,9 @@ class SaleViewTest(TestCase):
         # Validate response
         self.assertEqual(res.status_code, 400)
         
-        # Validate logo file
-        sale = models.Sale.objects.all()[0]
-        self.assertFalse(sale.logo)
+        # Validate sale deleted
+        sales = models.Sale.objects.all()
+        self.assertEqual(sales.count(), 0)
         
         # Validate error response
         self.assertEqual(res.json()["status"], "error")

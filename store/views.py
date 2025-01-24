@@ -355,6 +355,11 @@ class Sale(View):
                 # Save the logo file
                 sale.logo.save(file_name, ContentFile(logo_data))
         except Exception:
+            
+            # Delete sale
+            sale.delete()
+            
+            # Error response
             return JsonResponse({
                 'status': 'error',
                 'message': 'Error saving logo',
