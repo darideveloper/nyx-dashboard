@@ -314,18 +314,6 @@ class Sale(View):
             status=status,
             comments=comments,
         )
-        
-        # Validate stock
-        current_stock = models.StoreStatus.objects.filter(
-            key='current_stock'
-        ).first()
-        current_stock_value = int(current_stock.value) if current_stock else 0
-        if current_stock_value <= 0:
-            return JsonResponse({
-                "status": "error",
-                "message": "No stock available",
-                "data": {}
-            }, status=400)
 
         # Add extra colors
         if colors_num >= 2:
@@ -374,6 +362,18 @@ class Sale(View):
             }, status=400)
         
         stripe_link = get_stripe_link_sale(sale)
+        
+        # Validate stock
+        current_stock = models.StoreStatus.objects.filter(
+            key='current_stock'
+        ).first()
+        current_stock_value = int(current_stock.value) if current_stock else 0
+        if current_stock_value <= 0:
+            return JsonResponse({
+                "status": "error",
+                "message": "No stock available",
+                "data": {}
+            }, status=400)
 
         return JsonResponse({
             "status": "success",

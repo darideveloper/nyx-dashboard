@@ -967,6 +967,13 @@ class SaleViewTest(TestCase):
     def test_no_stock(self):
         """ Skip sale when there is no stock """
     
+        # Logo path
+        image_base64 = "data:image/svg+xml;base64,"
+        image_base64 += self.__get_logo_base64__("logo.svg")
+            
+        # Add logo to data
+        self.data["logo"] = image_base64
+    
         # Update stock
         self.current_stock.value = "0"
         self.current_stock.save()
@@ -984,6 +991,30 @@ class SaleViewTest(TestCase):
         self.assertEqual(json_data["message"], "No stock available")
         self.assertEqual(json_data["status"], "error")
         self.assertEqual(json_data["data"], {})
+        
+        # Valdiate sale created
+        sales = models.Sale.objects.all()
+        self.assertEqual(sales.count(), 1)
+        
+        # Validate sale content (logo, extras, colors, texts, etc)
+        sale = sales[0]
+        self.assertEqual(sale.status.value, "Pending")
+        self.assertTrue(sale.logo)
+        self.assertEqual(sale.addons.count(), 2)
+        self.assertEqual(sale.set.name, self.data["set"])
+        self.assertEqual(sale.colors_num.num, self.data["colors_num"])
+        self.assertEqual(sale.color_set.name, self.data["set_color"])
+        self.assertEqual(sale.logo_color_1.name, self.data["logo_color_1"])
+        self.assertEqual(sale.logo_color_2.name, self.data["logo_color_2"])
+        self.assertEqual(sale.logo_color_3.name, self.data["logo_color_3"])
+        self.assertEqual(sale.full_name, self.data["full_name"])
+        self.assertEqual(sale.country, self.data["country"])
+        self.assertEqual(sale.state, self.data["state"])
+        self.assertEqual(sale.city, self.data["city"])
+        self.assertEqual(sale.postal_code, self.data["postal_code"])
+        self.assertEqual(sale.street_address, self.data["street_address"])
+        self.assertEqual(sale.phone, self.data["phone"])
+        self.assertEqual(sale.comments, self.data["comments"])
         
     def test_no_comments(self):
         """ Save sale without comments """
