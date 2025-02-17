@@ -71,4 +71,8 @@
   color: #2C3333 !important;
 }
 
-/*# sourceMappingURL=custom.css.map */
+@media screen and (max-width: 500px) {
+  footer.main-footer {
+    text-align: center !important;
+  }
+}/*# sourceMappingURL=custom.css.map */
