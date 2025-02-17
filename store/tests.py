@@ -680,11 +680,10 @@ class SaleViewTest(TestCase):
         self.assertEqual(promo_type_obj.count(), 1)
         self.assertEqual(promo_type_obj[0].name, promo_type)
 
-        # Validate promo
+        # Validate promo (no auto created)
         promo_data = self.data["promo"]
         promo_obj = models.PromoCode.objects.filter(code=promo_data["code"])
-        self.assertEqual(promo_obj.count(), 1)
-        self.assertEqual(promo_obj[0].discount, promo_data["discount"]["value"])
+        self.assertEqual(promo_obj.count(), 0)
 
         # Validate sale data
         sale_obj = models.Sale.objects.all()
@@ -697,7 +696,7 @@ class SaleViewTest(TestCase):
         self.assertEqual(sale_obj[0].logo_color_2, colors_objs["logo_color_2"])
         self.assertEqual(sale_obj[0].logo_color_3, colors_objs["logo_color_3"])
         self.assertEqual(sale_obj[0].logo, "")
-        self.assertEqual(sale_obj[0].promo_code, promo_obj[0])
+        self.assertEqual(sale_obj[0].promo_code, None)
         self.assertEqual(sale_obj[0].full_name, self.data["full_name"])
         self.assertEqual(sale_obj[0].country, self.data["country"])
         self.assertEqual(sale_obj[0].state, self.data["state"])
@@ -718,7 +717,6 @@ class SaleViewTest(TestCase):
         total += colors_num_obj.price
         for addon in addons:
             total += addon.price
-        total -= promo_obj[0].discount
         total = round(total, 2)
         self.assertEqual(sale_obj[0].total, total)
 
@@ -1214,7 +1212,138 @@ class SaleViewTest(TestCase):
         # Validate unique sale for the user
         sales = models.Sale.objects.all()
         self.assertEqual(sales.count(), 1)
+    
+    def test_no_promo_code(self):
         
+        # Delete default promo codes
+        models.PromoCode.objects.all().delete()
+
+        # Send data
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+        
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        
+        # Validate total
+        total = 0
+        colors_num_obj = models.ColorsNum.objects.get(
+            id=self.data["colors_num"]
+        )
+        set_obj = models.Set.objects.get(name=self.data["set"])
+        total += colors_num_obj.price
+        total += set_obj.price
+        extras = models.Addon.objects.filter(
+            name__in=self.data["included_extras"]
+        )
+        extras_total = sum([extra.price for extra in extras])
+        total += extras_total
+        
+        # Validate total and promo code
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(sale.promo_code, None)
+        self.assertEqual(sale.total, total)
+        
+    def test_promo_code_amount(self):
+        
+        # Delete default promo codes
+        models.PromoCode.objects.all().delete()
+        
+        # Create promo code
+        promo_code = models.PromoCode.objects.create(
+            code="test-promo",
+            discount=100,
+            type=models.PromoCodeType.objects.get(name="amount"),
+        )
+        
+        # Add promo code to data
+        self.data["promo"]["code"] = promo_code.code
+        self.data["promo"]["discount"] = {
+            "type": promo_code.type.name,
+            "value": promo_code.discount,
+        }
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+        
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        
+        # Validate total
+        total = 0
+        colors_num_obj = models.ColorsNum.objects.get(
+            id=self.data["colors_num"]
+        )
+        set_obj = models.Set.objects.get(name=self.data["set"])
+        total += colors_num_obj.price
+        total += set_obj.price
+        extras = models.Addon.objects.filter(
+            name__in=self.data["included_extras"]
+        )
+        extras_total = sum([extra.price for extra in extras])
+        total += extras_total
+        
+        # Validate total and promo code
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(sale.promo_code, promo_code)
+        self.assertEqual(sale.total, total - promo_code.discount)
+        
+    def test_promo_code_percentage(self):
+        
+        # Delete default promo codes
+        models.PromoCode.objects.all().delete()
+        
+        # Create promo code
+        promo_code = models.PromoCode.objects.create(
+            code="test-promo",
+            discount=10,
+            type=models.PromoCodeType.objects.get(name="percentage"),
+        )
+        
+        # Add promo code to data
+        self.data["promo"]["code"] = promo_code.code
+        self.data["promo"]["discount"] = {
+            "type": promo_code.type.name,
+            "value": promo_code.discount,
+        }
+        
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+        
+        # Validate response
+        self.assertEqual(res.status_code, 200)
+        
+        # Validate total
+        total = 0
+        colors_num_obj = models.ColorsNum.objects.get(
+            id=self.data["colors_num"]
+        )
+        set_obj = models.Set.objects.get(name=self.data["set"])
+        total += colors_num_obj.price
+        total += set_obj.price
+        extras = models.Addon.objects.filter(
+            name__in=self.data["included_extras"]
+        )
+        extras_total = sum([extra.price for extra in extras])
+        total += extras_total
+        
+        # Validate total and promo code
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(sale.promo_code, promo_code)
+        self.assertEqual(sale.total, total * (1 - promo_code.discount / 100))
+    
     
 class CurrentStockViewTest(TestCase):
 

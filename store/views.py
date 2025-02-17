@@ -231,17 +231,21 @@ class Sale(View):
             )
             addons_objs.append(addon_obj)
 
-        promo_type = promo['discount']['type']
-        promo_value = promo['discount']['value']
-        promo_type_obj = models.PromoCodeType.objects.get(
-            name=promo_type
-        )
+        try:
+            promo_type = promo['discount']['type']
+            promo_value = promo['discount']['value']
+            promo_type_obj = models.PromoCodeType.objects.get(
+                name=promo_type
+            )
 
-        promo_obj, _ = models.PromoCode.objects.get_or_create(
-            code=promo['code'],
-            discount=promo_value,
-            type=promo_type_obj,
-        )
+            promo_obj = models.PromoCode.objects.filter(
+                code=promo['code'],
+                discount=promo_value,
+                type=promo_type_obj,
+            )
+            promo_obj = promo_obj[0]
+        except Exception:
+            promo_obj = None
 
         # Calculate total
         total = 0
@@ -249,7 +253,11 @@ class Sale(View):
         total += colors_num_obj.price
         for addon in addons_objs:
             total += addon.price
-        total -= promo_obj.discount
+        if promo_obj:
+            if promo_obj.type.name == "percentage":
+                total -= total * promo_obj.discount / 100
+            else:
+                total -= promo_obj.discount
         total = round(total, 2)
 
         # Get status
