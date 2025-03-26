@@ -87,6 +87,9 @@ for content_item in content_items:
 
     next_is_table = False
     
+# TODO: GET Locale Codes
+# https://developer.paypal.com/api/nvp-soap/locale-codes/
+    
 print(data)
 with open(COUNTRIES_FILE, "w") as file:
     json.dump(data, file, indent=4)
