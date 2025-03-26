@@ -14,12 +14,28 @@ selectors = {
     "table_base": "table.ppvx_table",
     "row": "tbody tr",
     "name": "td:nth-child(1)",
-    "code": "td:nth-child(2)",
+    "code": "td:nth-child({index})",
     "states_page_content": "div.markdownRendering > article",
 }
 
 
-def get_table_data(rows_num: int, selector_row_base: str):
+def get_table_data(
+    rows_num: int,
+    selector_row_base: str,
+    code_index: int = 2,
+    code_upper: bool = True,
+):
+    """ Get table data from paypal table
+
+    Args:
+        rows_num (int): rows found in table
+        selector_row_base (str): base selector for each row
+        code_index (int, optional): Column number of the code value field. Defaults to 2.
+        code_upper (bool, optional): Convert code values to upper case. Defaults to True.
+
+    Returns:
+        _type_: _description_
+    """
 
     table_data = []
 
@@ -28,12 +44,20 @@ def get_table_data(rows_num: int, selector_row_base: str):
         # Calculate selectors
         row_selector = f"{selector_row_base}:nth-child({row_index})"
         name_selector = f"{row_selector} {selectors['name']}"
-        code_selector = f"{row_selector} {selectors['code']}"
+        code_selector = f"{row_selector} {selectors['code']}".replace(
+            "{index}", str(code_index)
+        )
 
         # Get values
         key = scraper.get_text(name_selector)
-        value = scraper.get_text(code_selector)
-        table_data.append({"name": key.lower(), "code": value.upper()})
+        code = scraper.get_text(code_selector)
+        
+        # Clean code
+        if code_upper:
+            code = code.upper()
+        code = code.replace(" &amp; ", " ")
+        
+        table_data.append({"name": key.lower(), "code": code})
 
     return table_data
 
@@ -78,19 +102,31 @@ for content_item in content_items:
             scraper.get_elems(current_table_selector + " " + selectors["row"])
         )
         table_data = get_table_data(rows_num, row_base_selector)
-        
+
         # Save in full data
-        country_row = list(filter(
-            lambda country: country["name"] == current_country, data
-        ))[0]
+        country_row = list(
+            filter(lambda country: country["name"] == current_country, data)
+        )[0]
         country_row["states"] = table_data
 
     next_is_table = False
-    
-# TODO: GET Locale Codes
-# https://developer.paypal.com/api/nvp-soap/locale-codes/
-    
-print(data)
-with open(COUNTRIES_FILE, "w") as file:
+
+# Get lang codes
+print("Scraping lang codes...")
+scraper.set_page("https://developer.paypal.com/reference/locale-codes/")
+rows_num = len(scraper.get_elems(selectors["row"]))
+data_langs = get_table_data(rows_num, selectors["row"], 5, False)
+
+# Save lang in each country
+for country in data:
+    langs = list(
+        filter(lambda lang: lang["name"] in country["name"], data_langs)
+    )
+    langs_codes = [lang["code"] for lang in langs]
+    country["langs"] = langs_codes
+
+# Save file
+with open(COUNTRIES_FILE, "w", encoding="utf-8") as file:
     json.dump(data, file, indent=4)
+    
 print("Scraping finished")

@@ -14,3 +14,4 @@ staticfiles
 .env.*
 media/
 client-details.txt
+utils/scrapers/countries_states.json
