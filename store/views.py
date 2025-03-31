@@ -16,6 +16,7 @@ from store import models
 from utils.emails import send_email
 from utils.media import get_media_url
 from utils.stripe import get_stripe_link_sale, update_transaction_link
+from utils.paypal import PaypalCheckout
 
 
 class NextFutureStock(View):
@@ -374,7 +375,17 @@ class Sale(View):
                 'data': {}
             }, status=400)
         
-        stripe_link = get_stripe_link_sale(sale)
+        # get payment link
+        paypal_checkout = PaypalCheckout()
+        payment_link = paypal_checkout.get_checkout_link(
+            sale_id=sale.id,
+            title=f"Tracker {sale.set.name} {sale.colors_num.num} colors",
+            price=sale.total,
+            description=f"Set: {sale.set.name} | Colors: {sale.colors_num.num}",
+            image_url=get_media_url(sale.logo),
+            success_url=f"{settings.HOST}/sale-done/{sale.id}/",
+            cancel_url=f"{settings.LANDING_HOST}/?sale-status=error&sale-id={sale.id}",
+        )
         
         # Validate stock
         current_stock = models.StoreStatus.objects.filter(
@@ -392,7 +403,7 @@ class Sale(View):
             "status": "success",
             "message": "Sale saved",
             "data": {
-                "stripe_link": stripe_link,
+                "stripe_link": payment_link,
             },
         })
         
