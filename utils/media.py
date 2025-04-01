@@ -10,6 +10,9 @@ def get_media_url(object_or_url: object) -> str:
     Returns:
         str: url of the image
     """
+    
+    if not object_or_url:
+        return ""
         
     # Get the url string
     url_str = ""

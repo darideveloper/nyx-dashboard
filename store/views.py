@@ -382,9 +382,6 @@ class Sale(View):
             title=f"Tracker {sale.set.name} {sale.colors_num.num} colors",
             price=sale.total,
             description=f"Set: {sale.set.name} | Colors: {sale.colors_num.num}",
-            image_url=get_media_url(sale.logo),
-            success_url=f"{settings.HOST}/sale-done/{sale.id}/",
-            cancel_url=f"{settings.LANDING_HOST}/?sale-status=error&sale-id={sale.id}",
         )
         
         # Validate stock

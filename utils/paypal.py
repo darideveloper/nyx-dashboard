@@ -29,7 +29,6 @@ class PaypalCheckout:
         title: str,
         price: str,
         description: str,
-        image_url: str,
     ) -> str:
         """Get PayPal Checkout URL
 
@@ -38,7 +37,6 @@ class PaypalCheckout:
             title (str): Product title
             price (str): Product price
             description (str): Product description
-            image_url (str): Product image URL
 
         Returns:
             str: PayPal Checkout URL
@@ -75,7 +73,6 @@ class PaypalCheckout:
                             },
                             "quantity": "1",
                             "category": "DIGITAL_GOODS",
-                            "image_url": image_url,
                         }
                     ],
                 }
@@ -94,7 +91,6 @@ class PaypalCheckout:
                     # },
                     "experience_context": {
                         "payment_method_preference": "IMMEDIATE_PAYMENT_REQUIRED",
-                        "brand_name": "Darideveloper",
                         "locale": "en-US",
                         "shipping_preference": "NO_SHIPPING",
                         "return_url": success_page,
@@ -116,7 +112,6 @@ class PaypalCheckout:
             headers=headers,
         )
         order = response.json()
-        print(order)
         response.raise_for_status()
 
         checkout_link = next(
@@ -124,16 +119,3 @@ class PaypalCheckout:
         )
 
         return checkout_link
-
-
-# Example usage
-paypal_checkout = PaypalCheckout()
-checkout_url = paypal_checkout.get_checkout_link(
-    title="Cool Product",
-    price=19.99,
-    description="This is an awesome product!",
-    image_url="https://www.darideveloper.com/imgs/logo.png",
-    sale_id=99,
-)
-
-print(">>>>>>>>>>> PayPal Checkout URL:", checkout_url)
