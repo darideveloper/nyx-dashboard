@@ -287,18 +287,9 @@ JAZZMIN_SETTINGS = {
 }
 
 # Cors
-CORS_ALLOWED_ORIGINS = [
-    "https://www.nyxtrackers.com",
-    "https://dashboard.nyxtrackers.com",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:8000",
-    "https://nyx-dashboard.app.darideveloper.com",
-    "https://nyxdashboard.coolify.darideveloper.com",
-    "https://nyx-dashboard.apps.darideveloper.com"
-]
+CORS_ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS').split(',')
 
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+CSRF_TRUSTED_ORIGINS = os.getenv('ALLOWED_ORIGINS').split(',')
 
 # Storage settings
 if STORAGE_AWS:
