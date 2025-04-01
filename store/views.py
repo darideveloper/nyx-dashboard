@@ -2,6 +2,8 @@ import re
 import json
 import base64
 
+import requests
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
@@ -15,7 +17,7 @@ from django.shortcuts import redirect
 from store import models
 from utils.emails import send_email
 from utils.media import get_media_url
-from utils.stripe import get_stripe_link_sale, update_transaction_link
+from utils.stripe import get_payment_link_sale, update_transaction_link
 from utils.paypal import PaypalCheckout
 
 
@@ -377,12 +379,16 @@ class Sale(View):
         
         # get payment link
         paypal_checkout = PaypalCheckout()
-        payment_link = paypal_checkout.get_checkout_link(
+        links = paypal_checkout.get_checkout_link(
             sale_id=sale.id,
             title=f"Tracker {sale.set.name} {sale.colors_num.num} colors",
             price=sale.total,
             description=f"Set: {sale.set.name} | Colors: {sale.colors_num.num}",
         )
+        
+        # Save order details endpoint in sale
+        sale.payment_link = links["self"]
+        sale.save()
         
         # Validate stock
         current_stock = models.StoreStatus.objects.filter(
@@ -400,7 +406,7 @@ class Sale(View):
             "status": "success",
             "message": "Sale saved",
             "data": {
-                "stripe_link": payment_link,
+                "payment_link": links["payer-action"],
             },
         })
         
@@ -415,19 +421,23 @@ class SaleDone(View):
             sale_id (str): sale id from url
         """
 
+        # Landing page links
         landing_done_page = settings.LANDING_HOST
         landing_error_page = landing_done_page + f"?sale-id={sale_id}&sale-status=error"
-
-        # Get sale
-        sale = models.Sale.objects.filter(id=sale_id).first()
-        if not sale:
+        
+        # Check if sale exists
+        sales = models.Sale.objects.filter(id=sale_id)
+        if not sales:
             return redirect(landing_error_page)
+        sale = sales[0]
 
-        # Get link from stripe
-        sale.save()
-        paymend_found = update_transaction_link(sale)
-        if not paymend_found:
-            
+        # Validate payment in paypal
+        paypal_checkout = PaypalCheckout()
+        payment_done = paypal_checkout.is_payment_done(
+            sale.payment_link
+        )
+        if not payment_done:
+  
             # Send error email to client
             email_texts = [
                 "There was an error with your payment.",
@@ -447,6 +457,12 @@ class SaleDone(View):
             
             # Redirect to landing with error
             return redirect(landing_error_page)
+
+        # Update payment link in sale
+        # TODO: SAVE PAYPAL ORDER LINK
+        # sale.payment_link = ""
+        sale.status = models.SaleStatus.objects.get(value="Paid")
+        sale.save()
 
         # Update stock
         current_stock = models.StoreStatus.objects.get(key='current_stock')

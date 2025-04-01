@@ -6,7 +6,7 @@ from django.conf import settings
 from store.models import Sale, SaleStatus
 
 
-def get_stripe_link(product_name: str, total: float,
+def get_payment_link(product_name: str, total: float,
                     description: str, email: str, sale_id: str) -> dict:
     """ Send data to stripe api and return stripe url
 
@@ -44,7 +44,7 @@ def get_stripe_link(product_name: str, total: float,
     return res_data["stripe_url"]
 
 
-def get_stripe_link_sale(sale: Sale):
+def get_payment_link_sale(sale: Sale):
     """ Send data to stripe api and return stripe url
         using sale object
         
@@ -62,7 +62,7 @@ def get_stripe_link_sale(sale: Sale):
     description += f"Client Email: {sale.user.email} | "
     description += f"Client Full Name: {sale.full_name} | "
     
-    stripe_link = get_stripe_link(
+    payment_link = get_payment_link(
         product_name=product_name,
         total=sale.total,
         description=description,
@@ -70,7 +70,7 @@ def get_stripe_link_sale(sale: Sale):
         sale_id=sale.id
     )
     
-    return stripe_link
+    return payment_link
 
 
 def update_transaction_link(sale: Sale) -> bool:
@@ -91,7 +91,7 @@ def update_transaction_link(sale: Sale) -> bool:
     # Get last payments
     charges = stripe.Charge.list(status="succeeded", limit=100)
     if not charges['data']:
-        sale.stripe_link = "No payments found in this stripe account"
+        sale.payment_link = "No payments found in this stripe account"
     
     # Get client payments
     client_charges = []
@@ -104,12 +104,12 @@ def update_transaction_link(sale: Sale) -> bool:
     for charge in client_charges:
         if charge['amount'] == sale.total * 100:
             payment_id = charge['id']
-            sale.stripe_link = f"https://dashboard.stripe.com/payments/{payment_id}"
+            sale.payment_link = f"https://dashboard.stripe.com/payments/{payment_id}"
             payment_found = True
             
     # Return error
     if not payment_found:
-        sale.stripe_link = "No payment found with this amount for this client"
+        sale.payment_link = "No payment found with this amount for this client"
    
     # Add staus and save sale
     if payment_found:

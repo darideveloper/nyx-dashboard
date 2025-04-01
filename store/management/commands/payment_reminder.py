@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from store import models
 from utils.emails import send_email
-from utils.stripe import get_stripe_link_sale
+from utils.stripe import get_payment_link_sale
 
 logger = logging.getLogger()
 
@@ -33,7 +33,7 @@ class Command(BaseCommand):
                 logger.info(f"promo price applied to sale '{sale.id}'")
             
             # Generate new stripe link
-            stripe_link = get_stripe_link_sale(sale)
+            payment_link = get_payment_link_sale(sale)
             
             subject = "Don't forget to pay for your order!"
             texts = [
@@ -54,7 +54,7 @@ class Command(BaseCommand):
                 first_name=sale.user.first_name,
                 last_name=sale.user.last_name,
                 texts=texts,
-                cta_link=stripe_link,
+                cta_link=payment_link,
                 cta_text=cta_text,
                 to_email=sale.user.email
             )

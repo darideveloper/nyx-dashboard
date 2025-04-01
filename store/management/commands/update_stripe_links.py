@@ -17,4 +17,4 @@ class Command(BaseCommand):
         
         for sale in sales:
             update_transaction_link(sale)
-            logger.info(f"Sale {sale} updated: {sale.stripe_link}")
+            logger.info(f"Sale {sale} updated: {sale.payment_link}")
