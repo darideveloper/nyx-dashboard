@@ -73,6 +73,8 @@ class LogInTest(LiveServerTestCase):
         self.fields["username"].send_keys(self.auth_username)
         self.fields["password"].send_keys(self.password)
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
         
         # Validate redirect
         self.assertNotEqual(self.driver.current_url, self.login_url)
@@ -96,6 +98,8 @@ class LogInTest(LiveServerTestCase):
         self.fields["username"].send_keys("invalid email")
         self.fields["password"].send_keys(self.password)
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
         
         # Validate error message
         error_message = self.driver.find_element(
@@ -111,6 +115,8 @@ class LogInTest(LiveServerTestCase):
         self.fields["username"].send_keys(self.auth_username)
         self.fields["password"].send_keys("invalid password")
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
         
         # Validate error message
         error_message = self.driver.find_element(
@@ -129,6 +135,8 @@ class LogInTest(LiveServerTestCase):
         self.fields["username"].send_keys(self.auth_username)
         self.fields["password"].send_keys(self.password)
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
         
         # Validate error message
         error_message = self.driver.find_element(
@@ -215,6 +223,8 @@ class SignUpTest(LiveServerTestCase):
         self.fields["first_name"].send_keys(self.data["first_name"])
         self.fields["last_name"].send_keys(self.data["last_name"])
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
                         
         # Validate user created
         user = User.objects.get(username=self.data["email"])
@@ -281,6 +291,8 @@ class SignUpTest(LiveServerTestCase):
         self.fields["first_name"].send_keys(self.data["first_name"])
         self.fields["last_name"].send_keys(self.data["last_name"])
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
                         
         # Validate user not created
         user = User.objects.filter(username=self.data["email"])
@@ -315,6 +327,8 @@ class SignUpTest(LiveServerTestCase):
         self.fields["first_name"].send_keys(self.data["first_name"])
         self.fields["last_name"].send_keys(self.data["last_name"])
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
         
         # Regular sign up validation
         
@@ -371,6 +385,8 @@ class SignUpTest(LiveServerTestCase):
         self.fields["first_name"].send_keys(self.data["first_name"])
         self.fields["last_name"].send_keys(self.data["last_name"])
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
                         
         # Validate user not created
         user = User.objects.filter(username=self.data["email"])
@@ -397,6 +413,8 @@ class SignUpTest(LiveServerTestCase):
         self.fields["first_name"].send_keys(self.data["first_name"])
         self.fields["last_name"].send_keys(self.data["last_name"])
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
         
         # Validate error message
         error_message = self.driver.find_element(
@@ -414,6 +432,8 @@ class SignUpTest(LiveServerTestCase):
         self.fields["first_name"].send_keys(self.data["first_name"])
         self.fields["last_name"].send_keys(self.data["last_name"])
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
         
         # Validate error message
         error_message = self.driver.find_element(
@@ -433,6 +453,8 @@ class SignUpTest(LiveServerTestCase):
         self.fields["first_name"].send_keys(self.data["first_name"])
         self.fields["last_name"].send_keys(self.data["last_name"])
         self.fields["submit"].click()
+        sleep(3)
+        sleep(3)
         
         # Validate fotm no sent / user no created
         user = User.objects.filter(username="invalid email")
@@ -501,6 +523,7 @@ class AdminTest(LiveServerTestCase):
         fields["username"].send_keys(self.auth_username)
         fields["password"].send_keys(self.password)
         fields["submit"].click()
+        sleep(3)
         
         # go to admin
         admin_page = self.live_server_url + "/admin/"
@@ -818,6 +841,7 @@ class ForgottenPassTest(LiveServerTestCase):
         # Submit form
         fields["email"].send_keys(self.auth_username)
         fields["submit"].click()
+        sleep(3)
         
         # Validate email sent
         self.assertEqual(len(mail.outbox), 1)
@@ -871,6 +895,7 @@ class ForgottenPassTest(LiveServerTestCase):
         # Submit form
         fields["email"].send_keys("no-user@gmail.com")
         fields["submit"].click()
+        sleep(3)
         
         # Validate no email sent
         self.assertEqual(len(mail.outbox), 0)
@@ -1017,6 +1042,7 @@ class ResetPassTest(LiveServerTestCase):
         fields["password1"].send_keys(self.password_valid)
         fields["password2"].send_keys(self.password_valid)
         fields["submit"].click()
+        sleep(3)
                 
         # Validate error message
         self.__validate_sweet_alert__(**self.sweet_alert_data_error)
@@ -1038,6 +1064,7 @@ class ResetPassTest(LiveServerTestCase):
         fields["password1"].send_keys(self.password_valid)
         fields["password2"].send_keys(self.password_valid)
         fields["submit"].click()
+        sleep(3)
         
         # Validate error message
         self.__validate_sweet_alert__(**self.sweet_alert_data_error)
@@ -1054,6 +1081,7 @@ class ResetPassTest(LiveServerTestCase):
         fields["password1"].send_keys(self.password_valid)
         fields["password2"].send_keys(self.password_valid)
         fields["submit"].click()
+        sleep(3)
         
         # Validate error message
         self.__validate_sweet_alert__(
@@ -1074,6 +1102,7 @@ class ResetPassTest(LiveServerTestCase):
         fields["password1"].send_keys(self.password_invalid)
         fields["password2"].send_keys(self.password_invalid)
         fields["submit"].click()
+        sleep(3)
         
         # Validate error message
         error_message = self.driver.find_element(
@@ -1095,6 +1124,7 @@ class ResetPassTest(LiveServerTestCase):
         fields["password1"].send_keys(self.password_valid)
         fields["password2"].send_keys(self.password_valid + "extra text")
         fields["submit"].click()
+        sleep(3)
         
         # Validate error message
         error_message = self.driver.find_element(

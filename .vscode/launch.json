@@ -20,7 +20,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
-            "args": ["test", "store.tests.SaleDoneViewTest"],
+            "args": ["test", ""],
             "django": true,
             "console": "integratedTerminal"
         }
