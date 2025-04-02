@@ -1,11 +1,17 @@
 import json
+from time import sleep
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, LiveServerTestCase
 from django.utils import timezone
+
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 from store import models
 
@@ -159,22 +165,24 @@ class FutureStockUpdateTest(TestCase):
         self.assertEqual(int(self.current_stock.value), 0)
 
 
-class PaymentReminderTest(TestCase):
+class PaymentReminderBaseTest(TestCase):
+    """ Base class with reusable methods for PaymentReminder command """
+    
     def setUp(self):
-        # Auth user
-        self.auth_user = User.objects.create_user(
-            username="test@gmail.com",
-            password="test_password",
-            email="test@gmail.com"
-        )
+        """ Create initial data for tests """
         
-        self.__create_sale__("Pending")
-        
-        self.cron_name = "payment_reminder"
-        
-        # Create data with command
-        call_command("apps_loaddata")
-        
+        # Default email data
+        self.email_data = {
+            "subject": "Don't forget to pay for your order!",
+            "cta_text": "Pay now",
+            "cta_link": "paypal.com/checkoutnow?token=",
+            "texts": [
+                "You have an order pending payment.",
+                "You are one step away from getting your dream Fbt!"
+                " Click here to finish the process."
+            ]
+        }
+    
     def __create_sale__(self, status_str: str):
         """ Create new sale with spaecified status
         
@@ -207,18 +215,6 @@ class PaymentReminderTest(TestCase):
             status=status,
         )
         
-        # Default email data
-        self.email_data = {
-            "subject": "Don't forget to pay for your order!",
-            "cta_text": "Pay now",
-            "cta_link": "checkout.stripe.com",
-            "texts": [
-                "You have an order pending payment.",
-                "You are one step away from getting your dream Fbt!"
-                " Click here to finish the process."
-            ]
-        }
-        
     def __validate_email__(self, email_index: int = 0, is_promo: bool = False):
         """ Validate email content
         
@@ -241,6 +237,28 @@ class PaymentReminderTest(TestCase):
         for text in self.email_data["texts"]:
             self.assertIn(text, sent_email.body)
     
+
+class PaymentReminderTest(PaymentReminderBaseTest):
+    """ Test payment reminder command """
+
+    def setUp(self):
+        
+        super().setUp()
+        
+        # Auth user
+        self.auth_user = User.objects.create_user(
+            username="test@gmail.com",
+            password="test_password",
+            email="test@gmail.com"
+        )
+        
+        self.__create_sale__("Pending")
+        
+        self.cron_name = "payment_reminder"
+        
+        # Create data with command
+        call_command("apps_loaddata")
+        
     def test_send_remainder(self):
         """ Send remainder email and validate content """
         
@@ -334,3 +352,112 @@ class PaymentReminderTest(TestCase):
         # Validate email content
         self.__validate_email__(is_promo=True)
     
+    
+class PaymentReminderTestLive(PaymentReminderBaseTest, LiveServerTestCase):
+    """ Test sales view in chrome (for external resources and validations) """
+    
+    def setUp(self):
+        
+        super().setUp()
+        
+        # Create a user
+        self.auth_username = "test@gmail.com"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username,
+            password=self.password,
+            is_staff=True,
+            first_name="first",
+            last_name="last",
+            email="test@mail.com",
+        )
+        
+        # Save cron name
+        self.cron_name = "payment_reminder"
+        
+        # Create data
+        self.__create_sale__("Pending")
+        call_command("apps_loaddata")
+        
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Global selectors
+        self.selectors = {
+            "email_cta": '.btn-primary a',
+            "checkout_amount": 'header button > span'
+        }
+        
+    def tearDown(self):
+        """ Close selenium """
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+    
+    def test_remainder_checkout_amount(self):
+        """ Send remainder email and validate checkout amount """
+        
+        call_command(self.cron_name)
+        
+        # Validate sale info
+        sale = models.Sale.objects.first()
+        self.assertEqual(sale.reminders_sent, 1)
+        
+        # Get checkout link from email
+        email_content = mail.outbox[0].alternatives[0][0]
+        soup = BeautifulSoup(email_content, "html.parser")
+        cta_link = soup.select_one(self.selectors["email_cta"])["href"]
+        
+        # Open checkout link in selenium
+        self.driver.get(cta_link)
+        sleep(3)
+        
+        # Validate amount
+        amount = self.driver.find_element(
+            By.CSS_SELECTOR,
+            self.selectors["checkout_amount"]
+        ).text.replace("$", "")
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(float(amount), sale.total)
+        
+    def test_remainder_checkout_amount_discount(self):
+        """ Send discount on 3rd remainder """
+        
+        # Create sale in "Reminder Sent" status
+        models.Sale.objects.all().delete()
+        self.__create_sale__("Reminder Sent")
+        sale = models.Sale.objects.first()
+        sale.reminders_sent = 2
+        sale.save()
+        original_total = sale.total
+        
+        call_command(self.cron_name)
+        
+        # Validate sale info
+        sale = models.Sale.objects.first()
+        self.assertEqual(sale.reminders_sent, 3)
+        
+        # Get checkout link from email
+        email_content = mail.outbox[0].alternatives[0][0]
+        soup = BeautifulSoup(email_content, "html.parser")
+        cta_link = soup.select_one(self.selectors["email_cta"])["href"]
+        
+        # Open checkout link in selenium
+        self.driver.get(cta_link)
+        sleep(3)
+        
+        # Validate amount
+        amount = self.driver.find_element(
+            By.CSS_SELECTOR,
+            self.selectors["checkout_amount"]
+        ).text.replace("$", "")
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(float(amount), sale.total)
+        self.assertEqual(float(amount), original_total * 0.85)

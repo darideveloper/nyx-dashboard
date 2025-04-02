@@ -1445,7 +1445,7 @@ class SaleViewTestLive(LiveServerTestCase):
         self.driver.get(payment_link)
         sleep(3)
         
-        # Validate promo code
+        # Validate amount
         amount = self.driver.find_element(
             By.CSS_SELECTOR,
             self.selectors["amount"]
@@ -1481,12 +1481,11 @@ class SaleViewTestLive(LiveServerTestCase):
         self.driver.get(payment_link)
         sleep(3)
         
-        # Validate promo code
+        # Validate amount
         amount = self.driver.find_element(
             By.CSS_SELECTOR,
             self.selectors["amount"]
         ).text.replace("$", "")
-        print(amount)
         sale = models.Sale.objects.all()[0]
         self.assertEqual(float(amount), sale.total)
         

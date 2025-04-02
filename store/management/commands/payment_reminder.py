@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from store import models
 from utils.emails import send_email
-from utils.stripe import get_payment_link_sale
+from utils.paypal import PaypalCheckout
 
 logger = logging.getLogger()
 
@@ -32,8 +32,15 @@ class Command(BaseCommand):
                 sale.total = sale.total * 0.85
                 logger.info(f"promo price applied to sale '{sale.id}'")
             
-            # Generate new stripe link
-            payment_link = get_payment_link_sale(sale)
+            # get payment link
+            paypal_checkout = PaypalCheckout()
+            links = paypal_checkout.get_checkout_link(
+                sale_id=sale.id,
+                title=f"Tracker {sale.set.name} {sale.colors_num.num} colors",
+                price=sale.total,
+                description=f"Set: {sale.set.name} | Colors: {sale.colors_num.num}",
+            )
+            payment_link = links["payer-action"]
             
             subject = "Don't forget to pay for your order!"
             texts = [
