@@ -417,6 +417,9 @@ class SaleDone(View):
             request (HttpRequest): Django request object
             sale_id (str): sale id from url
         """
+        
+        # Get "testing" from get params
+        use_testing = request.GET.get('use_testing', False)
 
         # Landing page links
         landing_done_page = settings.LANDING_HOST
@@ -431,7 +434,8 @@ class SaleDone(View):
         # Validate payment in paypal
         paypal_checkout = PaypalCheckout()
         payment_done = paypal_checkout.is_payment_done(
-            sale.payment_link
+            sale.payment_link,
+            use_testing,
         )
         if not payment_done:
   

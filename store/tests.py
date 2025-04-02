@@ -1634,8 +1634,10 @@ class SaleDoneViewTest(TestCase):
         self.sale.save()
 
     def test_get(self):
+        """ Validate sale already paid """
         
-        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        # Validate sale and force payment validation
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/?use_testing=true")
         
         # Validate redirect
         self.assertEqual(res.status_code, 302)
@@ -1645,6 +1647,21 @@ class SaleDoneViewTest(TestCase):
         # Valisate sale status
         self.sale.refresh_from_db()
         self.assertEqual(self.sale.status.value, "Paid")
+        
+    def test_get_no_paid(self):
+        """ Validate sale not paid """
+        
+        # Validate sale (no force)
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        
+        # Validate redirect
+        self.assertEqual(res.status_code, 302)
+        self.redirect_page += f"?sale-id={self.sale.id}&sale-status=error"
+        self.assertEqual(res.url, self.redirect_page)
+        
+        # Valisate sale status
+        self.sale.refresh_from_db()
+        self.assertEqual(self.sale.status.value, "Pending")
                 
     def test_get_invalid_id(self):
         
@@ -1765,29 +1782,6 @@ class SaleDoneViewTest(TestCase):
         self.sale.save()
         
         self.assertEqual(len(mail.outbox), 0)
-    
-    def test_payment_found(self):
-        """ validate sale with payment from current client's email
-            and the amount match the sale total
-        """
-        
-        # TODO
-        return
-        
-        # Keep sale total to match stripe sample data
-        
-        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
-        
-        # Valisate stripe link
-        self.sale.refresh_from_db()
-        self.assertTrue(self.sale.payment_link.startswith(
-            "https://dashboard.stripe.com/payments/",
-        ))
-        
-        # Validate redirect to landing without error
-        self.assertEqual(res.status_code, 302)
-        self.redirect_page += f"?sale-id={self.sale.id}&sale-status=success"
-        self.assertEqual(res.url, self.redirect_page)
         
         
 class SaleAdminListTest(LiveServerTestCase):

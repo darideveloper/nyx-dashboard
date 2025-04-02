@@ -5,10 +5,10 @@ from django.conf import settings
 
 
 class PaypalCheckout:
-    
+
     def __init__(self):
-        """ Setup global data """
-        
+        """Setup global data"""
+
         access_token = self.__get_access_token__()
         self.headers = {
             "Content-Type": "application/json",
@@ -56,7 +56,7 @@ class PaypalCheckout:
                     "self": checkout details endpoint
                 }
         """
-        
+
         error_page = f"{settings.LANDING_HOST}/?sale-status=error&sale-id={sale_id}"
         success_page = f"{settings.HOST}/api/store/sale-done/{sale_id}/"
 
@@ -111,9 +111,9 @@ class PaypalCheckout:
                         "landing_page": "GUEST_CHECKOUT",
                     },
                 },
-            }
+            },
         }
-        
+
         order = {}
         for _ in range(3):
             try:
@@ -130,28 +130,31 @@ class PaypalCheckout:
                 continue
             else:
                 break
-        
+
         if not order:
             raise Exception("PayPal checkout link generation failed")
-        
+
         # Get links from order response
         links_data = {
             "payer-action": "",
             "self": "",
         }
-        
+
         for link in order["links"]:
             if link["rel"] in links_data.keys():
                 link_name = link["rel"]
                 links_data[link_name] = link["href"]
 
         return links_data
-    
-    def is_payment_done(self, order_details_link: str) -> bool:
-        """ Check if payment is done
+
+    def is_payment_done(
+        self, order_details_link: str, use_testing: bool = False
+    ) -> bool:
+        """Check if payment is done
 
         Args:
             order_details_link (str): PayPal Order Details Link
+            use_testing (bool): Use testing mode (default: False)
 
         Returns:
             bool: True if payment is done, False otherwise
@@ -162,10 +165,10 @@ class PaypalCheckout:
                 order_details_link,
                 headers=self.headers,
             )
-            
+
             json_data = response.json()
             status = json_data["status"]
-            return status == 'APPROVED' or settings.IS_TESTING
+            return status == "APPROVED" or (use_testing and settings.IS_TESTING)
 
         except Exception as e:
             print(e)
