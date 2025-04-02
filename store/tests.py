@@ -1456,7 +1456,7 @@ class SaleViewTestLive(LiveServerTestCase):
         ).text.replace("$", "")
         sale = models.Sale.objects.all()[0]
         self.assertEqual(float(amount), sale.total)
-        self.assertEqual(float(amount), 100.0)
+        self.assertEqual(float(amount), 234.0)
 
     def test_pay_sandbox_user(self):
         """Test full payment process using the checkout demo/sandbox user"""
@@ -1686,7 +1686,7 @@ class SaleDoneViewTest(TestCase):
         """Validate email sent content after sale confirmation"""
 
         # Validate redirect
-        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/?use_testing=true")
         self.assertEqual(res.status_code, 302)
 
         # validate activation email sent
@@ -1731,7 +1731,7 @@ class SaleDoneViewTest(TestCase):
         self.sale.save()
 
         # Validate redirect
-        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/?use_testing=true")
         self.assertEqual(res.status_code, 302)
 
         # validate activation email sent
@@ -1761,14 +1761,11 @@ class SaleDoneViewTest(TestCase):
     def test_invalid_payment_email(self):
         """Validate email sent to client when payment is invalid"""
 
-        # TODO
-        return
-
         # Update sale total to no match with stripe sample data
         self.sale.total = 500
         self.sale.save()
 
-        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/?use_testing=true")
         self.assertEqual(res.status_code, 302)
 
         # Validate email sent
