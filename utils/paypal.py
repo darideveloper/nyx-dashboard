@@ -33,6 +33,19 @@ class PaypalCheckout:
 
         auth_response.raise_for_status()
         return auth_response.json()["access_token"]
+    
+    def capture_payment(self, order_id: str) -> dict:
+        """Capture the payment from PayPal"""
+        capture_url = f"{settings.PAYPAL_API_BASE}/v2/checkout/orders/{order_id}/capture"
+        
+        response = requests.post(
+            capture_url,
+            headers=self.headers,
+        )
+
+        capture_data = response.json()
+        response.raise_for_status()
+        return capture_data
 
     def get_checkout_link(
         self,
@@ -146,7 +159,7 @@ class PaypalCheckout:
                 links_data[link_name] = link["href"]
 
         return links_data
-
+    
     def is_payment_done(
         self, order_details_link: str, use_testing: bool = False
     ) -> bool:
@@ -168,8 +181,13 @@ class PaypalCheckout:
 
             json_data = response.json()
             status = json_data["status"]
-            return status == "APPROVED" or (use_testing and settings.IS_TESTING)
+            
+            if status == "APPROVED":
+                self.capture_payment(json_data["id"])  # Capture the payment
+                return True
 
+            return status == "COMPLETED" or (use_testing and settings.IS_TESTING)
+            
         except Exception as e:
-            print(e)
+            print(f"Error checking payment status: {e}")
             return False
