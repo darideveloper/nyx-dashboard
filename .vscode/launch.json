@@ -20,7 +20,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
-            "args": ["test", "store.tests.SaleDoneViewTest.test_get_no_paid"],
+            "args": ["test", "store.tests.SaleViewTestLive.test_pay_sandbox_user"],
             "django": true,
             "console": "integratedTerminal"
         }
