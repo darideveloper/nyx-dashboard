@@ -655,9 +655,7 @@ class SaleViewTest(TestCase):
         json_res = res.json()
         self.assertEqual(res.status_code, 200)
         self.assertEqual(json_res["message"], "Sale saved")
-        
-        print(json_res)
-        
+                
         # Validate stripe link
         payment_link_base = "paypal.com/checkoutnow?token="
         self.assertTrue(json_res["data"]["payment_link"])
@@ -1348,6 +1346,151 @@ class SaleViewTest(TestCase):
         self.assertEqual(sale.total, total * (1 - promo_code.discount / 100))
     
     
+class SaleViewTestLive(LiveServerTestCase):
+    """ Test sales view in chrome (for external resources and validations) """
+    
+    def setUp(self):
+        
+        # Create a user
+        self.auth_username = "test@gmail.com"
+        self.password = "test_password"
+        self.auth_user = User.objects.create_user(
+            self.auth_username,
+            password=self.password,
+            is_staff=True,
+            first_name="first",
+            last_name="last",
+            email="test@mail.com",
+        )
+        
+        # Create initial data
+        self.endpoint = "/api/store/sale/"
+        call_command("apps_loaddata")
+        
+        # Add current stock to store status
+        self.current_stock = models.StoreStatus.objects.get(key="current_stock")
+        self.current_stock.value = 100
+        self.current_stock.save()
+    
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+        
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Initial data
+        # Initial data
+        self.data = {
+            "email": self.auth_user.email,
+            "set": "basic",
+            "colors_num": 4,
+            "set_color": "blue",
+            "logo_color_1": "white",
+            "logo_color_2": "red",
+            "logo_color_3": "blue",
+            "logo": "",
+            "included_extras": [
+                "Straps",
+                "Wifi 2.4ghz USB Dongle",
+            ],
+            "promo": {
+                "code": "sample-promo",
+                "discount": {
+                    "type": "amount",
+                    "value": 100
+                }
+            },
+            "full_name": "dari",
+            "country": "dev",
+            "state": "street",
+            "city": "ags",
+            "postal_code": "20010",
+            "street_address": "street 1",
+            "phone": "12323123",
+            "comments": "test comments"
+        }
+        
+        self.selectors = {
+            "amount": 'header button > span'
+        }
+        
+    def tearDown(self):
+        """ Close selenium """
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+        
+    def test_checkout_total(self):
+        """ Test generate sale with no promo code and valdiate amount in checkout """
+        
+        # Submit sale
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        json_res = res.json()
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(json_res["message"], "Sale saved")
+        
+        # Open checkout page
+        payment_link = json_res["data"]["payment_link"]
+        self.driver.get(payment_link)
+        sleep(3)
+        
+        # Validate promo code
+        amount = self.driver.find_element(
+            By.CSS_SELECTOR,
+            self.selectors["amount"]
+        ).text.replace("$", "")
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(float(amount), sale.total)
+        
+    def test_checkout_promo_code(self):
+        """ Test generate sale with a promo code and valdiate amount in checkout """
+        
+        # Create promo code
+        models.PromoCode.objects.create(
+            code="sample-promo",
+            discount=100,
+            type=models.PromoCodeType.objects.get(name="amount"),
+        )
+        
+        # Submit sale
+        json_data = json.dumps(self.data)
+        res = self.client.post(
+            self.endpoint,
+            data=json_data,
+            content_type="application/json"
+        )
+
+        # Validate response
+        json_res = res.json()
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(json_res["message"], "Sale saved")
+        
+        # Open checkout page
+        payment_link = json_res["data"]["payment_link"]
+        self.driver.get(payment_link)
+        sleep(3)
+        
+        # Validate promo code
+        amount = self.driver.find_element(
+            By.CSS_SELECTOR,
+            self.selectors["amount"]
+        ).text.replace("$", "")
+        print(amount)
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(float(amount), sale.total)
+        
+    
 class CurrentStockViewTest(TestCase):
 
     def setUp(self):
@@ -1693,15 +1836,6 @@ class SaleAdminListTest(LiveServerTestCase):
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(5)
         
-        # Configure selenium
-        chrome_options = Options()
-        if settings.TEST_HEADLESS:
-            chrome_options.add_argument("--headless")
-        
-        # Start selenium
-        self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver.implicitly_wait(5)
-        
         # Create sales
         set = models.Set.objects.create(
             name="set name",
@@ -1904,15 +2038,6 @@ class SaleAdminChangeTest(LiveServerTestCase):
         # Add permision to only see sale model
         self.auth_user.groups.add(buyers_group)
         self.auth_user.save()
-        
-        # Configure selenium
-        chrome_options = Options()
-        if settings.TEST_HEADLESS:
-            chrome_options.add_argument("--headless")
-        
-        # Start selenium
-        self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver.implicitly_wait(5)
         
         # Configure selenium
         chrome_options = Options()
@@ -2682,15 +2807,6 @@ class SaleAdminQuerySetTest(LiveServerTestCase):
         
         self.auth_user_3.groups.add(support_group)
         self.auth_user_3.save()
-        
-        # Configure selenium
-        chrome_options = Options()
-        if settings.TEST_HEADLESS:
-            chrome_options.add_argument("--headless")
-        
-        # Start selenium
-        self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver.implicitly_wait(5)
         
         # Configure selenium
         chrome_options = Options()

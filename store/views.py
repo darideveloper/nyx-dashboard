@@ -2,8 +2,6 @@ import re
 import json
 import base64
 
-import requests
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
@@ -17,7 +15,6 @@ from django.shortcuts import redirect
 from store import models
 from utils.emails import send_email
 from utils.media import get_media_url
-from utils.stripe import get_payment_link_sale, update_transaction_link
 from utils.paypal import PaypalCheckout
 
 

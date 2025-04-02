@@ -20,7 +20,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
-            "args": ["test", ""],
+            "args": ["test", "store.tests.SaleViewTestLive.test_checkout_promo_code"],
             "django": true,
             "console": "integratedTerminal"
         }
