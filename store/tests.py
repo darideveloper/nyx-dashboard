@@ -1782,6 +1782,7 @@ class SaleAdminListTest(LiveServerTestCase):
         fields["username"].send_keys(self.auth_username)
         fields["password"].send_keys(self.password)
         fields["submit"].click()
+        sleep(3)
         
         # go to sales page
         self.driver.get(self.live_server_url + "/admin/store/sale/")
@@ -1985,6 +1986,7 @@ class SaleAdminChangeTest(LiveServerTestCase):
         fields["username"].send_keys(self.auth_username)
         fields["password"].send_keys(self.password)
         fields["submit"].click()
+        sleep(3)
         
         # go to sales change page
         link = f"{self.live_server_url}/admin/store/sale/{self.sale.id}/change/"
@@ -2341,6 +2343,7 @@ class SaleAdminExportExcel(LiveServerTestCase):
         fields["username"].send_keys(self.username)
         fields["password"].send_keys(self.password)
         fields["submit"].click()
+        sleep(3)
         
         # go to sales page
         self.driver.get(self.live_server_url + "/admin/store/sale/")
@@ -2800,6 +2803,7 @@ class SaleAdminQuerySetTest(LiveServerTestCase):
         fields["username"].send_keys(username)
         fields["password"].send_keys(password)
         fields["submit"].click()
+        sleep(3)
         
         # go to sales page
         self.driver.get(self.live_server_url + "/admin/store/sale/")
