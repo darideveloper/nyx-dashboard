@@ -436,7 +436,9 @@ class SaleDone(View):
         payment_done = paypal_checkout.is_payment_done(
             sale.payment_link,
             use_testing,
+            sale.id,
         )
+        sale.refresh_from_db()
         if not payment_done:
   
             # Send error email to client
@@ -460,8 +462,6 @@ class SaleDone(View):
             return redirect(landing_error_page)
 
         # Update payment link in sale
-        # TODO: SAVE PAYPAL ORDER LINK
-        # sale.payment_link = ""
         sale.status = models.SaleStatus.objects.get(value="Paid")
         sale.save()
 

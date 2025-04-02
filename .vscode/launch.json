@@ -16,11 +16,11 @@
             "program": "${workspaceFolder}\\manage.py"
         },
         {
-            "name": "Django Test",
+            "name": "Python Debugger: Django Test",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
-            "args": ["test", "store.tests.SaleDoneViewTest.test_email"],
+            "args": ["test", "store.tests.SaleViewTestLive.test_pay_sandbox_user"],
             "django": true,
             "console": "integratedTerminal"
         }

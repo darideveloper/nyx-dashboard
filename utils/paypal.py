@@ -2,6 +2,7 @@ from time import sleep
 
 import requests
 from django.conf import settings
+from store.models import Sale
 
 
 class PaypalCheckout:
@@ -33,11 +34,13 @@ class PaypalCheckout:
 
         auth_response.raise_for_status()
         return auth_response.json()["access_token"]
-    
+
     def capture_payment(self, order_id: str) -> dict:
         """Capture the payment from PayPal"""
-        capture_url = f"{settings.PAYPAL_API_BASE}/v2/checkout/orders/{order_id}/capture"
-        
+        capture_url = (
+            f"{settings.PAYPAL_API_BASE}/v2/checkout/orders/{order_id}/capture"
+        )
+
         response = requests.post(
             capture_url,
             headers=self.headers,
@@ -159,15 +162,16 @@ class PaypalCheckout:
                 links_data[link_name] = link["href"]
 
         return links_data
-    
+
     def is_payment_done(
-        self, order_details_link: str, use_testing: bool = False
+        self, order_details_link: str, use_testing: bool = False, sale_id: str = None
     ) -> bool:
         """Check if payment is done
 
         Args:
             order_details_link (str): PayPal Order Details Link
             use_testing (bool): Use testing mode (default: False)
+            sale_id (str): Sale ID (default: None)
 
         Returns:
             bool: True if payment is done, False otherwise
@@ -181,13 +185,33 @@ class PaypalCheckout:
 
             json_data = response.json()
             status = json_data["status"]
-            
-            if status == "APPROVED":
-                self.capture_payment(json_data["id"])  # Capture the payment
-                return True
 
-            return status == "COMPLETED" or (use_testing and settings.IS_TESTING)
-            
+            # Capture the payment
+            if status == "APPROVED":
+                json_data = self.capture_payment(json_data["id"])
+
+            # Update link in sale model
+            try:
+                order_details_id = json_data["purchase_units"][0]["payments"][
+                    "captures"
+                ][0]["id"]
+            except Exception:
+                print("Paypal Error getting order details link")
+                pass
+            else:
+                print("Paypal order details id:", order_details_id)
+                sale = Sale.objects.filter(id=sale_id).first()
+                if sale:
+                    order_details_link = "https://www.paypal.com/unifiedtransactions/"
+                    order_details_link += "details/payment/"
+                    order_details_link += order_details_id
+                    sale.payment_link = order_details_link
+                    sale.save()
+
+            return status in ["COMPLETED", "APPROVED"] or (
+                use_testing and settings.IS_TESTING
+            )
+
         except Exception as e:
-            print(f"Error checking payment status: {e}")
+            print(f"Paypal Error validating payment: {e}")
             return False

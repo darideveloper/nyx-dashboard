@@ -1493,6 +1493,12 @@ class SaleViewTestLive(LiveServerTestCase):
         # Validate sale done status
         sale.refresh_from_db()
         self.assertEqual(sale.status.value, "Paid")
+        
+        # Validate payment link updated
+        self.assertIn(
+            "https://www.paypal.com/unifiedtransactions/details/payment/",
+            sale.payment_link
+        )
 
 
 class CurrentStockViewTest(TestCase):
