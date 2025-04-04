@@ -1767,11 +1767,8 @@ class SaleDoneViewTest(TestCase):
     def test_invalid_payment_email(self):
         """Validate email sent to client when payment is invalid"""
 
-        # Update sale total to no match with stripe sample data
-        self.sale.total = 500
-        self.sale.save()
-
-        res = self.client.get(f"{self.endpoint}/{self.sale.id}/?use_testing=true")
+        # No force test sale (detect invalid payment)
+        res = self.client.get(f"{self.endpoint}/{self.sale.id}/")
         self.assertEqual(res.status_code, 302)
 
         # Validate email sent
