@@ -39,11 +39,17 @@ ALLOWED_HOSTS = ["*"]
 
 # Application definition
 INSTALLED_APPS = [
+    # Local apps
     'landing',
     'user',
     'store',
+    'affiliates',
     'jazzmin',
+    
+    # Modules
     'corsheaders',
+    
+    # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -240,14 +246,18 @@ JAZZMIN_SETTINGS = {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
+        
         "store.Sale": "fas fa-shopping-cart",
         "store.StoreStatus": "fas fa-store",
         "store.FutureStock": "fas fa-calendar-alt",
         "store.FutureStockSubscription": "fas fa-bell",
         "store.PromoCode": "fas fa-percent",
+        
         "landing.Image": "fas fa-image",
         "landing.Text": "fas fa-font",
         "landing.Video": "fas fa-video",
+        
+        "affiliates.Affiliate": "fas fa-user-friends",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
