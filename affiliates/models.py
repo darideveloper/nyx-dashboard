@@ -1,11 +1,22 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models import BooleanField, Case, When
+
+from store import models as store_models
 
 
 class Affiliate(models.Model):
+    """ Affiliate model for managing affiliate information """
+    
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    active = models.BooleanField(default=True)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="affiliate",
+        verbose_name="Usuario",
+        null=True,
+        blank=True,
+    )
     social_media = models.URLField(
         max_length=255,
         blank=True,
@@ -23,3 +34,24 @@ class Affiliate(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+    
+    @property
+    def name(self):
+        return self.user.get_full_name() or self.user.username
+    
+    @property
+    def email(self):
+        return self.user.email
+    
+    @property
+    def active(self):
+        return self.user.is_active
+    
+
+class Comission(store_models.Sale):
+    """ Comission model for affiliates, from store sale"""
+    
+    class Meta:
+        proxy = True
+        verbose_name = "Comisión"
+        verbose_name_plural = "Comisiones"
