@@ -14,7 +14,7 @@ class TestAffiliatesModelsBase(TestCase):
         social_media: str = "https://instagram.com/testuser",
         promo_code: store_models.PromoCode = None,
         balance: float = 0.00,
-    ):
+    ) -> models.Affiliate:
         """
         Helper method to create an Affiliate instance.
 
@@ -33,15 +33,17 @@ class TestAffiliatesModelsBase(TestCase):
             user = User.objects.create_user(
                 username="testuser", email="test@gmail.com", password="testpassword"
             )
-            
+
         # Create promo code if not provided
         if not promo_code:
             promo_code_type = store_models.PromoCodeType.objects.get(name="percentage")
             promo_code = store_models.PromoCode.objects.create(
-                code="TESTCODE", discount=10.00, type=promo_code_type
+                code=f"TESTCODE-{user.username}",
+                discount=10.00,
+                type=promo_code_type,
             )
-            
-        models.Affiliate.objects.create(
+
+        return models.Affiliate.objects.create(
             user=user,
             social_media=social_media,
             promo_code=promo_code,
@@ -53,7 +55,7 @@ class TestAffiliatesModelsBase(TestCase):
         affiliate: models.Affiliate = None,
         total: float = 50.00,
         status: str = "completed",
-    ):
+    ) -> models.Comission:
         """
         Helper method to create a Comission instance.
 

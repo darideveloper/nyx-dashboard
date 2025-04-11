@@ -40,11 +40,12 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 INSTALLED_APPS = [
     # Local apps
+    'jazzmin',
     'landing',
     'user',
     'store',
     'affiliates',
-    'jazzmin',
+    'core',
     
     # Modules
     'corsheaders',
