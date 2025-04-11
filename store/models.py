@@ -152,7 +152,7 @@ class PromoCode(models.Model):
     code = models.CharField(max_length=255, unique=True)
     discount = models.FloatField()
     type = models.ForeignKey(PromoCodeType, on_delete=models.CASCADE)
-
+    
     def __str__(self):
         return self.code
 
