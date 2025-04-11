@@ -1,8 +1,24 @@
 from django.contrib import admin
-from affiliates import models
+from .models import Comission, Affiliate
 
 
-@admin.register(models.Affiliate)
+class AffiliateFilter(admin.SimpleListFilter):
+    title = "Affiliate"
+    parameter_name = "affiliate"
+
+    def lookups(self, request, model_admin):
+        # Provide a list of affiliates for filtering
+        affiliates = Affiliate.objects.all()
+        return [(affiliate.id, affiliate.name) for affiliate in affiliates]
+
+    def queryset(self, request, queryset):
+        # Filter commissions by the selected affiliate
+        if self.value():
+            return queryset.filter(promo_code__affiliate__id=self.value())
+        return queryset
+
+
+@admin.register(Affiliate)
 class AffiliateAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -17,9 +33,7 @@ class AffiliateAdmin(admin.ModelAdmin):
     list_filter = ("user__is_active",)
 
 
-@admin.register(models.Comission)
+@admin.register(Comission)
 class ComissionAdmin(admin.ModelAdmin):
-    list_display = ("created_at", "total")
-    list_filter = ("created_at",)
-    ordering = ("-created_at",)
-    list_per_page = 20
+    list_display = ("created_at", "promo_code", "affiliate", "total", "status")
+    list_filter = (AffiliateFilter, "created_at")

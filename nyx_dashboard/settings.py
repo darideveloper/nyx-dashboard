@@ -223,7 +223,14 @@ JAZZMIN_SETTINGS = {
     "hide_apps": [],
 
     # Hide these models when generating side menu (e.g auth.user)
-    "hide_models": [],
+    "hide_models": [
+        "store.Addon",
+        "store.Color",
+        "store.ColorsNum",
+        "store.PromoCodeType",
+        "store.SaleStatus",
+        "store.Set",
+    ],
 
     # List of apps (and/or models) to base side menu ordering off of
     # (does not need to contain all apps/models)
@@ -258,6 +265,7 @@ JAZZMIN_SETTINGS = {
         "landing.Video": "fas fa-video",
         
         "affiliates.Affiliate": "fas fa-user-friends",
+        "affiliates.Comission": "fas fa-money-bill-wave",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
