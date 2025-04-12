@@ -70,7 +70,7 @@
         "pk": 4,
         "fields": {
             "name": "affiliates",
-            "permissions": [101, 102, 103, 104]
+            "permissions": [104]
         }
     }
 ]
