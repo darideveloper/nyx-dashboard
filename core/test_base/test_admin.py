@@ -12,30 +12,30 @@ from selenium.webdriver.common.by import By
 
 
 class TestAdminBase(TestCase):
-    """ Base class to test admin """
-    
+    """Base class to test admin"""
+
     def setUp(self):
-        """ Load data and create admin user """
-        
+        """Load data and create admin user"""
+
         # Load data
         call_command("apps_loaddata")
-        
+
         # Create admin user
         self.admin_user, self.admin_pass, self.admin = self.create_admin_user()
-        
+
         # Login in client
         self.client.login(username=self.admin_user, password=self.admin_pass)
-    
+
     def create_admin_user(self) -> tuple[str, str, User]:
-        """ Create a new admin user and return it
-        
+        """Create a new admin user and return it
+
         Returns:
             tuple:
                 str: Username of the user created
                 str: Password of the user created
                 User: User created
         """
-        
+
         # Create admin user
         password = "admin"
         user = User.objects.create_superuser(
@@ -43,59 +43,63 @@ class TestAdminBase(TestCase):
             email="test@gmail.com",
             password=password,
         )
-        
+
         return user.username, password, user
 
 
 class TestAdminSeleniumBase(TestAdminBase, LiveServerTestCase):
-    """ Base class to test admin with selenium (login and setup) """
-    
-    def setUp(self, endpoint="/admin/"):
-        """ Load data, setup and login in each test """
+    """Base class to test admin with selenium (login and setup)"""
+
+    def setUp(self, endpoint="/admin/", auto_login: bool = True):
+        """Load data, setup and login in each test
         
+        Args:
+            endpoint (str): Endpoint to open in the browser
+            auto_login (bool): If True, login automatically in the browser
+        """
+
         # Load data
         call_command("apps_loaddata")
-        
+
         # Create admin user
         self.admin_user, self.admin_pass, self.admin = self.create_admin_user()
-        
+
         # Setup selenium
         self.endpoint = endpoint
         self.__setup_selenium__()
-        self.__login__()
+        if auto_login:
+            self.__login__()
 
     def tearDown(self):
-        """ Close selenium """
+        """Close selenium"""
         try:
             self.driver.quit()
         except Exception:
             pass
 
     def __setup_selenium__(self):
-        """ Setup and open selenium browser """
+        """Setup and open selenium browser"""
         chrome_options = Options()
-        
+
         # Run in headless mode if enabled
         if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless=new")
             chrome_options.add_argument("--disable-gpu")
 
         # Allow clipboard access
-        prefs = {
-            "profile.default_content_setting_values.clipboard": 1
-        }
+        prefs = {"profile.default_content_setting_values.clipboard": 1}
         chrome_options.add_experimental_option("prefs", prefs)
 
         # Disable Chrome automation infobars and password save popups
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        chrome_options.add_experimental_option('useAutomationExtension', False)
+        chrome_options.add_experimental_option("useAutomationExtension", False)
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(5)
-    
+
     def __login__(self):
-        
+
         # Load login page and get fields
         self.driver.get(f"{self.live_server_url}/admin/")
         sleep(2)
@@ -112,18 +116,18 @@ class TestAdminSeleniumBase(TestAdminBase, LiveServerTestCase):
 
         # Wait after login
         sleep(3)
-        
+
         # Open page
         self.driver.get(f"{self.live_server_url}{self.endpoint}")
         sleep(2)
-        
+
     def set_page(self, endpoint):
-        """ Set page """
+        """Set page"""
         self.driver.get(f"{self.live_server_url}{endpoint}")
         sleep(2)
-        
+
     def get_selenium_elems(self, selectors: dict) -> dict[str, WebElement]:
-        """ Get selenium elements from selectors
+        """Get selenium elements from selectors
 
         Args:
             selectors (dict): css selectors to find: name, value

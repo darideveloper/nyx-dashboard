@@ -1,13 +1,14 @@
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import User
+from selenium.webdriver.common.by import By
 
 from core.test_base.test_models import TestAffiliatesModelsBase
-from core.test_base.test_admin import TestAdminBase
+from core.test_base.test_admin import TestAdminBase, TestAdminSeleniumBase
 
 from store import models as store_models
 
 
-class ComissionAdminTestCase(TestAdminBase, TestAffiliatesModelsBase):
+class ComissionAdminTestCase(TestAffiliatesModelsBase, TestAdminBase):
     """Test admin views for Comission model as admin user"""
 
     def setUp(self):
@@ -109,7 +110,42 @@ class ComissionAdminTestCase(TestAdminBase, TestAffiliatesModelsBase):
                 self.assertNotIn(self.commission_2_aff2.id, href)
 
 
-class ComissionAdminUserAffiliateTestCase(TestAffiliatesModelsBase):
-    """Test admin views for Comission model as affiliate user"""
+class ComissionAdminTestCaseLive(TestAffiliatesModelsBase, TestAdminSeleniumBase):
+    """Test admin views for Comission model as admin user"""
 
-    pass
+    def setUp(self):
+
+        super().setUp("/admin/affiliates/comission/", auto_login=False)
+
+        # Create affiliate users
+        self.password = "testpassword"
+        self.affiliate_user1 = User.objects.create_user(
+            "test1_aff", "test1@gmail.com", self.password, is_staff=True
+        )
+
+        self.affiliate1 = self.create_affiliate(self.affiliate_user1)
+
+        # Comission for each affiliate
+        self.commission_1_aff1 = self.create_comission(affiliate=self.affiliate1)
+        self.commission_2_aff1 = self.create_comission(affiliate=self.affiliate1)
+        # Global selectors
+        self.selectors = {
+            "rows": "tbody tr",
+            "row_link": "th a",
+        }
+        
+        # Login as affiliate user
+        self.admin_user = self.affiliate_user1.username
+        self.admin_pass = self.password
+        self.__login__()
+        
+    def test_list_vew_links_disable(self):
+        """  Test if the links are disabled for the affiliate user"""
+
+        # Get the rows links
+        links_full_selector = self.selectors["rows"] + " " + self.selectors["row_link"]
+        links = self.driver.find_elements(By.CSS_SELECTOR, links_full_selector)
+        
+        # Check if the links are disabled
+        for link in links:
+            self.assertEqual(link.get_attribute("href"), None)

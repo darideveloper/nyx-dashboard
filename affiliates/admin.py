@@ -23,9 +23,10 @@ class AffiliateAdmin(admin.ModelAdmin):
 class ComissionAdmin(admin.ModelAdmin):
     list_display = ("created_at", "promo_code", "affiliate", "total", "status")
     list_filter = ("promo_code__affiliate", "created_at", "status")
+    list_display_links = ("created_at",)
 
     def get_queryset(self, request):
-
+        
         # Get admin type
         user_auth = request.user
 
@@ -55,3 +56,6 @@ class ComissionAdmin(admin.ModelAdmin):
         affiliates = models.Affiliate.objects.all()
         promo_codes = [affiliate.promo_code for affiliate in affiliates]
         return models.Comission.objects.filter(promo_code__in=promo_codes)
+    
+    class Media:
+        js = ("affiliates/js/disbale_details_link.js",)
