@@ -1787,7 +1787,7 @@ class SaleDoneViewTest(TestCase):
         self.sale.save()
 
         self.assertEqual(len(mail.outbox), 0)
-
+        
 
 class SaleAdminListTest(LiveServerTestCase):
     """Validate buyers custom functions in sale list view"""

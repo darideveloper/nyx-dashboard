@@ -116,7 +116,7 @@ class TestAffiliatesModelsBase(TestCase):
             postal_code="tets pc",
             street_address="test street",
             phone="test phone",
-            total=100,
+            total=random.randint(100, 10000),
             status=store_models.SaleStatus.objects.get(value=status),
             promo_code=promo_code,
         )

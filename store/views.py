@@ -16,6 +16,7 @@ from store import models
 from utils.emails import send_email
 from utils.media import get_media_url
 from utils.paypal import PaypalCheckout
+from affiliates.models import Affiliate
 
 
 class NextFutureStock(View):
@@ -510,7 +511,14 @@ class SaleDone(View):
         )
         
         # Update balance in affiliate program
-        
+        promo_code = sale.promo_code
+        affiliates = Affiliate.objects.filter(
+            promo_code=promo_code
+        )
+        if affiliates:
+            affiliate = affiliates[0]
+            affiliate.balance += sale.total * settings.AFFILIATES_COMMISSION
+            affiliate.save()
         
         # Redirect to landing
         landing_done_page += f"?sale-id={sale_id}&sale-status=success"

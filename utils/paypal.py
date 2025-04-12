@@ -176,6 +176,10 @@ class PaypalCheckout:
         Returns:
             bool: True if payment is done, False otherwise
         """
+        
+        # Simulate payment done in testing mode
+        if use_testing and settings.IS_TESTING:
+            return True
 
         try:
             response = requests.get(
@@ -208,9 +212,7 @@ class PaypalCheckout:
                     sale.payment_link = order_details_link
                     sale.save()
 
-            return status in ["COMPLETED", "APPROVED"] or (
-                use_testing and settings.IS_TESTING
-            )
+            return status in ["COMPLETED", "APPROVED"]
 
         except Exception as e:
             print(f"Paypal Error validating payment: {e}")
