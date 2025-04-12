@@ -508,7 +508,11 @@ class SaleDone(View):
             key_items=sale_data,
             image_src=logo_url
         )
-
+        
+        # Update balance in affiliate program
+        
+        
+        # Redirect to landing
         landing_done_page += f"?sale-id={sale_id}&sale-status=success"
         return redirect(landing_done_page)
 

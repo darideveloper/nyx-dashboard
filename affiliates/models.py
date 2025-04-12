@@ -24,7 +24,7 @@ class Affiliate(models.Model):
     )
     promo_code = models.OneToOneField(
         store_models.PromoCode,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         verbose_name="Código promocional",
         null=True,
         blank=True,
