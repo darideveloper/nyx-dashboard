@@ -1,0 +1,76 @@
+[
+    {
+        "model": "auth.group",
+        "pk": 1,
+        "fields": {
+            "name": "buyers",
+            "permissions": [48]
+        }
+    },
+    {
+        "model": "auth.group",
+        "pk": 2,
+        "fields": {
+            "name": "admins",
+            "permissions": [
+                52,
+                61,
+                62,
+                63,
+                64,
+                13,
+                14,
+                15,
+                16,
+                1,
+                2,
+                3,
+                4,
+                9,
+                10,
+                11,
+                12,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                89,
+                90,
+                91,
+                92,
+                37,
+                38,
+                39,
+                40,
+                45,
+                46,
+                47,
+                48,
+                73,
+                74,
+                75,
+                76
+            ]
+        }
+    },
+    {
+        "model": "auth.group",
+        "pk": 3,
+        "fields": {
+            "name": "supports",
+            "permissions": [52, 46, 48]
+        }
+    },
+    {
+        "model": "auth.group",
+        "pk": 4,
+        "fields": {
+            "name": "affiliates",
+            "permissions": [101, 102, 103, 104]
+        }
+    }
+]
