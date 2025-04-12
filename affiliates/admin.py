@@ -1,24 +1,10 @@
 from django.contrib import admin
-from .models import Comission, Affiliate
+
+from affiliates import models
+from utils.admin import is_user_admin
 
 
-class AffiliateFilter(admin.SimpleListFilter):
-    title = "Affiliate"
-    parameter_name = "affiliate"
-
-    def lookups(self, request, model_admin):
-        # Provide a list of affiliates for filtering
-        affiliates = Affiliate.objects.all()
-        return [(affiliate.id, affiliate.name) for affiliate in affiliates]
-
-    def queryset(self, request, queryset):
-        # Filter commissions by the selected affiliate
-        if self.value():
-            return queryset.filter(promo_code__affiliate__id=self.value())
-        return queryset
-
-
-@admin.register(Affiliate)
+@admin.register(models.Affiliate)
 class AffiliateAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -33,7 +19,39 @@ class AffiliateAdmin(admin.ModelAdmin):
     list_filter = ("user__is_active",)
 
 
-@admin.register(Comission)
+@admin.register(models.Comission)
 class ComissionAdmin(admin.ModelAdmin):
     list_display = ("created_at", "promo_code", "affiliate", "total", "status")
-    list_filter = (AffiliateFilter, "created_at")
+    list_filter = ("promo_code__affiliate", "created_at", "status")
+
+    def get_queryset(self, request):
+
+        # Get admin type
+        user_auth = request.user
+
+        # Validte if user is in "admins" group
+        user_admin = is_user_admin(request.user)
+
+        if not user_admin:
+
+            # Get only done or after affiliate promo code commission
+            visible_states = [
+                "Paid",
+                "Manufacturing",
+                "Shipped",
+                "Delivered",
+            ]
+            promo_codes = models.Affiliate.objects.filter(user=user_auth)
+            if not promo_codes:
+                return models.Comission.objects.none()
+            promo_code = promo_codes[0].promo_code
+            comission_affiliate = models.Comission.objects.filter(promo_code=promo_code)
+            comission_affiliate_valid = comission_affiliate.filter(
+                status__value__in=visible_states
+            )
+            return comission_affiliate_valid
+
+        # Render all promo code comissions
+        affiliates = models.Affiliate.objects.all()
+        promo_codes = [affiliate.promo_code for affiliate in affiliates]
+        return models.Comission.objects.filter(promo_code__in=promo_codes)
