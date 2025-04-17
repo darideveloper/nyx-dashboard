@@ -54,7 +54,7 @@ class Affiliate(models.Model):
 
 
 class Comission(store_models.Sale):
-    """ Comission model for affiliates, from store sale"""
+    """Comission model for affiliates, from store sale"""
 
     class Meta:
         proxy = True
@@ -66,3 +66,29 @@ class Comission(store_models.Sale):
         promo_code = self.promo_code
         affioliate = Affiliate.objects.filter(promo_code=promo_code).first()
         return affioliate if promo_code else None
+
+
+class Payment(models.Model):
+    """Payment model for managing affiliate payments"""
+
+    id = models.AutoField(primary_key=True)
+    affiliate = models.ForeignKey(
+        Affiliate,
+        on_delete=models.CASCADE,
+        related_name="payments",
+        verbose_name="Afiliado",
+    )
+    amount = models.FloatField()
+    payment_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[("PENDING", "Pending"), ("COMPLETED", "Completed")],
+        default="PENDING",
+    )
+
+    class Meta:
+        verbose_name = "Pago"
+        verbose_name_plural = "Pagos"
+
+    def __str__(self):
+        return f"Pago de {self.affiliate.name} - {self.amount} ({self.payment_date})"
