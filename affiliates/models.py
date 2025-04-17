@@ -92,3 +92,22 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Pago de {self.affiliate.name} - {self.amount} ({self.payment_date})"
+
+    def save(self, *args, **kwargs):
+        """Override save method to update affiliate balance"""
+        
+        old_payment = Payment.objects.get(id=self.id) if self.id else None
+        old_payment_status = old_payment.status if old_payment else None
+        
+        super().save(*args, **kwargs)
+        
+        # Reduce the affiliate's balance when payment is completed
+        if self.status == "COMPLETED":
+            self.affiliate.balance -= self.amount
+            self.affiliate.save()
+            
+        # Increase the affiliate's balance when payment is pending
+        # and was completed before
+        elif self.status == "PENDING" and old_payment_status == "COMPLETED":
+            self.affiliate.balance += self.amount
+            self.affiliate.save()
