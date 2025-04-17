@@ -233,6 +233,7 @@ JAZZMIN_SETTINGS = {
         "store.PromoCodeType",
         "store.SaleStatus",
         "store.Set",
+        "landing.Category",
     ],
 
     # List of apps (and/or models) to base side menu ordering off of
@@ -269,6 +270,7 @@ JAZZMIN_SETTINGS = {
         
         "affiliates.Affiliate": "fas fa-user-friends",
         "affiliates.Comission": "fas fa-money-bill-wave",
+        "affiliates.Payment": "fas fa-money-check-alt",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
