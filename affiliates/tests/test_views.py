@@ -2,15 +2,13 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from core.test_base.test_models import TestAffiliatesModelsBase
-from core.test_base.test_admin import TestAdminBase
 
 
-class ComissionAdminTestCase(TestAffiliatesModelsBase, TestAdminBase):
-    """Test admin views for Comission model as admin user"""
+class SaleViewTestCase(TestAffiliatesModelsBase):
+    """ Sale view to validate behavior in affiliate models """
 
     def setUp(self):
 
-        self.endpoint = "/admin/affiliates/comission/"
         super().setUp()
 
         # Create affiliate users
