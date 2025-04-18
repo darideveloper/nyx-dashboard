@@ -76,7 +76,6 @@ class Payment(models.Model):
         Affiliate,
         on_delete=models.CASCADE,
         related_name="payments",
-        verbose_name="Afiliado",
     )
     amount = models.FloatField()
     payment_date = models.DateTimeField(auto_now_add=True)

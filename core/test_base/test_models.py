@@ -33,8 +33,13 @@ class TestAffiliatesModelsBase(TestCase):
 
         # Create django user if not provided
         if not user:
+            random_username = "".join(
+                random.choices(string.ascii_letters + string.digits, k=10)
+            )
             user = User.objects.create_user(
-                username="testuser", email="test@gmail.com", password="testpassword"
+                username=random_username,
+                email="test@gmail.com",
+                password="testpassword",
             )
 
         # Create promo code if not provided
@@ -53,7 +58,7 @@ class TestAffiliatesModelsBase(TestCase):
             promo_code=promo_code,
             balance=balance,
         )
-        
+
         # Create affiliates group and add permissions
         group, group_created = Group.objects.get_or_create(name="affiliates")
         if group_created:
@@ -65,7 +70,7 @@ class TestAffiliatesModelsBase(TestCase):
                 group.permissions.add(permission)
         group.user_set.add(user)
         group.save()
-        
+
         return affiliate
 
     def create_comission(
