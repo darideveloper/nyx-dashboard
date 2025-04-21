@@ -20,7 +20,6 @@ class AffiliateTestCase(TestCase):
         self.affiliate = models.Affiliate.objects.create(
             user=self.user,
             social_media="https://instagram.com/testuser",
-            promo_code="TEST123",
             balance=100.00,
         )
 

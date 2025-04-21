@@ -22,15 +22,23 @@ class PaypalCheckout:
         Returns:
             str: PayPal OAuth2 Access Token
         """
-        auth_response = requests.post(
-            f"{settings.PAYPAL_API_BASE}/v1/oauth2/token",
-            auth=(settings.PAYPAL_CLIENT_ID, settings.PAYPAL_CLIENT_SECRET),
-            data={"grant_type": "client_credentials"},
-            headers={
-                "Accept": "application/json",
-                "Accept-Language": "en_US",
-            },
-        )
+        
+        for _ in range(3):
+            auth_response = requests.post(
+                f"{settings.PAYPAL_API_BASE}/v1/oauth2/token",
+                auth=(settings.PAYPAL_CLIENT_ID, settings.PAYPAL_CLIENT_SECRET),
+                data={"grant_type": "client_credentials"},
+                headers={
+                    "Accept": "application/json",
+                    "Accept-Language": "en_US",
+                },
+            )
+            if auth_response.status_code == 200:
+                break
+            else:
+                print("Error getting PayPal access token. Retrying...")
+                sleep(10)
+                continue
 
         auth_response.raise_for_status()
         return auth_response.json()["access_token"]

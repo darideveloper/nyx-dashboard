@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.management import call_command
 
 from core.test_base.test_models import TestAffiliatesModelsBase
 
@@ -8,6 +9,8 @@ class SaleViewTestCase(TestAffiliatesModelsBase):
     """ Sale view to validate behavior in affiliate models """
 
     def setUp(self):
+        
+        call_command("apps_loaddata")
 
         super().setUp()
 
