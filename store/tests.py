@@ -198,6 +198,16 @@ class CountDownAdminTest(LiveServerTestCase):
         sweet_alert_elems = get_selenium_elems(self.driver, selectors)
         self.assertEqual(sweet_alert_elems["title"].text, title)
         self.assertEqual(sweet_alert_elems["body"].text, body)
+        
+    def __click__(self, selector: str):
+        """ Click an element with js
+        
+        Args:
+            selector (str): element to click
+        """
+        
+        code = f"document.querySelector('{selector}').click()"
+        self.driver.execute_script(code)
 
     def test_countdown(self):
         """Login and validate count down values"""
@@ -236,7 +246,7 @@ class CountDownAdminTest(LiveServerTestCase):
 
         # Click in notify me button
         selector = "#actionButtonNotify"
-        self.driver.find_element(By.CSS_SELECTOR, selector).click()
+        self.__click__(selector)
         sleep(1)
 
         # Validate subscription created
@@ -275,7 +285,7 @@ class CountDownAdminTest(LiveServerTestCase):
             selectors["notify"],
         ]
         for button in buttons_order:
-            self.driver.find_element(By.CSS_SELECTOR, button).click()
+            self.__click__(button)
             sleep(2)
 
         # Validate subscription created
@@ -308,8 +318,8 @@ class CountDownAdminTest(LiveServerTestCase):
 
         # Click in notify me button
         selector = "#actionButtonUnsubscribe"
-        self.driver.find_element(By.CSS_SELECTOR, selector).click()
-        sleep(1)
+        self.__click__(selector)
+        sleep(2)
 
         # Validate subscription created
         subscriptions = models.FutureStockSubscription.objects.all()
@@ -1411,7 +1421,7 @@ class SaleViewTestLive(LiveServerTestCase):
 
         element = self.driver.find_element(By.CSS_SELECTOR, selector)
         element.click()
-        sleep(3)
+        sleep(1)
 
     def __send_text__(self, selector: str, text: str):
         """Send text to element in checkout page
@@ -2475,7 +2485,7 @@ class SaleAdminExportExcel(LiveServerTestCase):
         sleep(2)
 
         # Click submit
-        self.driver.find_element(By.CSS_SELECTOR, self.selectors["submit"]).click()
+        self.__click__(self.selectors["submit"])
         sleep(2)
 
         # Detect new file in download folder
@@ -2528,6 +2538,17 @@ class SaleAdminExportExcel(LiveServerTestCase):
         )
 
         return data[1:]
+    
+    def __click__(self, selector: str):
+        """Click on a selector
+
+        Args:
+            selector (str): Selector to click
+        """
+
+        elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+        elem.click()
+        sleep(1)
 
     def tearDown(self):
         """Close selenium"""
@@ -2553,7 +2574,7 @@ class SaleAdminExportExcel(LiveServerTestCase):
         selector_row_1_checkbox = (
             f"{selector_row_1} {self.selectors['checkbox_select']}"
         )
-        self.driver.find_element(By.CSS_SELECTOR, selector_row_1_checkbox).click()
+        self.__click__(selector_row_1_checkbox)
         sleep(1)
         excel_file_path = self.__download_excel__()
         data = self.__get_excel_data__(excel_file_path)
@@ -2572,9 +2593,7 @@ class SaleAdminExportExcel(LiveServerTestCase):
         """Export 2 sales to excel"""
 
         # Export to excel
-        self.driver.find_element(
-            By.CSS_SELECTOR, self.selectors["checkbox_select_all"]
-        ).click()
+        self.__click__(self.selectors["checkbox_select_all"])
         sleep(1)
         excel_file_path = self.__download_excel__()
         data = self.__get_excel_data__(excel_file_path)
