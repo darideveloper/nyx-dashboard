@@ -58,7 +58,10 @@ class ComissionAdmin(admin.ModelAdmin):
         return models.Comission.objects.filter(promo_code__in=promo_codes)
 
     class Media:
-        js = ("affiliates/js/disbale_details_link.js",)
+        js = (
+            "affiliates/js/disbale_details_link.js",
+            "affiliates/js/disbale_filters.js",
+        )
 
 
 @admin.register(models.Payment)

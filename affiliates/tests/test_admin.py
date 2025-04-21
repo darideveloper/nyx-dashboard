@@ -132,15 +132,24 @@ class ComissionAdminTestCaseLive(TestAffiliatesModelsBase, TestAdminSeleniumBase
         self.selectors = {
             "rows": "tbody tr",
             "row_link": "th a",
+            "filters": {
+                "promo": '[data-name="promo_code__affiliate"]',
+                "date": '[data-name="created_at"]',
+                "status": '[data-name="status"]',
+                "wrapper": '#changelist-search',
+            }
         }
         
-        # Login as affiliate user
+    def __affiliate_login__(self):
+        """ Login as affiliate user """
         self.admin_user = self.affiliate_user1.username
         self.admin_pass = self.password
         self.__login__()
         
-    def test_list_vew_links_disable(self):
+    def test_list_view_links_disable_affiliate(self):
         """  Test if the links are disabled for the affiliate user"""
+        
+        self.__affiliate_login__()
 
         # Get the rows links
         links_full_selector = self.selectors["rows"] + " " + self.selectors["row_link"]
@@ -149,3 +158,40 @@ class ComissionAdminTestCaseLive(TestAffiliatesModelsBase, TestAdminSeleniumBase
         # Check if the links are disabled
         for link in links:
             self.assertEqual(link.get_attribute("href"), None)
+            
+    def test_list_view_links_enable_admin(self):
+        """Test if the links are enabled for the admin user"""
+        
+        self.__login__()
+
+        # Get the rows links
+        links_full_selector = self.selectors["rows"] + " " + self.selectors["row_link"]
+        links = self.driver.find_elements(By.CSS_SELECTOR, links_full_selector)
+        
+        # Check if the links are enabled
+        for link in links:
+            self.assertNotEqual(link.get_attribute("href"), None)
+    
+    def test_list_view_hide_filters_affiliate(self):
+        """Test if the filters are not visible for the affiliate user"""
+        
+        self.__affiliate_login__()
+
+        # Get the filters
+        elems = self.get_selenium_elems(self.selectors["filters"])
+        
+        # Check if the filters are not visible
+        for elem in elems.values():
+            self.assertIsNone(elem)
+
+    def test_list_view_show_filters_admin(self):
+        """Test if the filters are not visible for the admin user"""
+        
+        self.__login__()
+
+        # Get the filters
+        elems = self.get_selenium_elems(self.selectors["filters"])
+                
+        # Check if the filters are not visible
+        for elem in elems.values():
+            self.assertIsNotNone(elem)
