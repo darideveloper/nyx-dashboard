@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.utils.html import format_html
+
 
 from affiliates import models
 from utils.admin import is_user_admin
@@ -10,13 +12,47 @@ class AffiliateAdmin(admin.ModelAdmin):
         "name",
         "email",
         "active",
-        "promo_code",
+        "btns_promo_code",
         "balance",
         "created_at",
         "updated_at",
     )
     search_fields = ("user__username", "user__email", "promo_code__code")
     list_filter = ("user__is_active",)
+
+    # Custom fields
+    def btns_promo_code(self, obj):
+        current_promo_code = obj.promo_code
+        if current_promo_code:
+            link = f"/admin/store/promocode/{current_promo_code.id}/change/"
+            btn_class = "btn-warning btn-edit"
+            btn_text = "Edit"
+            code = current_promo_code.code
+        else:
+            link = f"/api/affiliates/promocode/create/{obj.id}/"
+            btn_class = "btn-success btn-create"
+            btn_text = "Create"
+            code = ""
+            
+        html = """
+        <p class="promocode-wrapper">
+            <a href="{}" class="btn {}">
+                {}
+            </a>
+            <span>{}</span>
+        </p>
+        """
+
+        return format_html(
+            html,
+            link,
+            btn_class,
+            btn_text,
+            code,
+        )
+
+    # Label the custom field
+    btns_promo_code.short_description = "Códigos promocionales"
 
 
 @admin.register(models.Comission)

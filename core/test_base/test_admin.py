@@ -125,6 +125,20 @@ class TestAdminSeleniumBase(TestAdminBase, LiveServerTestCase):
         """Set page"""
         self.driver.get(f"{self.live_server_url}{endpoint}")
         sleep(2)
+        
+    def get_selenium_elem(self, selector: str) -> WebElement:
+        """Get selenium element from selector
+
+        Args:
+            selector (str): css selector to find
+
+        Returns:
+            WebElement: selenium element
+        """
+        try:
+            return self.driver.find_element(By.CSS_SELECTOR, selector)
+        except Exception:
+            return None
 
     def get_selenium_elems(self, selectors: dict) -> dict[str, WebElement]:
         """Get selenium elements from selectors
@@ -137,8 +151,5 @@ class TestAdminSeleniumBase(TestAdminBase, LiveServerTestCase):
         """
         fields = {}
         for key, value in selectors.items():
-            try:
-                fields[key] = self.driver.find_element(By.CSS_SELECTOR, value)
-            except Exception:
-                fields[key] = None
+            fields[key] = self.get_selenium_elem(value)
         return fields

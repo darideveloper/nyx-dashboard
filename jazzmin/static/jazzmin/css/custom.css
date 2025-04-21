@@ -71,6 +71,18 @@
   color: #2C3333 !important;
 }
 
+.promocode-wrapper {
+  display: flex;
+  align-self: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+.promocode-wrapper a {
+  width: 70%;
+  margin: 0 auto;
+}
+
 @media screen and (max-width: 500px) {
   footer.main-footer {
     text-align: center !important;
