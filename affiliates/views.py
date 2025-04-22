@@ -25,14 +25,14 @@ class AffiliatePromoCodeCreateView(View):
             # Update existing promo code
             promo_code = promo_codes.first()
             promo_code.type = promo_code_type
-            promo_code.discount = settings.AFFILIATES_DISCOUNT
+            promo_code.discount = settings.AFFILIATES_DISCOUNT * 100
             promo_code.save()
         else:
             # Create new promo code
             promo_code = store_models.PromoCode(
                 code=affiliate.user.username,
                 type=promo_code_type,
-                discount=settings.AFFILIATES_DISCOUNT,
+                discount=settings.AFFILIATES_DISCOUNT * 100
             )
             promo_code.save()
 
