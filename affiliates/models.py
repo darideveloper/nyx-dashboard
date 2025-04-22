@@ -33,10 +33,6 @@ class Affiliate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        verbose_name = "Afiliado"
-        verbose_name_plural = "Afiliados"
-
     def __str__(self):
         return f"{self.name}"
 
@@ -58,8 +54,6 @@ class Comission(store_models.Sale):
 
     class Meta:
         proxy = True
-        verbose_name = "Comisión"
-        verbose_name_plural = "Comisiones"
 
     @property
     def affiliate(self):
@@ -84,10 +78,6 @@ class Payment(models.Model):
         choices=[("PENDING", "Pending"), ("COMPLETED", "Completed")],
         default="PENDING",
     )
-
-    class Meta:
-        verbose_name = "Pago"
-        verbose_name_plural = "Pagos"
 
     def __str__(self):
         return f"Pago de {self.affiliate.name} - {self.amount} ({self.payment_date})"
