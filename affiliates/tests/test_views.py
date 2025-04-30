@@ -43,5 +43,7 @@ class SaleViewTestCase(TestAffiliatesModelsBase):
         # Validate commission applied
         self.assertEqual(
             self.comission.affiliate.balance,
-            self.comission.total * settings.AFFILIATES_COMMISSION,
+            round(
+                self.comission.total * settings.AFFILIATES_COMMISSION, 2
+            ),
         )
