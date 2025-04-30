@@ -62,10 +62,10 @@ class TestAffiliatesModelsBase(TestCase):
         # Create affiliates group and add permissions
         group, group_created = Group.objects.get_or_create(name="affiliates")
         if group_created:
-            permissionsNames = [
-                "Can view Comisión",
+            permissions_names = [
+                "Can view comission",
             ]
-            permissions = Permission.objects.filter(name__in=permissionsNames)
+            permissions = Permission.objects.filter(name__in=permissions_names)
             for permission in permissions:
                 group.permissions.add(permission)
         group.user_set.add(user)

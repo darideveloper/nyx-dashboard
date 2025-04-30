@@ -8,6 +8,8 @@ from core.test_base.test_admin import TestAdminBase, TestAdminSeleniumBase
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.conf import settings
+from django.contrib.auth.management import create_permissions
+from django.apps import apps
 
 from store import models as store_models
 
@@ -16,6 +18,10 @@ class ComissionAdminTestCase(TestAffiliatesModelsBase, TestAdminBase):
     """Test admin views for Comission model as admin user"""
 
     def setUp(self):
+
+        # Load all apps permissions
+        for app_config in apps.get_app_configs():
+            create_permissions(app_config, verbosity=0)
 
         self.endpoint = "/admin/affiliates/comission/"
         super().setUp()
@@ -297,7 +303,7 @@ class AffiliateAdminListViewwTestCaseLive(
         # Validate promo code updated and assigned to the affiliate
         promo_code.refresh_from_db()
         self.affiliate2.refresh_from_db()
-        self.assertEqual(promo_code.discount, settings.AFFILIATES_DISCOUNT)
+        self.assertEqual(promo_code.discount, settings.AFFILIATES_DISCOUNT * 100)
         self.assertEqual(promo_code.type.name, "percentage")
         self.assertEqual(self.affiliate2.promo_code, promo_code)
 
