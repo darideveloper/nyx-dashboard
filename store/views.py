@@ -599,3 +599,35 @@ class CurrentStock(View):
                 "data": {"current_stock": current_stock_int},
             }
         )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PaymentLink(View):
+    
+    def get(self, request, sale_id: str):
+        """ Get new payment payment link for sale """
+        
+        landing_done_page = settings.LANDING_HOST
+        landing_error_page = landing_done_page + f"?sale-id={sale_id}&sale-status=error"
+        
+        # Get sale
+        sales = models.Sale.objects.filter(id=sale_id)
+        if not sales:
+            return redirect(landing_error_page)
+        sale = sales[0]
+
+        # Get payment link
+        paypal_checkout = PaypalCheckout()
+        links = paypal_checkout.get_checkout_link(
+            sale_id=sale.id,
+            title=f"Tracker {sale.set.name} {sale.colors_num.num} colors",
+            price=sale.total,
+            description=f"Set: {sale.set.name} | Colors: {sale.colors_num.num}",
+        )
+
+        # Save order details endpoint in sale
+        sale.payment_link = links["self"]
+        sale.save()
+        
+        # Redirect to payment link
+        return redirect(links["payer-action"])

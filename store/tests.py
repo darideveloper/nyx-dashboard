@@ -2954,3 +2954,119 @@ class SaleAdminQuerySetTest(LiveServerTestCase):
         # Valite number of rows
         rows = self.driver.find_elements(By.CSS_SELECTOR, self.selectors["row"])
         self.assertEqual(len(rows), 3)
+
+
+class PaymentLinkView(LiveServerTestCase):
+
+    def setUp(self):
+        """Create initial data"""
+
+        # Auth user
+        self.auth_user = User.objects.create_user(
+            username="test@gmail.com",
+            password="test_password",
+            email="test@gmail.com",
+        )
+
+        # Create initial data
+        call_command("apps_loaddata")
+
+        # Create sale
+        set = models.Set.objects.all().first()
+
+        colors_num = models.ColorsNum.objects.all().first()
+
+        color = models.Color.objects.all().first()
+        status = models.SaleStatus.objects.get(value="Pending")
+
+        # Files paths
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        test_files_folder = os.path.join(current_path, "test_files")
+
+        logo_path = os.path.join(test_files_folder, "logo.png")
+
+        self.sale = models.Sale.objects.create(
+            user=self.auth_user,
+            set=set,
+            colors_num=colors_num,
+            color_set=color,
+            full_name="test full name",
+            country="test country",
+            state="test state",
+            city="test city",
+            postal_code="tets pc",
+            street_address="test street",
+            phone="test phone",
+            total=510,
+            status=status,
+        )
+
+        # Add logo to sale
+        logo = SimpleUploadedFile(
+            name="logo.png",
+            content=open(logo_path, "rb").read(),
+            content_type="image/png",
+        )
+        self.sale.logo = logo
+        self.sale.save()
+
+        # Request data
+        self.endpoint = f"/api/store/payment-link/{self.sale.id}/"
+
+        # Set current stock to 100
+        current_stock = models.StoreStatus.objects.get(key="current_stock")
+        current_stock.value = 100
+        current_stock.save()
+        
+        # Configure selenium
+        chrome_options = Options()
+        if settings.TEST_HEADLESS:
+            chrome_options.add_argument("--headless")
+
+        # Start selenium
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.implicitly_wait(5)
+        
+        # Css selectors
+        self.selectors = {
+            "amount": "header button > span",
+        }
+
+    def tearDown(self):
+        """Close selenium"""
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+
+    def test_get_valid_sale(self):
+        """ Test get valid payment link and redirect to paypal """
+        
+        # Open link
+        self.driver.get(self.live_server_url + self.endpoint)
+        sleep(2)
+
+        # Validate paypal link
+        self.assertIn("paypal.com", self.driver.current_url)
+        self.assertIn("checkoutnow", self.driver.current_url)
+        self.assertIn("token", self.driver.current_url)
+
+        # Validate sale data in paypal
+        elems = get_selenium_elems(self.driver, self.selectors)
+        amount = elems["amount"].text
+        amount_clean = float(amount.replace("$", ""))
+        self.assertEqual(amount_clean, self.sale.total)
+        
+    def test_invalid_sale(self):
+        """ Test get invalid payment link and redirect error landing page """
+
+        # Delete sale
+        self.sale.delete()
+
+        # Open link
+        self.driver.get(self.live_server_url + self.endpoint)
+        sleep(2)
+
+        # Validate 404 page
+        self.assertIn("sale-id", self.driver.current_url)
+        self.assertIn("sale-status=error", self.driver.current_url)

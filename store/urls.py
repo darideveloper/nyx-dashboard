@@ -14,4 +14,5 @@ urlpatterns = [
     path('sale-done/<sale_id>/', views.SaleDone.as_view(), name='sale-done'),
     path('promo-code/', views.PromoCode.as_view(), name='promo-code'),
     path('pending-order/', views.PendingOder.as_view(), name='pending-order'),
+    path('payment-link/<sale_id>/', views.PaymentLink.as_view(), name='payment-link'),
 ]

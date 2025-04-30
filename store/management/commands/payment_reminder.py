@@ -1,10 +1,10 @@
 import logging
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 from store import models
 from utils.emails import send_email
-from utils.paypal import PaypalCheckout
 
 logger = logging.getLogger()
 
@@ -24,7 +24,7 @@ class Command(BaseCommand):
         logger.info(f"{sales.count()} sales to remind")
         
         for sale in sales:
-            
+                        
             # 15% of discount to sale if its 3rd reminder
             is_discount = False
             if sale.reminders_sent == 2:
@@ -32,15 +32,8 @@ class Command(BaseCommand):
                 sale.total = sale.total * 0.85
                 logger.info(f"promo price applied to sale '{sale.id}'")
             
-            # get payment link
-            paypal_checkout = PaypalCheckout()
-            links = paypal_checkout.get_checkout_link(
-                sale_id=sale.id,
-                title=f"Tracker {sale.set.name} {sale.colors_num.num} colors",
-                price=sale.total,
-                description=f"Set: {sale.set.name} | Colors: {sale.colors_num.num}",
-            )
-            payment_link = links["payer-action"]
+            # generate payment link
+            payment_link = settings.HOST + f"/api/store/payment-link/{sale.id}/"
             
             subject = "Don't forget to pay for your order!"
             texts = [
