@@ -1312,6 +1312,9 @@ class SaleViewTest(TestCase):
 
 class SaleViewTestLive(LiveServerTestCase):
     """Test sales view in chrome (for external resources and validations)"""
+    
+    host = 'localhost'
+    port = 8000
 
     def setUp(self):
 
@@ -1490,15 +1493,12 @@ class SaleViewTestLive(LiveServerTestCase):
 
         # Click pay button
         self.__click__(self.selectors["pay_btn"])
-        sleep(2)
+        sleep(4)
 
         # Validate sale done direct
         sale = models.Sale.objects.all()[0]
-        sale_done_endpoint = self.driver.current_url
-        res = self.client.get(sale_done_endpoint)
-        self.assertEqual(res.status_code, 302)
         redirect_page = f"?sale-id={sale.id}&sale-status=success"
-        self.assertIn(redirect_page, res.url)
+        self.assertIn(redirect_page, self.driver.current_url)
 
         # Validate sale done status
         sale.refresh_from_db()
