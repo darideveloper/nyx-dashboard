@@ -81,6 +81,8 @@ def generate_pdf(invoice, date, name, city, state, street, pc, country, phone, e
     output.write(output_stream)
     output_stream.close()
     print("Documentos generados correctamente")
+    
+    return new_pdf
 
 #generatePDF("00100", "19 de Mayo de 2025", "Aaron Preziosi Jr", "Billerica", "Massachusetts", "19 Greenville Street", "01821", "United States", "970-988-5711", "wisptech970@gmail.com", "1", "290.24", "14.4", "15.36", "320")
     

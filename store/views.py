@@ -14,6 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
+from django.core.files import File
 
 from store import models
 from utils.emails import send_email
@@ -497,7 +498,7 @@ class SaleDone(View):
         format_date = date.strftime('%d de %B de %Y')
 
         # Generate PDF
-        generate_pdf(
+        pathfile = generate_pdf(
             invoice=invoice_num.value,
             date=str(format_date),
             name=sale_data["Full Name"],
@@ -515,6 +516,13 @@ class SaleDone(View):
             total=str(round(sale_data["Total"],2))
         )
 
+        # Save file
+        filename = os.path.basename(pathfile)
+
+        with open(pathfile, 'rb') as f:
+            sale.invoice_file.save(name=filename, content=File(f), save=True)
+
+        # Increase invoice number
         invoice_num.value = str(int(invoice_num.value) + 1)
         invoice_num.save()
 
