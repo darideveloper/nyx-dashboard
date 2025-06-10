@@ -20,7 +20,7 @@ montserrat = os.path.join (fonts_folder, f"Montserrat-Regular.ttf")
 montserrat_semi_bold = os.path.join (fonts_folder, f"Montserrat-SemiBold.ttf")
 
 
-def generatePDF(invoice, date, name, city, state, street, pc, country, phone, email, quantity, base, igi, paypal, total):
+def generate_pdf(invoice, date, name, city, state, street, pc, country, phone, email, quantity, base, igi, paypal, total):
     packet = io.BytesIO()
     # Fonts with epecific path
     pdfmetrics.registerFont(TTFont('montserrat', montserrat))
@@ -80,6 +80,7 @@ def generatePDF(invoice, date, name, city, state, street, pc, country, phone, em
     output_stream = open(new_pdf, "wb")
     output.write(output_stream)
     output_stream.close()
+    print("Documentos generados correctamente")
 
-generatePDF("00100", "19 de Mayo de 2025", "Aaron Preziosi Jr", "Billerica", "Massachusetts", "19 Greenville Street", "01821", "United States", "970-988-5711", "wisptech970@gmail.com", "1", "290.24", "14.4", "15.36", "320")
-print("Documentos generados correctamente")    
+#generatePDF("00100", "19 de Mayo de 2025", "Aaron Preziosi Jr", "Billerica", "Massachusetts", "19 Greenville Street", "01821", "United States", "970-988-5711", "wisptech970@gmail.com", "1", "290.24", "14.4", "15.36", "320")
+    

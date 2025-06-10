@@ -211,6 +211,7 @@ class Sale(models.Model):
     )
     reminders_sent = models.IntegerField(default=0)
     payment_link = models.CharField(max_length=255, null=True, blank=True)
+    invoice_file = models.FileField(upload_to="invoice_files")
 
     def __str__(self):
         return f"{self.id} - ({self.user}) {self.set}"
