@@ -21,6 +21,7 @@ from utils.media import get_media_url
 from utils.pdf_generator import generate_pdf
 from utils.paypal import PaypalCheckout
 from affiliates.models import Affiliate
+from store.models import StoreStatus
 
 from dotenv import load_dotenv
 
@@ -477,27 +478,27 @@ class SaleDone(View):
 
         # Setup .env file
         load_dotenv()
-        ENV = os.getenv("ENV")
-        env_path = os.path.join(BASE_DIR, f".env.{ENV}")
+        ENV = os.getenv('ENV')
+        env_path = os.path.join(BASE_DIR, f'.env.{ENV}')
         load_dotenv(env_path)
 
-        igi_comission = os.getenv("IGI")
-        paypal_comission = os.getenv("PAYPAL")
+        igi_comission = os.getenv('IGI')
+        paypal_comission = os.getenv('PAYPAL')
         igi = float(sale_data["Total"]) * float(igi_comission) / 100
         paypal = float(sale_data["Total"]) * float(paypal_comission) / 100
         base = float(sale_data["Total"]) - igi - paypal
 
-        invoice_num = ""
+        invoice_num = StoreStatus.objects.filter(key="invoice_num").first()
 
         # Format date
-        locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
-
+        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')  
+        
         date = timezone.now()
-        format_date = date.strftime("%d de %B de %Y")
+        format_date = date.strftime('%d de %B de %Y')
 
         # Generate PDF
         generate_pdf(
-            invoice=invoice_num,
+            invoice=invoice_num.value,
             date=str(format_date),
             name=sale_data["Full Name"],
             city=sale_data["City"],
@@ -508,11 +509,14 @@ class SaleDone(View):
             phone=sale_data["Phone"],
             email=sale_data["Email"],
             quantity="1",
-            base=str(round(base, 2)),
-            igi=str(round(igi, 2)),
-            paypal=str(round(paypal, 2)),
-            total=str(round(sale_data["Total"], 2)),
+            base=str(round(base,2)),
+            igi=str(round(igi,2)),
+            paypal=str(round(paypal,2)),
+            total=str(round(sale_data["Total"],2))
         )
+
+        invoice_num.value = str(int(invoice_num.value) + 1)
+        invoice_num.save()
 
         email_texts = [
             "Your payment has been confirmed!",
