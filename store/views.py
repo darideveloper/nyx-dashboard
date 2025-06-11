@@ -439,27 +439,27 @@ class SaleDone(View):
             sale.id,
         )
         sale.refresh_from_db()
-        # if not payment_done:
+        if not payment_done and settings.ENV == "prod":
 
-        #     # Send error email to client
-        #     email_texts = [
-        #         "There was an error with your payment.",
-        #         "Your order has not been processed.",
-        #         "Please try again or contact us for support.",
-        #     ]
+            # Send error email to client
+            email_texts = [
+                "There was an error with your payment.",
+                "Your order has not been processed.",
+                "Please try again or contact us for support.",
+            ]
 
-        #     send_email(
-        #         subject="Nyx Trackers Payment Error",
-        #         first_name=sale.user.first_name,
-        #         last_name=sale.user.last_name,
-        #         texts=email_texts,
-        #         cta_link=f"{settings.HOST}/admin/",
-        #         cta_text="Visit dashboard",
-        #         to_email=sale.user.email,
-        #     )
+            send_email(
+                subject="Nyx Trackers Payment Error",
+                first_name=sale.user.first_name,
+                last_name=sale.user.last_name,
+                texts=email_texts,
+                cta_link=f"{settings.HOST}/admin/",
+                cta_text="Visit dashboard",
+                to_email=sale.user.email,
+            )
 
-        #     # Redirect to landing with error
-        #     return redirect(landing_error_page)
+            # Redirect to landing with error
+            return redirect(landing_error_page)
 
         # Update payment link in sale
         sale.status = models.SaleStatus.objects.get(value="Paid")
