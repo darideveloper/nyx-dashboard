@@ -3,7 +3,6 @@ import os
 import json
 import base64
 import locale
-from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -23,8 +22,6 @@ from utils.pdf_generator import generate_invoice
 from utils.paypal import PaypalCheckout
 from affiliates.models import Affiliate
 from store.models import StoreStatus
-
-from dotenv import load_dotenv
 
 
 class NextFutureStock(View):
