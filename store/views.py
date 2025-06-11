@@ -474,15 +474,6 @@ class SaleDone(View):
         # Get sale data
         sale_data = sale.get_sale_data_dict()
 
-        # Build paths inside the project like this: BASE_DIR / 'subdir'.
-        BASE_DIR = Path(__file__).resolve().parent.parent
-
-        # Setup .env file
-        load_dotenv()
-        ENV = os.getenv("ENV")
-        env_path = os.path.join(BASE_DIR, f".env.{ENV}")
-        load_dotenv(env_path)
-
         igi_comission = settings.INVOICE_IGI_COMMISSION
         paypal_comission = settings.INVOICE_PAYPAL_COMMISSION
         igi = float(sale_data["Total"]) * float(igi_comission) / 100
