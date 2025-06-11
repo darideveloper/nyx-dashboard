@@ -1817,7 +1817,7 @@ class SaleDoneViewTest(TestCase):
 
         # Validate invoice field no empty
         self.sale.refresh_from_db()
-        self.assertIsNotNone(self.sale.invoice_file)
+        self.assertNotEqual(self.sale.invoice_file.name, "")
         self.assertTrue(self.sale.invoice_file.name.endswith(".pdf"))
         
         # Validate store status updated
@@ -1835,7 +1835,7 @@ class SaleDoneViewTest(TestCase):
         self.assertEqual(self.sale.status.value, "Pending")
 
         # Validate invoice field empty
-        self.assertIsNone(self.sale.invoice_file)
+        self.assertEqual(self.sale.invoice_file.name, "")
 
         # Validate store status not updated
         invoice_num = models.StoreStatus.objects.get(key="invoice_num")
