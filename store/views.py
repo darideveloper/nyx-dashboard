@@ -439,27 +439,27 @@ class SaleDone(View):
             sale.id,
         )
         sale.refresh_from_db()
-        if not payment_done:
+        # if not payment_done:
 
-            # Send error email to client
-            email_texts = [
-                "There was an error with your payment.",
-                "Your order has not been processed.",
-                "Please try again or contact us for support.",
-            ]
+        #     # Send error email to client
+        #     email_texts = [
+        #         "There was an error with your payment.",
+        #         "Your order has not been processed.",
+        #         "Please try again or contact us for support.",
+        #     ]
 
-            send_email(
-                subject="Nyx Trackers Payment Error",
-                first_name=sale.user.first_name,
-                last_name=sale.user.last_name,
-                texts=email_texts,
-                cta_link=f"{settings.HOST}/admin/",
-                cta_text="Visit dashboard",
-                to_email=sale.user.email,
-            )
+        #     send_email(
+        #         subject="Nyx Trackers Payment Error",
+        #         first_name=sale.user.first_name,
+        #         last_name=sale.user.last_name,
+        #         texts=email_texts,
+        #         cta_link=f"{settings.HOST}/admin/",
+        #         cta_text="Visit dashboard",
+        #         to_email=sale.user.email,
+        #     )
 
-            # Redirect to landing with error
-            return redirect(landing_error_page)
+        #     # Redirect to landing with error
+        #     return redirect(landing_error_page)
 
         # Update payment link in sale
         sale.status = models.SaleStatus.objects.get(value="Paid")
@@ -479,12 +479,12 @@ class SaleDone(View):
 
         # Setup .env file
         load_dotenv()
-        ENV = os.getenv('ENV')
-        env_path = os.path.join(BASE_DIR, f'.env.{ENV}')
+        ENV = os.getenv("ENV")
+        env_path = os.path.join(BASE_DIR, f".env.{ENV}")
         load_dotenv(env_path)
 
-        igi_comission = os.getenv('IGI')
-        paypal_comission = os.getenv('PAYPAL')
+        igi_comission = settings.INVOICE_IGI_COMMISSION
+        paypal_comission = settings.INVOICE_PAYPAL_COMMISSION
         igi = float(sale_data["Total"]) * float(igi_comission) / 100
         paypal = float(sale_data["Total"]) * float(paypal_comission) / 100
         base = float(sale_data["Total"]) - igi - paypal
@@ -492,10 +492,10 @@ class SaleDone(View):
         invoice_num = StoreStatus.objects.filter(key="invoice_num").first()
 
         # Format date
-        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')  
-        
+        locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
+
         date = timezone.now()
-        format_date = date.strftime('%d de %B de %Y')
+        format_date = date.strftime("%d de %B de %Y")
 
         # Generate PDF
         pathfile = generate_invoice(
@@ -510,16 +510,16 @@ class SaleDone(View):
             phone=sale_data["Phone"],
             email=sale_data["Email"],
             quantity="1",
-            base=str(round(base,2)),
-            igi=str(round(igi,2)),
-            paypal=str(round(paypal,2)),
-            total=str(round(sale_data["Total"],2))
+            base=str(round(base, 2)),
+            igi=str(round(igi, 2)),
+            paypal=str(round(paypal, 2)),
+            total=str(round(sale_data["Total"], 2)),
         )
 
         # Save file
         filename = os.path.basename(pathfile)
 
-        with open(pathfile, 'rb') as f:
+        with open(pathfile, "rb") as f:
             sale.invoice_file.save(name=filename, content=File(f), save=True)
 
         # Increase invoice number
