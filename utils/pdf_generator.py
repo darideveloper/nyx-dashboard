@@ -24,21 +24,21 @@ montserrat_semi_bold = os.path.join(fonts_folder, f"Montserrat-SemiBold.ttf")
 def generate_invoice(
     invoice: str,
     date: str,
-    name:str,
-    city:str,
-    state:str,
-    street:str,
-    pc:str,
-    country:str,
-    phone:str,
-    email:str,
-    quantity:str,
-    base:str,
-    igi:str,
-    paypal:str,
-    total:str,
+    name: str,
+    city: str,
+    state: str,
+    street: str,
+    pc: str,
+    country: str,
+    phone: str,
+    email: str,
+    quantity: str,
+    base: str,
+    igi: str,
+    paypal: str,
+    total: str,
 ) -> str:
-    """Generate invoice PDF from data 
+    """Generate invoice PDF from data
 
     Args:
         invoice (str): _description_
@@ -111,7 +111,7 @@ def generate_invoice(
     existing_pdf = PdfReader(open(original_pdf, "rb"))
     output = PdfWriter()
 
-    # Creación página
+    # Page creation
     page = existing_pdf.pages[0]
     page.merge_page(new_pdf.pages[0])
     output.add_page(page)
@@ -120,6 +120,6 @@ def generate_invoice(
     output_stream = open(new_pdf, "wb")
     output.write(output_stream)
     output_stream.close()
-    print("Documentos generados correctamente")
+    print(f"Invoice generated: {new_pdf}")
 
     return new_pdf
