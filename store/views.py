@@ -1,6 +1,9 @@
 import re
+import os
 import json
 import base64
+import locale
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -11,12 +14,17 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
+from django.core.files import File
 
 from store import models
 from utils.emails import send_email
 from utils.media import get_media_url
+from utils.pdf_generator import generate_invoice
 from utils.paypal import PaypalCheckout
 from affiliates.models import Affiliate
+from store.models import StoreStatus
+
+from dotenv import load_dotenv
 
 
 class NextFutureStock(View):
@@ -466,6 +474,58 @@ class SaleDone(View):
         # Get sale data
         sale_data = sale.get_sale_data_dict()
 
+        # Build paths inside the project like this: BASE_DIR / 'subdir'.
+        BASE_DIR = Path(__file__).resolve().parent.parent
+
+        # Setup .env file
+        load_dotenv()
+        ENV = os.getenv('ENV')
+        env_path = os.path.join(BASE_DIR, f'.env.{ENV}')
+        load_dotenv(env_path)
+
+        igi_comission = os.getenv('IGI')
+        paypal_comission = os.getenv('PAYPAL')
+        igi = float(sale_data["Total"]) * float(igi_comission) / 100
+        paypal = float(sale_data["Total"]) * float(paypal_comission) / 100
+        base = float(sale_data["Total"]) - igi - paypal
+
+        invoice_num = StoreStatus.objects.filter(key="invoice_num").first()
+
+        # Format date
+        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')  
+        
+        date = timezone.now()
+        format_date = date.strftime('%d de %B de %Y')
+
+        # Generate PDF
+        pathfile = generate_invoice(
+            invoice=invoice_num.value,
+            date=str(format_date),
+            name=sale_data["Full Name"],
+            city=sale_data["City"],
+            state=sale_data["State"],
+            street=sale_data["Street Address"],
+            pc=sale_data["Postal Code"],
+            country=sale_data["Country"],
+            phone=sale_data["Phone"],
+            email=sale_data["Email"],
+            quantity="1",
+            base=str(round(base,2)),
+            igi=str(round(igi,2)),
+            paypal=str(round(paypal,2)),
+            total=str(round(sale_data["Total"],2))
+        )
+
+        # Save file
+        filename = os.path.basename(pathfile)
+
+        with open(pathfile, 'rb') as f:
+            sale.invoice_file.save(name=filename, content=File(f), save=True)
+
+        # Increase invoice number
+        invoice_num.value = str(int(invoice_num.value) + 1)
+        invoice_num.save()
+
         email_texts = [
             "Your payment has been confirmed!",
             "Your order is being processed.",
@@ -603,13 +663,13 @@ class CurrentStock(View):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class PaymentLink(View):
-    
+
     def get(self, request, sale_id: str):
-        """ Get new payment payment link for sale """
-        
+        """Get new payment payment link for sale"""
+
         landing_done_page = settings.LANDING_HOST
         landing_error_page = landing_done_page + f"?sale-id={sale_id}&sale-status=error"
-        
+
         # Get sale
         sales = models.Sale.objects.filter(id=sale_id)
         if not sales:
@@ -628,6 +688,6 @@ class PaymentLink(View):
         # Save order details endpoint in sale
         sale.payment_link = links["self"]
         sale.save()
-        
+
         # Redirect to payment link
         return redirect(links["payer-action"])
