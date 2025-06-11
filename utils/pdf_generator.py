@@ -10,6 +10,10 @@ from reportlab.pdfbase.ttfonts import TTFont
 current_folder = os.path.dirname(__file__)
 parent_folder = os.path.dirname(current_folder)
 files_folder = os.path.join(parent_folder, "files")
+
+# Create files folder in case it doesn't exist
+os.makedirs(files_folder, exist_ok=True)
+
 templates_folder = os.path.join(current_folder, "pdf_utils")
 original_pdf = os.path.join(templates_folder, f"template.pdf")
 fonts_folder = os.path.join(templates_folder, "fonts")
