@@ -1829,9 +1829,12 @@ class SaleDoneViewTest(TestCase):
 
         # Validate sale (no force)
         self.client.get(f"{self.endpoint}/{self.sale.id}/")
+        
+        # Validate no paid status
+        self.sale.refresh_from_db()
+        self.assertEqual(self.sale.status.value, "Pending")
 
         # Validate invoice field empty
-        self.sale.refresh_from_db()
         self.assertIsNone(self.sale.invoice_file)
 
         # Validate store status not updated

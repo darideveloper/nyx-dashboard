@@ -439,7 +439,7 @@ class SaleDone(View):
             sale.id,
         )
         sale.refresh_from_db()
-        if not payment_done and settings.ENV == "prod":
+        if not payment_done:
 
             # Send error email to client
             email_texts = [
