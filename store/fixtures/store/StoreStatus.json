@@ -8,5 +8,15 @@
             "created_at": "2024-10-31T00:00:00Z",
             "updated_at": "2024-10-31T00:00:00Z"
         }
+    },
+        {
+        "model": "store.StoreStatus",
+        "pk": 2,
+        "fields": {
+            "key": "invoice_num",
+            "value": "200",
+            "created_at": "2024-10-31T00:00:00Z",
+            "updated_at": "2024-10-31T00:00:00Z"
+        }
     }
 ]

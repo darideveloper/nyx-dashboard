@@ -1,6 +1,7 @@
 import os
 import json
 import base64
+import locale
 from time import sleep
 
 from django.conf import settings
@@ -13,6 +14,7 @@ from django.core.management import call_command
 from django.utils import timezone
 from django.test import LiveServerTestCase, TestCase
 
+import PyPDF2
 import openpyxl
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -22,6 +24,7 @@ from selenium.webdriver.chrome.options import Options
 from store import models
 from utils.automation import get_selenium_elems
 from utils.paypal import PaypalCheckout
+from utils.media import get_media_url
 
 load_dotenv()
 
@@ -1638,6 +1641,10 @@ class SaleDoneViewTest(TestCase):
         current_stock = models.StoreStatus.objects.get(key="current_stock")
         current_stock.value = 100
         current_stock.save()
+        
+        invoice_num = models.StoreStatus.objects.get(key="invoice_num")
+        invoice_num.value = 200
+        invoice_num.save()
 
         self.redirect_page = settings.LANDING_HOST
 
@@ -1798,6 +1805,103 @@ class SaleDoneViewTest(TestCase):
 
         self.assertEqual(len(mail.outbox), 0)
         
+    def test_invoice_created(self):
+        """Validate sale already paid and invoice created"""
+
+        # Get initial invoice_num
+        invoice_num = models.StoreStatus.objects.get(key="invoice_num")
+        self.assertEqual(int(invoice_num.value), 200)
+
+        # Validate sale and force payment validation
+        self.client.get(f"{self.endpoint}/{self.sale.id}/?use_testing=true")
+
+        # Validate invoice field no empty
+        self.sale.refresh_from_db()
+        self.assertIsNotNone(self.sale.invoice_file)
+        self.assertTrue(self.sale.invoice_file.name.endswith(".pdf"))
+        
+        # Validate store status updated
+        invoice_num.refresh_from_db()
+        self.assertEqual(int(invoice_num.value), 201)
+        
+    def test_invoice_no_created(self):
+        """Validate sale not paid and no invoice created"""
+
+        # Validate sale (no force)
+        self.client.get(f"{self.endpoint}/{self.sale.id}/")
+
+        # Validate invoice field empty
+        self.sale.refresh_from_db()
+        self.assertIsNone(self.sale.invoice_file)
+
+        # Validate store status not updated
+        invoice_num = models.StoreStatus.objects.get(key="invoice_num")
+        self.assertEqual(int(invoice_num.value), 200)
+        
+    def test_invoice_content(self):
+        """Validate invoice content"""
+        
+        # Update invoice amounts to easy calcs
+        self.sale.total = 100
+        self.sale.save()
+
+        # Validate sale and force payment validation
+        self.client.get(f"{self.endpoint}/{self.sale.id}/?use_testing=true")
+
+        # Validate invoice file exists
+        self.sale.refresh_from_db()
+        self.assertIsNotNone(self.sale.invoice_file)
+
+        # Get incoide file
+        pdf_text = ""
+        with self.sale.invoice_file.open("rb") as invoice_file:
+            reader = PyPDF2.PdfReader(invoice_file)
+            pdf_text = reader.pages[0].extract_text()
+                                        
+        # Update locale for date formatting
+        locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
+        
+        # Get current invoice_num
+        invoice_num_str = models.StoreStatus.objects.get(key="invoice_num").value
+        
+        # get and formatd data
+        date = timezone.now().strftime("%d de %B de %Y")
+        invoice_num = int(invoice_num_str) - 1
+        name = self.sale.user.get_full_name()
+        city = self.sale.city
+        state = self.sale.state
+        street = self.sale.street_address
+        pc = self.sale.postal_code
+        country = self.sale.country
+        phone = self.sale.phone
+        email = self.sale.user.email
+        quantity = 1
+        total = self.sale.total
+        igi = total * settings.INVOICE_IGI_COMMISSION / 100
+        paypal = total * settings.INVOICE_PAYPAL_COMMISSION / 100
+        base = total - igi - paypal
+        total_str = f"{total:.2f}USD"
+        igi_str = f"{igi:.2f}USD"
+        paypal_str = f"{paypal:.2f}USD"
+        base_str = f"{base:.2f}USD"
+        
+        # Validate data in PDF
+        self.assertIn(date, pdf_text)
+        self.assertIn(str(invoice_num), pdf_text)
+        self.assertIn(name, pdf_text)
+        self.assertIn(city, pdf_text)
+        self.assertIn(state, pdf_text)
+        self.assertIn(street, pdf_text)
+        self.assertIn(pc, pdf_text)
+        self.assertIn(country, pdf_text)
+        self.assertIn(phone, pdf_text)
+        self.assertIn(email, pdf_text)
+        self.assertIn(str(quantity), pdf_text)
+        self.assertIn(total_str, pdf_text)
+        self.assertIn(igi_str, pdf_text)
+        self.assertIn(paypal_str, pdf_text)
+        self.assertIn(base_str, pdf_text)
+
 
 class SaleAdminListTest(LiveServerTestCase):
     """Validate buyers custom functions in sale list view"""
