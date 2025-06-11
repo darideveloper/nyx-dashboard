@@ -19,7 +19,7 @@ from django.core.files import File
 from store import models
 from utils.emails import send_email
 from utils.media import get_media_url
-from utils.pdf_generator import generate_pdf
+from utils.pdf_generator import generate_invoice
 from utils.paypal import PaypalCheckout
 from affiliates.models import Affiliate
 from store.models import StoreStatus
@@ -498,7 +498,7 @@ class SaleDone(View):
         format_date = date.strftime('%d de %B de %Y')
 
         # Generate PDF
-        pathfile = generate_pdf(
+        pathfile = generate_invoice(
             invoice=invoice_num.value,
             date=str(format_date),
             name=sale_data["Full Name"],
