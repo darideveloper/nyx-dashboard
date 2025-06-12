@@ -33,6 +33,7 @@ AFFILIATES_DISCOUNT = float(os.getenv('AFFILIATES_DISCOUNT'))
 AFFILIATES_COMMISSION = float(os.getenv('AFFILIATES_COMMISSION'))
 INVOICE_IGI_COMMISSION = float(os.getenv('INVOICE_IGI_COMMISSION', 0.0))
 INVOICE_PAYPAL_COMMISSION = float(os.getenv('INVOICE_PAYPAL_COMMISSION', 0.0))
+FORCE_TESTING_PAYPAL = os.getenv('FORCE_TESTING_PAYPAL', 'False') == 'True'
 
 
 print(f"DEBUG: {DEBUG}")
@@ -100,10 +101,7 @@ WSGI_APPLICATION = 'nyx_dashboard.wsgi.application'
 
 
 # Database
-
 IS_TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
-FORCE_TESTING = os.environ.get('FORCE_TESTING') == 'True'
-IS_TESTING = IS_TESTING or FORCE_TESTING
 
 if IS_TESTING:
     DATABASES = {

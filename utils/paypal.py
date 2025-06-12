@@ -22,7 +22,7 @@ class PaypalCheckout:
         Returns:
             str: PayPal OAuth2 Access Token
         """
-        
+
         for _ in range(3):
             auth_response = requests.post(
                 f"{settings.PAYPAL_API_BASE}/v1/oauth2/token",
@@ -184,9 +184,9 @@ class PaypalCheckout:
         Returns:
             bool: True if payment is done, False otherwise
         """
-        
+
         # Simulate payment done in testing mode
-        if use_testing and settings.IS_TESTING:
+        if use_testing and (settings.IS_TESTING or settings.FORCE_TESTING_PAYPAL):
             return True
 
         try:
