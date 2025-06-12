@@ -2678,7 +2678,7 @@ class SaleAdminExportExcel(LiveServerTestCase):
             f"{selector_row_1} {self.selectors['checkbox_select']}"
         )
         self.__click__(selector_row_1_checkbox)
-        sleep(1)
+        sleep(5)
         excel_file_path = self.__download_excel__()
         data = self.__get_excel_data__(excel_file_path)
 
@@ -2697,7 +2697,7 @@ class SaleAdminExportExcel(LiveServerTestCase):
 
         # Export to excel
         self.__click__(self.selectors["checkbox_select_all"])
-        sleep(1)
+        sleep(5)
         excel_file_path = self.__download_excel__()
         data = self.__get_excel_data__(excel_file_path)
 
