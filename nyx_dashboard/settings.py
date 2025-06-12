@@ -102,6 +102,8 @@ WSGI_APPLICATION = 'nyx_dashboard.wsgi.application'
 # Database
 
 IS_TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+FORCE_TESTING = os.environ.get('FORCE_TESTING') == 'True'
+IS_TESTING = IS_TESTING or FORCE_TESTING
 
 if IS_TESTING:
     DATABASES = {
