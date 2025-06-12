@@ -24,21 +24,21 @@ montserrat_semi_bold = os.path.join(fonts_folder, f"Montserrat-SemiBold.ttf")
 def generate_invoice(
     invoice: str,
     date: str,
-    name:str,
-    city:str,
-    state:str,
-    street:str,
-    pc:str,
-    country:str,
-    phone:str,
-    email:str,
-    quantity:str,
-    base:str,
-    igi:str,
-    paypal:str,
-    total:str,
+    name: str,
+    city: str,
+    state: str,
+    street: str,
+    pc: str,
+    country: str,
+    phone: str,
+    email: str,
+    quantity: str,
+    base: str,
+    igi: str,
+    paypal: str,
+    total: str,
 ) -> str:
-    """Generate invoice PDF from data 
+    """Generate invoice PDF from data
 
     Args:
         invoice (str): _description_
@@ -74,7 +74,7 @@ def generate_invoice(
     c.setFont("montserratsbd", 12)
     c.drawString(516, 808, invoice)
     c.setFont("montserrat", 10)
-    c.drawString(455, 790, date)
+    c.drawRightString(552, 790, f"Fecha: {date}")
 
     # Client details
     c.setFont("montserrat", 10)
@@ -96,10 +96,10 @@ def generate_invoice(
 
     # Purchase details
     c.setFont("montserrat", 10)
-    c.drawString(511, 318, base + "USD")
-    c.drawString(511, 284, igi + "USD")
-    c.drawString(511, 243, paypal + "USD")
-    c.drawString(511, 203, total + "USD")
+    c.drawRightString(551, 318, base + "USD")
+    c.drawRightString(551, 284, igi + "USD")
+    c.drawRightString(551, 243, paypal + "USD")
+    c.drawRightString(551, 203, total + "USD")
 
     c.showPage()
     c.save()
@@ -120,6 +120,26 @@ def generate_invoice(
     output_stream = open(new_pdf, "wb")
     output.write(output_stream)
     output_stream.close()
-    print("Documentos generados correctamente")
+    print(f"Invoice {invoice} generated correctly")
 
     return new_pdf
+
+
+if __name__ == "__main__":
+    generate_invoice(
+        "00100",
+        "19 de Septiembre de 2025",
+        "Aaron Preziosi Jr",
+        "Billerica",
+        "Massachusetts",
+        "19 Greenville Street",
+        "01821",
+        "United States",
+        "970-988-5711",
+        "wisptech970@gmail.com",
+        "1",
+        "290.24",
+        "14.4",
+        "15.36",
+        "320",
+    )
