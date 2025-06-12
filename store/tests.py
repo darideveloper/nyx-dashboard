@@ -16,7 +16,6 @@ from django.test import LiveServerTestCase, TestCase
 
 import PyPDF2
 import openpyxl
-from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -24,9 +23,6 @@ from selenium.webdriver.chrome.options import Options
 from store import models
 from utils.automation import get_selenium_elems
 from utils.paypal import PaypalCheckout
-from utils.media import get_media_url
-
-load_dotenv()
 
 
 class FutureStockViewTest(TestCase):
