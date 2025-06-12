@@ -92,7 +92,7 @@ def generate_invoice(
     c.drawString(224, 466, base + "USD")
     c.drawString(301, 466, igi + "USD")
     c.drawString(410, 466, paypal + "USD")
-    c.drawString(526, 466, total + "USD")
+    c.drawString(513, 466, total + "USD")
 
     # Purchase details
     c.setFont("montserrat", 10)
@@ -127,7 +127,7 @@ def generate_invoice(
 
 if __name__ == "__main__":
     generate_invoice(
-        "00100",
+        "200",
         "19 de Septiembre de 2025",
         "Aaron Preziosi Jr",
         "Billerica",
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         "wisptech970@gmail.com",
         "1",
         "290.24",
-        "14.4",
+        "14.40",
         "15.36",
-        "320",
+        "320.00",
     )
