@@ -1383,7 +1383,7 @@ class SaleViewTestLive(LiveServerTestCase):
             "next_btn": "button",
             "input_pass": "#password",
             "submit_btn": "#btnLogin",
-            "pay_btn": "#payment-submit-btn",
+            "pay_btn": '[data-id="payment-submit-btn"]',
         }
 
     def tearDown(self):
