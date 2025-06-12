@@ -82,8 +82,15 @@ COPY . /app/
 # Install system dependencies (e.g., for PostgreSQL support)
 RUN apt-get update && apt-get install -y \
     libpq-dev gcc \
+    locales \
+    && sed -i '/es_ES.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen \
+    && update-locale LANG=es_ES.UTF-8 LANGUAGE=es_ES:es LC_ALL=es_ES.UTF-8 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+RUN locale-gen es_ES.UTF-8
+RUN update-locale
 
 # Install Python dependencies
 RUN pip install --upgrade pip
