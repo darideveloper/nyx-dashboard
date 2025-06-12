@@ -498,10 +498,10 @@ class SaleDone(View):
             phone=sale_data["Phone"],
             email=sale_data["Email"],
             quantity="1",
-            base=str(round(base, 2)),
-            igi=str(round(igi, 2)),
-            paypal=str(round(paypal, 2)),
-            total=str(round(sale_data["Total"], 2)),
+            base=f"{round(base, 2):.2f}",
+            igi=f"{round(igi, 2):.2f}",
+            paypal=f"{round(paypal, 2):.2f}",
+            total=f"{round(sale_data["Total"], 2):.2f}",
         )
 
         # Save file
