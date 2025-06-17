@@ -46,13 +46,35 @@ class TestAdminBase(TestCase):
 
         return user.username, password, user
 
+    def submit_search_bar(self, endpoint: str, search_text: str = "test"):
+        """Validate search bar in admin page
+
+        Args:
+            endpoint (str): Endpoint to test inside /admin/
+            search_text (str): Text to search. Defaults to "test".
+        """
+
+        # Fix endpoint prefix if needed
+        if not endpoint.startswith("/admin/"):
+            endpoint = f"/admin/{endpoint.lstrip('/')}"
+
+        # Get response
+        response = self.client.get(f"{endpoint}", {"q": search_text})
+        print(f"Testing search bar in {endpoint} with text '{search_text}'")
+
+        # Check if the response is valid
+        self.assertEqual(response.status_code, 200)
+
+        # Check if the search text is in the response content
+        self.assertContains(response, search_text)
+
 
 class TestAdminSeleniumBase(TestAdminBase, LiveServerTestCase):
     """Base class to test admin with selenium (login and setup)"""
 
     def setUp(self, endpoint="/admin/", auto_login: bool = True):
         """Load data, setup and login in each test
-        
+
         Args:
             endpoint (str): Endpoint to open in the browser
             auto_login (bool): If True, login automatically in the browser
@@ -125,7 +147,7 @@ class TestAdminSeleniumBase(TestAdminBase, LiveServerTestCase):
         """Set page"""
         self.driver.get(f"{self.live_server_url}{endpoint}")
         sleep(2)
-        
+
     def get_selenium_elem(self, selector: str) -> WebElement:
         """Get selenium element from selector
 
