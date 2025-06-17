@@ -207,6 +207,20 @@ class ComissionAdminTestCaseLive(TestAffiliatesModelsBase, TestAdminSeleniumBase
             self.assertIsNotNone(elem)
 
 
+class AffiliateAdminTestCase(TestAdminBase):
+
+    def setUp(self):
+
+        # Submit endpoint
+        super().setUp()
+        self.endpoint = "/admin/affiliates/affiliate/"
+
+    def test_search_bar(self):
+        """Validate search bar working"""
+
+        self.submit_search_bar(self.endpoint)
+
+
 class AffiliateAdminListViewwTestCaseLive(
     TestAffiliatesModelsBase, TestAdminSeleniumBase
 ):
@@ -326,3 +340,17 @@ class AffiliateAdminListViewwTestCaseLive(
         # Validate text of the promo code created
         text = self.get_selenium_elem(self.selectors["promocode_label"]).text
         self.assertEqual(self.affiliate2.user.username, text)
+
+
+class PaymentAdminTestCase(TestAdminBase):
+
+    def setUp(self):
+
+        # Submit endpoint
+        super().setUp()
+        self.endpoint = "/admin/affiliates/payment/"
+
+    def test_search_bar(self):
+        """Validate search bar working"""
+
+        self.submit_search_bar(self.endpoint)
