@@ -1017,7 +1017,8 @@ class SaleAdminExportExcel(LiveServerTestCase):
 
         # Add logo to sale
         current_path = os.path.dirname(os.path.abspath(__file__))
-        test_files_folder = os.path.join(current_path, "test_files")
+        app_path = os.path.dirname(current_path)
+        test_files_folder = os.path.join(app_path, "test_files")
         logo_path = os.path.join(test_files_folder, "logo.png")
         logo = SimpleUploadedFile(
             name="logo.png",
