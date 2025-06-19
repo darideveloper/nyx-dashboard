@@ -374,7 +374,8 @@ class SaleViewTest(TestCase):
 
         # Files paths
         current_path = os.path.dirname(os.path.abspath(__file__))
-        self.test_files_folder = os.path.join(current_path, "test_files")
+        app_path = os.path.dirname(current_path)
+        self.test_files_folder = os.path.join(app_path, "test_files")
 
         # Add current stock to store status
         self.current_stock = models.StoreStatus.objects.get(key="current_stock")
@@ -1359,7 +1360,8 @@ class SaleDoneViewTest(TestCase):
 
         # Files paths
         current_path = os.path.dirname(os.path.abspath(__file__))
-        test_files_folder = os.path.join(current_path, "test_files")
+        app_path = os.path.dirname(current_path)
+        test_files_folder = os.path.join(app_path, "test_files")
 
         logo_path = os.path.join(test_files_folder, "logo.png")
 
@@ -1855,10 +1857,8 @@ class PaymentLinkView(LiveServerTestCase):
         status = models.SaleStatus.objects.get(value="Pending")
 
         # Files paths
-        current_path = os.path.dirname(os.path.abspath(__file__))
-        test_files_folder = os.path.join(current_path, "test_files")
-
-        logo_path = os.path.join(test_files_folder, "logo.png")
+        app_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        logo_path = os.path.join(app_path, "test_files", "logo.png")
 
         self.sale = models.Sale.objects.create(
             user=self.auth_user,
