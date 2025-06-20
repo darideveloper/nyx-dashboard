@@ -67,7 +67,7 @@ class FutureStockAdmin(admin.ModelAdmin):
 class FutureStockSubscriptionAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'future_stock', 'active',
                     'notified', 'created_at', 'updated_at')
-    search_fields = ('user__email', 'future_stock', 'active', 'notified')
+    search_fields = ('user__email', 'user__first_name', 'user__last_name')
     list_filter = ('active', 'notified', 'created_at', 'updated_at')
 
 
@@ -106,7 +106,7 @@ class AddonAdmin(admin.ModelAdmin):
 @admin.register(models.PromoCode)
 class PromoCodeAdmin(admin.ModelAdmin):
     list_display = ('code', 'discount', 'type')
-    search_fields = ('code', 'discount', 'type')
+    search_fields = ('code', 'discount', 'type__name')
 
 
 @admin.register(models.PromoCodeType)
