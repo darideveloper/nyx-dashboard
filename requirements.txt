@@ -1,0 +1,15 @@
+Django==4.2.7
+python-dotenv==0.21.0
+whitenoise==6.2.0
+gunicorn==20.1.0
+django-cors-headers==4.1.0
+pillow==10.4.0
+selenium==4.33.0
+psycopg2-binary==2.9.9
+requests==2.32.3
+openpyxl==3.1.5
+pytz==2024.2
+stripe==8.10.0
+beautifulsoup4==4.13.3
+PyPDF2==3.0.1
+reportlab==4.4.1
