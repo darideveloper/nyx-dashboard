@@ -5,10 +5,10 @@
     - Validate that no other packages depend on these (not expected).
 
 - [x] **Code Deletion**
-    - Delete `project/storage_backends.py`.
+    - Delete `nyx_dashboard/storage_backends.py`.
 
 - [x] **Settings Refactoring**
-    - Remove `STORAGE_AWS = os.environ.get("STORAGE_AWS") == "True"` from `project/settings.py`.
+    - Remove `STORAGE_AWS = os.environ.get("STORAGE_AWS") == "True"` from `nyx_dashboard/settings.py`.
     - Remove the entire `if STORAGE_AWS:` block.
     - Consolidate `STATIC_ROOT`, `MEDIA_ROOT`, `STATIC_URL`, `MEDIA_URL` and `STORAGES` at the top level of the storage section.
     - Ensure `whitenoise.storage.CompressedManifestStaticFilesStorage` is used for `staticfiles`.

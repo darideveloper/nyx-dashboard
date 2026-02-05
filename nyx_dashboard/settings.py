@@ -17,7 +17,7 @@ print(f"\nEnvironment: {ENV}")
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 HOST = os.environ.get("HOST")
-STORAGE_AWS = os.environ.get("STORAGE_AWS") == "True"
+
 LANDING_HOST = os.getenv("LANDING_HOST")
 TEST_HEADLESS = os.getenv("TEST_HEADLESS") == "True"
 STRIPE_API_HOST = os.getenv("STRIPE_API_HOST")
@@ -38,7 +38,7 @@ FORCE_TESTING_PAYPAL = os.getenv("FORCE_TESTING_PAYPAL", "False") == "True"
 
 print(f"DEBUG: {DEBUG}")
 print(f"HOST: {HOST}")
-print(f"STORAGE_AWS: {STORAGE_AWS}\n")
+
 
 ALLOWED_HOSTS = ["*"]
 
@@ -168,8 +168,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
 
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
-
 
 JAZZMIN_SETTINGS = {
     # Yext
@@ -291,46 +289,29 @@ JAZZMIN_SETTINGS = {
 }
 
 # Cors
-CORS_ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
-
-CSRF_TRUSTED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
+if os.getenv("ALLOWED_ORIGINS"):
+    CORS_ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
+    CSRF_TRUSTED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
+else:
+    CORS_ALLOWED_ORIGINS = ["http://localhost:8000"]
+    CSRF_TRUSTED_ORIGINS = ["http://localhost:8000"]
 
 # Storage settings
-if STORAGE_AWS:
-    # aws settings
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-    AWS_DEFAULT_ACL = None
-    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+# Storage settings
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-    # s3 static settings
-    STATIC_LOCATION = "static"
-    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/"
-    STATICFILES_STORAGE = "nyx_dashboard.storage_backends.StaticStorage"
-    # s3 public media settings
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
 
-    PUBLIC_MEDIA_LOCATION = "media"
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/"
-    DEFAULT_FILE_STORAGE = "nyx_dashboard.storage_backends.PublicMediaStorage"
-
-    # s3 private media settings
-    PRIVATE_MEDIA_LOCATION = "private"
-    PRIVATE_FILE_STORAGE = "nyx_dashboard.storage_backends.PrivateMediaStorage"
-
-    # Disable Django's own staticfiles handling in favour of WhiteNoise
-    # for greater consistency between gunicorn and
-    STATIC_ROOT = None
-    MEDIA_ROOT = None
-else:
-    # Local development (Windows or local server)
-    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-    # Static files (CSS, JavaScript, Images)
-    STATIC_URL = "/static/"
-    MEDIA_URL = "/media/"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Email settings
 EMAIL_HOST = os.getenv("EMAIL_HOST")
