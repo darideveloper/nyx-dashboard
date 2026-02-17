@@ -13,3 +13,4 @@ stripe==8.10.0
 beautifulsoup4==4.13.3
 PyPDF2==3.0.1
 reportlab==4.4.1
+django-cors-headers==4.9.0
