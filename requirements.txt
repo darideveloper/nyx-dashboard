@@ -5,7 +5,7 @@ gunicorn>=24.1.1
 django-cors-headers==4.1.0
 pillow==10.4.0
 selenium==4.33.0
-psycopg2-binary==2.9.9
+psycopg>=3.2.3
 requests==2.32.3
 openpyxl==3.1.5
 pytz==2024.2
