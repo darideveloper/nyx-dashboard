@@ -19,7 +19,8 @@ from store import models
 from utils.emails import send_email
 from utils.media import get_media_url
 from utils.pdf_generator import generate_invoice
-from utils.paypal import PaypalCheckout
+from utils.payment_provider import get_payment_provider
+
 from affiliates.models import Affiliate
 from store.models import StoreStatus
 
@@ -373,8 +374,8 @@ class Sale(View):
             )
 
         # get payment link
-        paypal_checkout = PaypalCheckout()
-        links = paypal_checkout.get_checkout_link(
+        payment_provider = get_payment_provider(sale)
+        links = payment_provider.get_checkout_link(
             sale_id=sale.id,
             title=f"Tracker {sale.set.name} {sale.colors_num.num} colors",
             price=sale.total,
@@ -428,12 +429,11 @@ class SaleDone(View):
             return redirect(landing_error_page)
         sale = sales[0]
 
-        # Validate payment in paypal
-        paypal_checkout = PaypalCheckout()
-        payment_done = paypal_checkout.is_payment_done(
-            sale.payment_link,
+        # Validate payment
+        payment_provider = get_payment_provider(sale)
+        payment_done = payment_provider.is_payment_done(
+            sale,
             use_testing,
-            sale.id,
         )
         sale.refresh_from_db()
         if not payment_done:
@@ -665,8 +665,8 @@ class PaymentLink(View):
         sale = sales[0]
 
         # Get payment link
-        paypal_checkout = PaypalCheckout()
-        links = paypal_checkout.get_checkout_link(
+        payment_provider = get_payment_provider(sale)
+        links = payment_provider.get_checkout_link(
             sale_id=sale.id,
             title=f"Tracker {sale.set.name} {sale.colors_num.num} colors",
             price=sale.total,

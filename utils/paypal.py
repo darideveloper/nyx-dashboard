@@ -171,15 +171,12 @@ class PaypalCheckout:
 
         return links_data
 
-    def is_payment_done(
-        self, order_details_link: str, use_testing: bool = False, sale_id: str = None
-    ) -> bool:
+    def is_payment_done(self, sale, use_testing: bool = False) -> bool:
         """Check if payment is done
 
         Args:
-            order_details_link (str): PayPal Order Details Link
+            sale (Sale): Sale object
             use_testing (bool): Use testing mode (default: False)
-            sale_id (str): Sale ID (default: None)
 
         Returns:
             bool: True if payment is done, False otherwise
@@ -188,6 +185,9 @@ class PaypalCheckout:
         # Simulate payment done in testing mode
         if use_testing and (settings.IS_TESTING or settings.FORCE_TESTING_PAYPAL):
             return True
+
+        order_details_link = sale.payment_link
+        sale_id = str(sale.id)
 
         try:
             response = requests.get(
