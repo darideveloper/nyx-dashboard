@@ -19,3 +19,4 @@ utils/scrapers/countries_states.json
 .DS_Store 
 /files
 *.crdownload
+/docs/
