@@ -986,7 +986,8 @@ class PaymentLinkView(LiveServerTestCase):
         except Exception:
             pass
 
-    def test_get_valid_sale(self):
+    @override_settings(PAYMENT_PROVIDER="paypal")
+    def test_get_valid_sale_paypal(self):
         """Test get valid payment link and redirect to paypal"""
 
         # Open link
@@ -1004,7 +1005,42 @@ class PaymentLinkView(LiveServerTestCase):
         amount_clean = float(amount.replace("$", ""))
         self.assertEqual(amount_clean, self.sale.total)
 
-    def test_invalid_sale(self):
+    @override_settings(PAYMENT_PROVIDER="paypal")
+    def test_invalid_sale_paypal(self):
+        """Test get invalid payment link and redirect error landing page"""
+
+        # Delete sale
+        self.sale.delete()
+
+        # Open link
+        self.driver.get(self.live_server_url + self.endpoint)
+        sleep(2)
+
+        # Validate 404 page
+        self.assertIn("sale-id", self.driver.current_url)
+        self.assertIn("sale-status=error", self.driver.current_url)
+
+    @override_settings(PAYMENT_PROVIDER="stripe")
+    def test_get_valid_sale_stripe(self):
+        """Test get valid payment link and redirect to paypal"""
+
+        # Open link
+        self.driver.get(self.live_server_url + self.endpoint)
+        sleep(2)
+
+        # Validate paypal link
+        self.assertIn("stripe.com", self.driver.current_url)
+        self.assertIn("checkout", self.driver.current_url)
+        self.assertIn("/pay/", self.driver.current_url)
+
+        # Validate sale data in paypal
+        elems = get_selenium_elems(self.driver, self.selectors)
+        amount = elems["amount"].text
+        amount_clean = float(amount.replace("$", ""))
+        self.assertEqual(amount_clean, self.sale.total)
+
+    @override_settings(PAYMENT_PROVIDER="stripe")
+    def test_invalid_sale_stripe(self):
         """Test get invalid payment link and redirect error landing page"""
 
         # Delete sale
