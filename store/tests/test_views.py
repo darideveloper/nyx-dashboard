@@ -734,6 +734,18 @@ class SaleDoneStripeTest(SaleDoneViewTestMixin, TestCase):
         self.mock_retrieve.return_value.payment_status = "unpaid"
         super().test_get_no_paid()
 
+    def test_invalid_payment_email(self):
+        """Validate email sent to client when payment is invalid"""
+        # Adjust mock to return unpaid
+        self.mock_retrieve.return_value.payment_status = "unpaid"
+        super().test_invalid_payment_email()
+
+    def test_invoice_no_created(self):
+        """Validate sale not paid and no invoice created"""
+        # Adjust mock to return unpaid
+        self.mock_retrieve.return_value.payment_status = "unpaid"
+        super().test_invoice_no_created()
+
 
 class PromoCodeViewTest(TestCase):
 
