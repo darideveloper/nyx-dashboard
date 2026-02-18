@@ -335,6 +335,7 @@ class FutureStockSubscriptionViewTest(TestCase):
         self.assertEqual(res.json()["message"], "Subscription not found")
 
 
+@override_settings(PAYMENT_PROVIDER="paypal")
 class SaleViewPaypalTest(SaleViewTestMixin, TestCase):
     """Test sale view using PayPal provider"""
 
