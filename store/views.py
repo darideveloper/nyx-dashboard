@@ -478,6 +478,8 @@ class SaleDone(View):
         base = float(sale_data["Total"]) - igi - paypal
 
         invoice_num = StoreStatus.objects.filter(key="invoice_num").first()
+        if not invoice_num:
+            invoice_num = StoreStatus.objects.create(key="invoice_num", value="1")
 
         # Format date
         locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
