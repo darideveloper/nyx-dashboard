@@ -2,7 +2,7 @@ Django==4.2.7
 python-dotenv==0.21.0
 whitenoise==6.2.0
 gunicorn>=24.1.1
-django-cors-headers==4.1.0
+psycopg>=3.2.3
 pillow==10.4.0
 selenium==4.33.0
 psycopg>=3.2.3
@@ -13,3 +13,6 @@ stripe==8.10.0
 beautifulsoup4==4.13.3
 PyPDF2==3.0.1
 reportlab==4.4.1
+django-cors-headers==4.9.0
+django-storages==1.13.2
+boto3==1.28.56

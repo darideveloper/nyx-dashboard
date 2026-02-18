@@ -17,6 +17,7 @@ print(f"\nEnvironment: {ENV}")
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 HOST = os.environ.get("HOST")
+STORAGE_AWS = os.getenv("STORAGE_AWS") == "True"
 
 LANDING_HOST = os.getenv("LANDING_HOST")
 TEST_HEADLESS = os.getenv("TEST_HEADLESS") == "True"
@@ -36,10 +37,9 @@ INVOICE_IGI_COMMISSION = float(os.getenv("INVOICE_IGI_COMMISSION", 0.0))
 INVOICE_PAYPAL_COMMISSION = float(os.getenv("INVOICE_PAYPAL_COMMISSION", 0.0))
 FORCE_TESTING_PAYPAL = os.getenv("FORCE_TESTING_PAYPAL", "False") == "True"
 
-
 print(f"DEBUG: {DEBUG}")
 print(f"HOST: {HOST}")
-
+print(f"STORAGE_AWS: {STORAGE_AWS}")
 
 ALLOWED_HOSTS = ["*"]
 
@@ -65,10 +65,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -165,6 +165,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Tell Django it's behind a proxy
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -298,21 +301,42 @@ else:
     CSRF_TRUSTED_ORIGINS = ["http://localhost:8000"]
 
 # Storage settings
-# Storage settings
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+
+# Storage settings
+if STORAGE_AWS:
+    # Generic Storage Settings
+    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+
+    # Endpoint: For AWS, this can be None. For DO, it's https://region.digitaloceanspaces.com
+    AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")
+    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
+
+    # Domain: For AWS: bucket.s3.amazonaws.com | For DO: bucket.region.cdn.digitaloceanspaces.com
+    AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_S3_CUSTOM_DOMAIN")
+
+    # Subdirectory isolation (Crucial for multiple projects in one bucket)
+    AWS_PROJECT_FOLDER = os.getenv("AWS_PROJECT_FOLDER")
+
+    # File Locations
+    STATIC_LOCATION = f"{AWS_PROJECT_FOLDER}/static"
+    PUBLIC_MEDIA_LOCATION = f"{AWS_PROJECT_FOLDER}/media"
+    PRIVATE_MEDIA_LOCATION = f"{AWS_PROJECT_FOLDER}/private"
+
+    # Django-Storages Configuration
+    STATICFILES_STORAGE = "nyx_dashboard.storage_backends.StaticStorage"
+    DEFAULT_FILE_STORAGE = "nyx_dashboard.storage_backends.PublicMediaStorage"
+    PRIVATE_FILE_STORAGE = "nyx_dashboard.storage_backends.PrivateMediaStorage"
+
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+    AWS_DEFAULT_ACL = None
 
 # Email settings
 EMAIL_HOST = os.getenv("EMAIL_HOST")
