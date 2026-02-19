@@ -1096,8 +1096,8 @@ class SaleDoneViewTestMixin:
         self.assertIn(base_str, pdf_text)
 
 
-class SaleViewLiveBase(LiveServerTestCase):
-    """Base class for sales view live tests"""
+class SaleViewLiveMixin:
+    """Mixin for sales view live tests"""
 
     host = "localhost"
     port = 8001
@@ -1136,6 +1136,7 @@ class SaleViewLiveBase(LiveServerTestCase):
 
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.set_window_size(2080, 1170)
         self.driver.implicitly_wait(5)
 
         # Initial data

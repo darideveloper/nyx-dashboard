@@ -137,6 +137,7 @@ class CountDownAdminTestCase(LiveServerTestCase):
         if settings.TEST_HEADLESS:
             chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.set_window_size(2080, 1170)
         self.driver.implicitly_wait(5)
 
         # Test variables
@@ -390,6 +391,7 @@ class SaleAdminListTest(LiveServerTestCase):
 
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.set_window_size(2080, 1170)
         self.driver.implicitly_wait(5)
 
         # Create sales
@@ -596,6 +598,7 @@ class SaleAdminChangeTest(LiveServerTestCase):
 
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.set_window_size(2080, 1170)
         self.driver.implicitly_wait(5)
 
         # Create sales
@@ -808,6 +811,7 @@ class SaleAdminExportExcel(LiveServerTestCase):
 
         # Setup driver
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.set_window_size(2080, 1170)
         self.driver.implicitly_wait(5)
 
     def __login__(self):
@@ -1085,6 +1089,7 @@ class SaleAdminQuerySetTest(LiveServerTestCase):
 
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.set_window_size(2080, 1170)
         self.driver.implicitly_wait(5)
 
         # Create sales

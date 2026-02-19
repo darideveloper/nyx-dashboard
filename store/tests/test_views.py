@@ -25,7 +25,7 @@ from store import models
 from store.tests.payment_base import (
     SaleViewTestMixin,
     SaleDoneViewTestMixin,
-    SaleViewLiveBase,
+    SaleViewLiveMixin,
 )
 from utils.automation import get_selenium_elems
 from utils.paypal import PaypalCheckout
@@ -372,7 +372,7 @@ class SaleViewStripeTest(SaleViewTestMixin, TestCase):
 
 
 @override_settings(PAYMENT_PROVIDER="paypal")
-class SaleViewPaypalLiveTest(SaleViewLiveBase):
+class SaleViewPaypalLiveTest(SaleViewLiveMixin, LiveServerTestCase):
     """Test sales view using PayPal in chrome"""
 
     def setUp(self):
@@ -428,7 +428,7 @@ class SaleViewPaypalLiveTest(SaleViewLiveBase):
 
 
 @override_settings(PAYMENT_PROVIDER="stripe")
-class SaleViewStripeLiveTest(SaleViewLiveBase):
+class SaleViewStripeLiveTest(SaleViewLiveMixin, LiveServerTestCase):
     """Test sales view using Stripe in chrome"""
 
     def setUp(self):
@@ -492,10 +492,13 @@ class SaleViewStripeLiveTest(SaleViewLiveBase):
         """Submit Stripe payment"""
         # Use more specific selector if possible
         selectors = [
-            "[data-testid='hosted-payment-submit-button']",
             "button[type='submit']",
             ".SubmitButton",
+            "[data-testid='hosted-payment-submit-button']",
         ]
+
+        # Wait 3 seconds
+        sleep(3)
 
         for _ in range(3):  # Retry loop
             for selector in selectors:
@@ -922,6 +925,7 @@ class PaymentLinkView(LiveServerTestCase):
 
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.set_window_size(2080, 1170)
         self.driver.implicitly_wait(5)
 
         # Css selectors

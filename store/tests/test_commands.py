@@ -385,6 +385,7 @@ class PaymentReminderTestLive(PaymentReminderBaseTest, LiveServerTestCase):
 
         # Start selenium
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.set_window_size(2080, 1170)
         self.driver.implicitly_wait(5)
 
         # Global selectors
