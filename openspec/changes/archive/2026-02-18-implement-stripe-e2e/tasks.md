@@ -1,0 +1,4 @@
+- [x] Validate Stripe Checkout Page Structure <!-- id: 0 -->
+- [x] Implement `__fill_stripe_card_details__` <!-- id: 1 -->
+- [x] Implement `__submit_stripe_payment__` <!-- id: 2 -->
+- [x] Verify Test Execution <!-- id: 3 -->

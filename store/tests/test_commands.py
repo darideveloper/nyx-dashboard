@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.management import call_command
-from django.test import TestCase, LiveServerTestCase
+from django.test import TestCase, LiveServerTestCase, override_settings
 from django.utils import timezone
 
 from bs4 import BeautifulSoup
@@ -400,7 +400,8 @@ class PaymentReminderTestLive(PaymentReminderBaseTest, LiveServerTestCase):
         except Exception:
             pass
 
-    def test_remainder_checkout_amount(self):
+    @override_settings(PAYMENT_PROVIDER="paypal")
+    def test_remainder_checkout_amount_paypal(self):
         """Send remainder email and validate checkout amount"""
 
         call_command(self.cron_name)
@@ -413,11 +414,9 @@ class PaymentReminderTestLive(PaymentReminderBaseTest, LiveServerTestCase):
         email_content = mail.outbox[0].alternatives[0][0]
         soup = BeautifulSoup(email_content, "html.parser")
         cta_link = soup.select_one(self.selectors["email_cta"])["href"]
-        
+
         # Replace host wiuth test host in cta link
-        cta_link = cta_link.replace(
-            settings.HOST, self.live_server_url
-        )
+        cta_link = cta_link.replace(settings.HOST, self.live_server_url)
 
         # Open checkout link in selenium
         self.driver.get(cta_link)
@@ -430,7 +429,40 @@ class PaymentReminderTestLive(PaymentReminderBaseTest, LiveServerTestCase):
         sale = models.Sale.objects.all()[0]
         self.assertEqual(float(amount), sale.total)
 
-    def test_remainder_checkout_amount_discount(self):
+    @override_settings(PAYMENT_PROVIDER="stripe")
+    def test_remainder_checkout_amount_stripe(self):
+        """Send remainder email and validate checkout amount"""
+
+        # Update css selectors
+        self.selectors["checkout_amount"] = 'img[alt="US"] + span.CurrencyAmount'
+
+        call_command(self.cron_name)
+
+        # Validate sale info
+        sale = models.Sale.objects.first()
+        self.assertEqual(sale.reminders_sent, 1)
+
+        # Get checkout link from email
+        email_content = mail.outbox[0].alternatives[0][0]
+        soup = BeautifulSoup(email_content, "html.parser")
+        cta_link = soup.select_one(self.selectors["email_cta"])["href"]
+
+        # Replace host wiuth test host in cta link
+        cta_link = cta_link.replace(settings.HOST, self.live_server_url)
+
+        # Open checkout link in selenium
+        self.driver.get(cta_link)
+        sleep(3)
+
+        # Validate amount
+        amount = self.driver.find_element(
+            By.CSS_SELECTOR, self.selectors["checkout_amount"]
+        ).text.replace("$", "")
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(float(amount), sale.total)
+
+    @override_settings(PAYMENT_PROVIDER="paypal")
+    def test_remainder_checkout_amount_discount_paypal(self):
         """Send discount on 3rd remainder"""
 
         # Create sale in "Reminder Sent" status
@@ -451,11 +483,50 @@ class PaymentReminderTestLive(PaymentReminderBaseTest, LiveServerTestCase):
         email_content = mail.outbox[0].alternatives[0][0]
         soup = BeautifulSoup(email_content, "html.parser")
         cta_link = soup.select_one(self.selectors["email_cta"])["href"]
-        
+
         # Replace host wiuth test host in cta link
-        cta_link = cta_link.replace(
-            settings.HOST, self.live_server_url
-        )
+        cta_link = cta_link.replace(settings.HOST, self.live_server_url)
+
+        # Open checkout link in selenium
+        self.driver.get(cta_link)
+        sleep(3)
+
+        # Validate amount
+        amount = self.driver.find_element(
+            By.CSS_SELECTOR, self.selectors["checkout_amount"]
+        ).text.replace("$", "")
+        sale = models.Sale.objects.all()[0]
+        self.assertEqual(float(amount), sale.total)
+        self.assertEqual(float(amount), original_total * 0.85)
+
+    @override_settings(PAYMENT_PROVIDER="stripe")
+    def test_remainder_checkout_amount_discount_stripe(self):
+        """Send discount on 3rd remainder"""
+
+        # Update css selectors
+        self.selectors["checkout_amount"] = 'img[alt="US"] + span.CurrencyAmount'
+
+        # Create sale in "Reminder Sent" status
+        models.Sale.objects.all().delete()
+        self.__create_sale__("Reminder Sent")
+        sale = models.Sale.objects.first()
+        sale.reminders_sent = 2
+        sale.save()
+        original_total = sale.total
+
+        call_command(self.cron_name)
+
+        # Validate sale info
+        sale = models.Sale.objects.first()
+        self.assertEqual(sale.reminders_sent, 3)
+
+        # Get checkout link from email
+        email_content = mail.outbox[0].alternatives[0][0]
+        soup = BeautifulSoup(email_content, "html.parser")
+        cta_link = soup.select_one(self.selectors["email_cta"])["href"]
+
+        # Replace host wiuth test host in cta link
+        cta_link = cta_link.replace(settings.HOST, self.live_server_url)
 
         # Open checkout link in selenium
         self.driver.get(cta_link)
