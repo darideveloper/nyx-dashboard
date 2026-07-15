@@ -7,6 +7,9 @@
 # Use Python 3.12 slim image
 FROM python:3.12-slim
 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 # Load env vars from caprover settings
 ARG ENV
 
@@ -40,9 +43,6 @@ ARG EMAIL_USE_SSL
 ARG TEST_HEADLESS
 
 ARG LANDING_HOST
-
-ARG STRIPE_API_HOST
-ARG STRIPE_API_USER
 
 ARG ADMIN_EMAIL
 ARG AFFILIATES_COMMISSION
@@ -91,9 +91,6 @@ ENV TEST_HEADLESS=${TEST_HEADLESS}
 
 ENV LANDING_HOST=${LANDING_HOST}
 
-ENV STRIPE_API_HOST=${STRIPE_API_HOST}
-ENV STRIPE_API_USER=${STRIPE_API_USER}
-
 ENV ADMIN_EMAIL=${ADMIN_EMAIL}
 ENV AFFILIATES_COMMISSION=${AFFILIATES_COMMISSION}
 ENV AFFILIATES_DISCOUNT=${AFFILIATES_DISCOUNT}
@@ -113,6 +110,8 @@ WORKDIR /app
 # Copy the current directory contents into the container
 COPY . /app/
 
+RUN chmod +x /app/start.sh
+
 # Install system dependencies (e.g., for PostgreSQL support)
 RUN apt-get update && apt-get install -y \
     libpq-dev gcc \
@@ -123,19 +122,15 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN locale-gen es_ES.UTF-8
-RUN update-locale
-
 # Install Python dependencies first (for caching)
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
 
-# Collect static files and migrate database
+# Collect static files
 RUN python manage.py collectstatic --noinput
-RUN python manage.py migrate
 
 # Expose the port that Django/Gunicorn will run on
 EXPOSE 80
 
-# Command to run Gunicorn with the WSGI application for production
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "nyx_dashboard.wsgi:application"]
+# Command to run the start script
+CMD ["./start.sh"]
